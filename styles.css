@@ -1,0 +1,97 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+:root {
+  font-family: 'DM Sans', sans-serif;
+  color: #edf2f7;
+  background: #080d14;
+  font-synthesis: none;
+  --sh-bg: #080d14;
+  --sh-panel: #101823;
+  --sh-panel-2: #141f2c;
+  --sh-line: #223044;
+  --sh-muted: #91a0b3;
+  --sh-green: #35d07f;
+  --sh-red: #ff626f;
+  --sh-blue: #65a9ff;
+}
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; background: var(--sh-bg); }
+button, select { font: inherit; }
+button { cursor: pointer; }
+.sh-page { min-height: 100vh; color: #edf2f7; padding: 26px clamp(14px, 3vw, 42px) 48px; max-width: 1600px; margin: 0 auto; }
+.sh-topbar { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:25px; }
+.sh-brand { display:flex; align-items:center; gap:12px; }
+.sh-logo { width:42px; height:42px; border-radius:13px; display:grid; place-items:center; background:linear-gradient(135deg,#35d07f,#168b61); color:#04130c; font-weight:900; font-family:'Space Grotesk'; box-shadow:0 8px 28px #20bd7130; }
+.sh-brand-name { font:700 20px 'Space Grotesk'; letter-spacing:-.6px; }
+.sh-brand-sub { color:var(--sh-muted); font-size:10px; letter-spacing:1.7px; margin-top:2px; }
+.sh-live-indicator { display:inline-flex; align-items:center; gap:7px; color:var(--sh-green); font-size:12px; font-weight:800; letter-spacing:.8px; }
+.sh-dot { width:7px; height:7px; background:var(--sh-green); border-radius:50%; box-shadow:0 0 0 4px #35d07f1c; }
+.sh-heading { display:flex; align-items:flex-end; justify-content:space-between; gap:20px; margin:18px 0 20px; }
+.sh-eyebrow { color:var(--sh-green); font-size:11px; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; }
+.sh-title { font:700 clamp(28px,4vw,42px) 'Space Grotesk'; letter-spacing:-1.6px; margin:7px 0 5px; }
+.sh-subtitle { color:var(--sh-muted); font-size:14px; line-height:1.55; max-width:650px; }
+.sh-updated { color:var(--sh-muted); font-size:11px; white-space:nowrap; }
+.sh-filters { display:flex; align-items:center; flex-wrap:wrap; gap:9px; padding:13px; background:#0e1722; border:1px solid var(--sh-line); border-radius:16px; margin-bottom:18px; }
+.sh-select, .sh-search { background:#121e2b; color:#e7edf5; border:1px solid #2a3a4e; border-radius:10px; padding:10px 12px; min-height:40px; outline:none; }
+.sh-select:focus, .sh-search:focus { border-color:var(--sh-green); }
+.sh-search { flex:1; min-width:170px; }
+.sh-tabs { display:flex; flex-wrap:wrap; gap:7px; }
+.sh-tab { border:1px solid #2a3a4e; color:#aebacc; background:#111c29; border-radius:9px; padding:9px 13px; font-size:12px; font-weight:700; }
+.sh-tab.active { color:#06150d; background:var(--sh-green); border-color:var(--sh-green); }
+.sh-grid { display:grid; grid-template-columns:minmax(0,1.55fr) minmax(300px,.9fr); gap:17px; align-items:start; }
+.sh-main-col, .sh-side-col { display:grid; gap:17px; min-width:0; }
+.sh-panel { background:var(--sh-panel); border:1px solid var(--sh-line); border-radius:17px; overflow:hidden; min-width:0; }
+.sh-panel-head { padding:16px 18px; border-bottom:1px solid var(--sh-line); display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.sh-panel-title { font:700 15px 'Space Grotesk'; }
+.sh-panel-note { color:var(--sh-muted); font-size:11px; }
+.sh-games { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; padding:12px; }
+.sh-game { background:#131e2b; border:1px solid #26364a; border-radius:13px; padding:13px; min-width:0; }
+.sh-game-top { display:flex; justify-content:space-between; gap:8px; align-items:center; margin-bottom:14px; color:var(--sh-muted); font-size:10px; }
+.sh-status { font-size:10px; font-weight:900; letter-spacing:.7px; color:var(--sh-muted); }
+.sh-status.live { color:var(--sh-red); }
+.sh-status.live:before { content:''; display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--sh-red); margin:0 6px 1px 0; }
+.sh-team-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; align-items:center; margin:9px 0; }
+.sh-team-name { display:flex; align-items:center; gap:9px; font-size:13px; font-weight:700; min-width:0; }
+.sh-team-name span:last-child { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.sh-crest { width:27px; height:27px; border-radius:9px; background:#26384c; display:grid; place-items:center; color:#c8d7e8; font-size:10px; font-weight:900; flex:none; }
+.sh-score { font:700 19px 'Space Grotesk'; font-variant-numeric:tabular-nums; }
+.sh-game-foot { border-top:1px solid #29384a; margin-top:12px; padding-top:10px; display:flex; justify-content:space-between; gap:8px; color:var(--sh-muted); font-size:10px; }
+.sh-game-foot strong { color:#d9e4ef; font-weight:700; }
+.sh-table-wrap { overflow-x:auto; }
+.sh-table { width:100%; border-collapse:collapse; min-width:440px; font-size:12px; }
+.sh-table th { text-align:right; color:#8393a8; font-size:10px; letter-spacing:.6px; font-weight:800; padding:12px 10px; background:#111b27; }
+.sh-table th:first-child, .sh-table td:first-child { text-align:left; padding-left:17px; }
+.sh-table td { text-align:right; padding:12px 10px; border-top:1px solid #202e40; color:#c9d4e1; white-space:nowrap; }
+.sh-rank { color:#7e91a8 !important; width:25px; }
+.sh-team-cell { display:inline-flex; align-items:center; gap:8px; font-weight:700; color:#eef3f8 !important; }
+.sh-mini-crest { width:22px; height:22px; border-radius:7px; display:inline-grid; place-items:center; background:#293a4f; font-size:9px; }
+.sh-positive { color:var(--sh-green) !important; font-weight:800; }
+.sh-stats { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; padding:13px; }
+.sh-stat { background:#131e2b; border:1px solid #26364a; border-radius:12px; padding:13px; }
+.sh-stat-label { color:var(--sh-muted); font-size:11px; }
+.sh-stat-value { font:700 24px 'Space Grotesk'; margin:7px 0 3px; }
+.sh-stat-foot { color:#74869c; font-size:10px; }
+.sh-leaders { padding:4px 16px 12px; }
+.sh-leader { display:flex; align-items:center; gap:11px; padding:11px 0; border-bottom:1px solid #202e40; }
+.sh-leader:last-child { border-bottom:0; }
+.sh-leader-rank { color:#6f8197; font:700 12px 'Space Grotesk'; width:16px; }
+.sh-avatar { width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,#304e66,#1a2b3e); display:grid; place-items:center; font-size:10px; font-weight:800; }
+.sh-leader-info { flex:1; min-width:0; }
+.sh-leader-name { font-size:12px; font-weight:700; }
+.sh-leader-meta { color:var(--sh-muted); font-size:10px; margin-top:3px; }
+.sh-leader-value { text-align:right; font:700 14px 'Space Grotesk'; }
+.sh-leader-value small { display:block; color:var(--sh-muted); font:10px 'DM Sans'; margin-top:2px; }
+.sh-empty { color:var(--sh-muted); padding:22px; text-align:center; font-size:13px; }
+.sh-footnote { color:#6f8094; font-size:10px; line-height:1.5; padding:0 17px 14px; }
+@media (max-width: 980px) { .sh-grid { grid-template-columns:1fr; } .sh-side-col { grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; } }
+@media (max-width: 640px) {
+ .sh-page { padding:17px 12px 35px; }
+ .sh-heading { display:block; }
+ .sh-updated { display:block; margin-top:12px; }
+ .sh-games { grid-template-columns:1fr; }
+ .sh-side-col { grid-template-columns:1fr; }
+ .sh-filters { padding:10px; }
+ .sh-select { flex:1; min-width:130px; }
+ .sh-search { min-width:100%; }
+ .sh-title { letter-spacing:-1px; }
+}
