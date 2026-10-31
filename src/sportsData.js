@@ -1,0 +1,111 @@
+export const basketballCompetitions = [
+  { id: "nba", name: "NBA", country: "United States", region: "North America" },
+  { id: "wnba", name: "WNBA", country: "United States", region: "North America" },
+  { id: "euroleague", name: "EuroLeague", country: "Europe", region: "Europe" },
+  { id: "acb", name: "Liga ACB", country: "Spain", region: "Europe" },
+  { id: "bbl", name: "BBL", country: "Germany", region: "Europe" },
+  { id: "bcl", name: "Basketball Champions League", country: "Europe", region: "Europe" },
+  { id: "bal", name: "Basketball Africa League", country: "Africa", region: "Africa" },
+  { id: "nbl", name: "NBL", country: "Australia", region: "Oceania" },
+  { id: "cba", name: "CBA", country: "China", region: "Asia" },
+  { id: "pba", name: "PBA", country: "Philippines", region: "Asia" },
+];
+
+export const basketballCountries = [
+  "All countries", "United States", "Spain", "Germany", "Europe", "Africa",
+  "Australia", "China", "Philippines", "Kenya"
+];
+
+export const basketballGames = [
+  { id: 1, competitionId: "nba", competition: "NBA", country: "United States", status: "LIVE", clock: "Q3 · 04:32", home: "Boston Celtics", away: "New York Knicks", homeCode: "BOS", awayCode: "NYK", homeScore: 84, awayScore: 79, venue: "TD Garden" },
+  { id: 2, competitionId: "euroleague", competition: "EuroLeague", country: "Europe", status: "LIVE", clock: "Q4 · 07:18", home: "Real Madrid", away: "Olympiacos", homeCode: "RMA", awayCode: "OLY", homeScore: 72, awayScore: 68, venue: "WiZink Center" },
+  { id: 3, competitionId: "bal", competition: "Basketball Africa League", country: "Africa", status: "UPCOMING", clock: "20:00", home: "Nairobi City Thunder", away: "Cape Town Tigers", homeCode: "NCT", awayCode: "CTT", homeScore: null, awayScore: null, venue: "Kigali Arena" },
+  { id: 4, competitionId: "wnba", competition: "WNBA", country: "United States", status: "FINAL", clock: "Final", home: "Las Vegas Aces", away: "New York Liberty", homeCode: "LVA", awayCode: "NYL", homeScore: 91, awayScore: 87, venue: "Michelob ULTRA Arena" },
+  { id: 5, competitionId: "acb", competition: "Liga ACB", country: "Spain", status: "UPCOMING", clock: "Tomorrow · 19:30", home: "FC Barcelona", away: "Valencia Basket", homeCode: "BAR", awayCode: "VAL", homeScore: null, awayScore: null, venue: "Palau Blaugrana" },
+  { id: 6, competitionId: "nbl", competition: "NBL", country: "Australia", status: "FINAL", clock: "Final", home: "Sydney Kings", away: "Melbourne United", homeCode: "SYD", awayCode: "MEL", homeScore: 98, awayScore: 102, venue: "Qudos Bank Arena" },
+];
+
+export const basketballStandings = [
+  { group: "NBA · Eastern Conference", rows: [
+    { team: "Boston Celtics", code: "BOS", p: 82, w: 61, l: 21, pct: ".744", gb: "—", streak: "W4" },
+    { team: "New York Knicks", code: "NYK", p: 82, w: 50, l: 32, pct: ".610", gb: "11.0", streak: "W2" },
+    { team: "Milwaukee Bucks", code: "MIL", p: 82, w: 49, l: 33, pct: ".598", gb: "12.0", streak: "L1" },
+    { team: "Cleveland Cavaliers", code: "CLE", p: 82, w: 48, l: 34, pct: ".585", gb: "13.0", streak: "W1" },
+  ]},
+  { group: "NBA · Western Conference", rows: [
+    { team: "Oklahoma City", code: "OKC", p: 82, w: 57, l: 25, pct: ".695", gb: "—", streak: "W3" },
+    { team: "Denver Nuggets", code: "DEN", p: 82, w: 57, l: 25, pct: ".695", gb: "—", streak: "L1" },
+    { team: "Minnesota", code: "MIN", p: 82, w: 56, l: 26, pct: ".683", gb: "1.0", streak: "W2" },
+    { team: "LA Clippers", code: "LAC", p: 82, w: 51, l: 31, pct: ".622", gb: "6.0", streak: "W1" },
+  ]},
+];
+
+export const basketballLeaders = [
+  { name: "Luka Dončić", team: "Dallas Mavericks", metric: "Points per game", value: "33.9", initials: "LD" },
+  { name: "Nikola Jokić", team: "Denver Nuggets", metric: "Rebounds per game", value: "12.4", initials: "NJ" },
+  { name: "Tyrese Haliburton", team: "Indiana Pacers", metric: "Assists per game", value: "10.9", initials: "TH" },
+  { name: "Victor Wembanyama", team: "San Antonio Spurs", metric: "Blocks per game", value: "3.6", initials: "VW" },
+];
+
+export const basketballStats = [
+  { label: "Games today", value: "18", foot: "Across selected competitions" },
+  { label: "Live games", value: "06", foot: "Illustrative live count" },
+  { label: "Competitions", value: "10", foot: "Sample competition list" },
+  { label: "Countries / regions", value: "9", foot: "Sample coverage map" },
+];
+
+export const nflCompetitions = [
+  { id: "nfl", name: "NFL", country: "United States", region: "North America" },
+  { id: "preseason", name: "NFL Preseason", country: "United States", region: "North America" },
+  { id: "playoffs", name: "NFL Playoffs", country: "United States", region: "North America" },
+];
+
+export const nflCountries = ["All countries", "United States", "International games"];
+
+export const nflGames = [
+  { id: 11, competitionId: "nfl", competition: "NFL", country: "United States", conference: "AFC", status: "LIVE", clock: "3rd · 08:41", home: "Kansas City Chiefs", away: "Buffalo Bills", homeCode: "KC", awayCode: "BUF", homeScore: 24, awayScore: 20, venue: "Arrowhead Stadium" },
+  { id: 12, competitionId: "nfl", competition: "NFL", country: "United States", conference: "NFC", status: "LIVE", clock: "2nd · 02:15", home: "San Francisco 49ers", away: "Dallas Cowboys", homeCode: "SF", awayCode: "DAL", homeScore: 14, awayScore: 10, venue: "Levi's Stadium" },
+  { id: 13, competitionId: "playoffs", competition: "NFL Playoffs", country: "United States", conference: "AFC", status: "UPCOMING", clock: "Sun · 20:20", home: "Baltimore Ravens", away: "Cincinnati Bengals", homeCode: "BAL", awayCode: "CIN", homeScore: null, awayScore: null, venue: "M&T Bank Stadium" },
+  { id: 14, competitionId: "nfl", competition: "NFL", country: "United States", conference: "NFC", status: "FINAL", clock: "Final", home: "Detroit Lions", away: "Green Bay Packers", homeCode: "DET", awayCode: "GB", homeScore: 31, awayScore: 27, venue: "Ford Field" },
+];
+
+export const nflStandings = [
+  { group: "AFC East", rows: [
+    { team: "Buffalo Bills", code: "BUF", p: 17, w: 11, l: 6, t: 0, pct: ".647", pf: 451, pa: 311 },
+    { team: "Miami Dolphins", code: "MIA", p: 17, w: 11, l: 6, t: 0, pct: ".647", pf: 496, pa: 391 },
+    { team: "New York Jets", code: "NYJ", p: 17, w: 7, l: 10, t: 0, pct: ".412", pf: 268, pa: 355 },
+    { team: "New England", code: "NE", p: 17, w: 4, l: 13, t: 0, pct: ".235", pf: 236, pa: 366 },
+  ]},
+  { group: "AFC West", rows: [
+    { team: "Kansas City Chiefs", code: "KC", p: 17, w: 11, l: 6, t: 0, pct: ".647", pf: 371, pa: 294 },
+    { team: "Las Vegas Raiders", code: "LV", p: 17, w: 8, l: 9, t: 0, pct: ".471", pf: 332, pa: 331 },
+    { team: "Denver Broncos", code: "DEN", p: 17, w: 8, l: 9, t: 0, pct: ".471", pf: 357, pa: 413 },
+    { team: "LA Chargers", code: "LAC", p: 17, w: 5, l: 12, t: 0, pct: ".294", pf: 346, pa: 398 },
+  ]},
+  { group: "NFC East", rows: [
+    { team: "Dallas Cowboys", code: "DAL", p: 17, w: 12, l: 5, t: 0, pct: ".706", pf: 509, pa: 315 },
+    { team: "Philadelphia Eagles", code: "PHI", p: 17, w: 11, l: 6, t: 0, pct: ".647", pf: 433, pa: 428 },
+    { team: "NY Giants", code: "NYG", p: 17, w: 6, l: 11, t: 0, pct: ".353", pf: 266, pa: 407 },
+    { team: "Washington", code: "WAS", p: 17, w: 4, l: 13, t: 0, pct: ".235", pf: 329, pa: 518 },
+  ]},
+  { group: "NFC West", rows: [
+    { team: "San Francisco 49ers", code: "SF", p: 17, w: 12, l: 5, t: 0, pct: ".706", pf: 491, pa: 298 },
+    { team: "LA Rams", code: "LAR", p: 17, w: 10, l: 7, t: 0, pct: ".588", pf: 404, pa: 377 },
+    { team: "Seattle Seahawks", code: "SEA", p: 17, w: 9, l: 8, t: 0, pct: ".529", pf: 364, pa: 402 },
+    { team: "Arizona Cardinals", code: "ARI", p: 17, w: 4, l: 13, t: 0, pct: ".235", pf: 330, pa: 455 },
+  ]},
+];
+
+export const nflLeaders = [
+  { name: "Lamar Jackson", team: "Baltimore Ravens", metric: "Passing yards", value: "3,678", initials: "LJ" },
+  { name: "Christian McCaffrey", team: "San Francisco 49ers", metric: "Rushing yards", value: "1,459", initials: "CM" },
+  { name: "Tyreek Hill", team: "Miami Dolphins", metric: "Receiving yards", value: "1,799", initials: "TH" },
+  { name: "Myles Garrett", team: "Cleveland Browns", metric: "Sacks", value: "14.0", initials: "MG" },
+];
+
+export const nflStats = [
+  { label: "NFL teams", value: "32", foot: "AFC 16 · NFC 16" },
+  { label: "Divisions", value: "08", foot: "Four in each conference" },
+  { label: "Games per team", value: "17", foot: "Regular-season format" },
+  { label: "Playoff places", value: "14", foot: "Seven per conference" },
+];
