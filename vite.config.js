@@ -18,4 +18,7 @@ export default defineConfig({
     allowedHosts: previewHosts,
     watch: { usePolling: true },
   },
+  test: {
+    environment: "jsdom",
+  },
 });
