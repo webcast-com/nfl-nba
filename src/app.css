@@ -1,0 +1,22 @@
+.sh-nav {
+  display: flex;
+  gap: 8px;
+  padding: 14px clamp(14px, 3vw, 42px) 0;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+.sh-nav-link {
+  color: #aebacc;
+  background: #111c29;
+  border: 1px solid #2a3a4e;
+  border-radius: 9px;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.sh-nav-link.active {
+  color: #06150d;
+  background: var(--sh-green);
+  border-color: var(--sh-green);
+}
