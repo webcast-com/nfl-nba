@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from "react";
 import heroBasketball from "../assets/hero-basketball.jpg";
 import heroFootball from "../assets/hero-football.jpg";
 import { IconCalendar, IconCamera, IconChart, IconChevronDown, IconClock, IconSearch } from "./Icons";
+import { gameClockLabel, viewerTimeZone, viewerTimeZoneLabel } from "../utils/dates";
 import { EmptyState, Panel, PanelHead, RefreshButton, SourceChip, TeamLogo } from "./ui";
 
 const STATUS_COPY = { LIVE: "Live", FINAL: "Final", UPCOMING: "Upcoming" };
@@ -26,6 +27,7 @@ export function FeaturedGame({ game, sport = "basketball" }) {
   }
 
   const isLive = game.status === "LIVE";
+  const clock = gameClockLabel(game);
 
   return (
     <section className="sh-feature" aria-label="Featured game">
@@ -49,7 +51,7 @@ export function FeaturedGame({ game, sport = "basketball" }) {
 
         <div className="sh-feature-mid">
           <span className="sh-feature-vs">V/S</span>
-          <span className={`sh-feature-clock ${isLive ? "is-live" : ""}`}>{game.clock}</span>
+          <span className={`sh-feature-clock ${isLive ? "is-live" : ""}`}>{clock}</span>
           <span className="sh-feature-venue">{game.venue}</span>
         </div>
 
@@ -67,7 +69,7 @@ export function FeaturedGame({ game, sport = "basketball" }) {
         </span>
         <span className="sh-feature-chip sh-feature-chip-muted">
           <IconClock size={13} />
-          {isLive ? `${game.clock} · in progress` : game.status === "FINAL" ? "Full time" : game.clock}
+          {isLive ? `${clock} · in progress` : game.status === "FINAL" ? "Full time" : clock}
         </span>
       </div>
     </section>
@@ -131,6 +133,7 @@ export function StatusTabs({ value = "ALL", onChange }) {
 export function MatchCard({ game }) {
   const isLive = game.status === "LIVE";
   const clockClass = isLive ? "is-live" : game.status === "FINAL" ? "is-final" : "is-soon";
+  const clock = gameClockLabel(game);
 
   return (
     <article className="sh-match sh-game">
@@ -145,7 +148,7 @@ export function MatchCard({ game }) {
           <i style={{ background: game.leagueColor || "var(--accent)" }} />
           {game.competition}
         </span>
-        <span className={`sh-clock ${clockClass}`}>{game.status === "FINAL" ? "Final" : game.clock}</span>
+        <span className={`sh-clock ${clockClass}`}>{game.status === "FINAL" ? "Final" : clock}</span>
         <span className="sh-clock-ico" aria-hidden="true">
           <IconClock size={14} />
         </span>
@@ -178,6 +181,9 @@ export function ScoreboardPanel({
   note,
   rail,
   seasonLabel = "2025-2026",
+  seasons,
+  season,
+  onSeasonChange,
   status,
   onStatusChange,
   search,
@@ -189,6 +195,8 @@ export function ScoreboardPanel({
   emptyHint,
   railReset,
 }) {
+  const timeZone = viewerTimeZone();
+
   return (
     <Panel className="sh-score-panel">
       <PanelHead
@@ -197,16 +205,42 @@ export function ScoreboardPanel({
         note={note}
         actions={
           <>
-            <span className="sh-season-pill">
-              <IconCalendar size={13} />
-              {seasonLabel}
-              <IconChevronDown size={12} />
-            </span>
+            {seasons?.length ? (
+              <label className="sh-season-pill">
+                <IconCalendar size={13} />
+                <select
+                  value={season}
+                  onChange={(event) => onSeasonChange?.(event.target.value)}
+                  aria-label="Season"
+                >
+                  {seasons.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                <IconChevronDown size={12} />
+              </label>
+            ) : (
+              <span className="sh-season-pill">
+                <IconCalendar size={13} />
+                {seasonLabel}
+                <IconChevronDown size={12} />
+              </span>
+            )}
             {railReset ? (
               <button type="button" className="sh-rail-reset" onClick={railReset.onClick}>
                 {railReset.label}
               </button>
             ) : null}
+            <span
+              className="sh-tz-chip"
+              title={`Kickoff times in your time zone (${timeZone})`}
+              aria-label={`Kickoff times in your time zone: ${timeZone}`}
+            >
+              <IconClock size={12} />
+              {viewerTimeZoneLabel(timeZone)}
+            </span>
             <SourceChip status={sourceStatus} label={sourceLabel} />
             {onRefresh ? <RefreshButton onClick={onRefresh} refreshing={refreshing} /> : null}
           </>

@@ -4,6 +4,7 @@ import {
   nflCountries as defaultCountries,
 } from "../data/sportsData";
 import { LeagueSidebar } from "../components/LeagueSidebar";
+import { MobileSectionTabs } from "../components/Shell";
 import { DateRail, FeaturedGame, ScoreboardPanel } from "../components/Scoreboard";
 import { PlayerDetails } from "../components/PlayerDetails";
 import { StandingsPanel, StatTiles } from "../components/Standings";
@@ -111,6 +112,7 @@ export default function NFLPage({
         color: entry === "AFC" ? "#c2410c" : entry === "NFC" ? "#1d4ed8" : "#475569",
         active: conference === entry,
         onClick: () => setConference(entry),
+        ariaLabel: `Conference: ${entry}`,
       })),
     },
     {
@@ -122,6 +124,7 @@ export default function NFLPage({
           label: entry,
           active: country === entry,
           onClick: () => setCountry((current) => (current === entry ? "All countries" : entry)),
+          ariaLabel: `Country: ${entry}`,
         })),
     },
   ];
@@ -144,7 +147,9 @@ export default function NFLPage({
       />
 
       <div className="sh-center">
-        <FeaturedGame game={hero} sport="football" />
+        <div id="section-live">
+          <FeaturedGame game={hero} sport="football" />
+        </div>
 
         <ScoreboardPanel
           games={filtered}
@@ -170,21 +175,24 @@ export default function NFLPage({
           emptyHint={`No games in week ${currentWeek} for these filters.`}
         />
 
-        <StandingsPanel
-          groups={activeStandings}
-          nfl
-          note={source === "espn" ? "ESPN standings" : "Sample table"}
-        />
+        <div id="section-standings">
+          <StandingsPanel            groups={activeStandings}
+            nfl
+            note={source === "espn" ? "ESPN standings" : "Sample table"}
+          />
+        </div>
         <p className="sh-updated">Updated: {updated}</p>
       </div>
 
-      <aside className="sh-right">
+      <aside className="sh-right" id="section-players">
         <PlayerDetails
           leaders={playerCards}
           note={source === "espn" ? "ESPN leaders" : "Demo leaders"}
         />
         <StatTiles stats={activeStats} title="League format" note="NFL structure" />
       </aside>
+
+      <MobileSectionTabs />
     </main>
   );
 }

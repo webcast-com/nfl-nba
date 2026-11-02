@@ -99,6 +99,7 @@ function statusLabel(status, updatedAt) {
  * @param {string} [options.date] YYYYMMDD for the basketball scoreboard
  * @param {number} [options.week] NFL week number
  * @param {number} [options.seasonType] 1 preseason · 2 regular · 3 postseason
+ * @param {number} [options.season] ESPN season year (basketball uses its end year)
  * @param {number} [options.refreshMs] polling interval, 0 disables polling
  */
 export function useEspnFeed({
@@ -107,6 +108,7 @@ export function useEspnFeed({
   date,
   week,
   seasonType,
+  season,
   refreshMs = REFRESH_INTERVAL,
 } = {}) {
   const demo = DEMO[sport] ?? DEMO.basketball;
@@ -127,7 +129,7 @@ export function useEspnFeed({
 
     const load = async (force) => {
       try {
-        const result = await fetcher({ date, week, seasonType, force });
+        const result = await fetcher({ date, week, seasonType, season, force });
         if (cancelled) return;
         setSnapshot((previous) => ({
           games: result.games,
@@ -163,7 +165,7 @@ export function useEspnFeed({
       cancelled = true;
       if (timer) clearInterval(timer);
     };
-  }, [sport, date, week, seasonType, canFetch, refreshMs, nonce]);
+  }, [sport, date, week, seasonType, season, canFetch, refreshMs, nonce]);
 
   useEffect(() => {
     if (!canFetch) return undefined;

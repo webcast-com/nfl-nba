@@ -103,6 +103,15 @@ describe("useEspnFeed", () => {
     expect(basketballFetch.mock.calls[1][0].force).toBe(true);
   });
 
+  it("passes the selected season through to the ESPN fetcher", async () => {
+    basketballFetch.mockResolvedValue({ games: [liveGame], standings: liveStandings, meta: {} });
+
+    const { result } = renderHook(() => useEspnFeed({ sport: "basketball", season: 2025 }));
+
+    await waitFor(() => expect(result.current.status).toBe("live"));
+    expect(basketballFetch.mock.calls[0][0].season).toBe(2025);
+  });
+
   it("never hits the network when disabled", () => {
     const { result } = renderHook(() => useEspnFeed({ sport: "basketball", enabled: false }));
 
