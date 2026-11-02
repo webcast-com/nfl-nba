@@ -1,3 +1,8 @@
 node_modules
 dist
 .vite
+
+# Base44 sandbox / preview-only setup (not part of the app)
+docker-compose.base44.yml
+.base44/
+AGENTS.md
