@@ -38,6 +38,7 @@ Below 960px the icon rail is hidden and the three dashboard columns stack. To ke
 | Players | Player Details rail | Right column |
 
 - Each tab smooth-scrolls to its `#section-*` target, clears the sticky header (`scroll-margin-top`) and stays highlighted while that section is in view; the page reserves bottom padding so the bar never covers the last row.
+- Tab taps scroll with an eased animation (`src/utils/scroll.js`) that works even where `scrollIntoView({ behavior: "smooth" })` is ignored, lands the panel just below the sticky header, is cancelled as soon as the visitor scrolls, and jumps instantly for `prefers-reduced-motion` visitors. `html { scroll-behavior: smooth }` covers the rest.
 - The tabs are `display: none` above 960px, so the desktop layout is untouched, and they are plain buttons with `aria-current` — keyboard and screen-reader friendly.
 - The top bar wraps to two rows below 960px (brand and actions, then the full-width sports switcher), fixing the clipped "Footb…" tab on narrow phones.
 

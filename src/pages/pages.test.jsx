@@ -1,4 +1,4 @@
-import { afterEach, describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect, vi } from "vitest";
 import { cleanup, render, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import BasketballPage from "./BasketballPage";
@@ -29,9 +29,12 @@ describe("BasketballPage", () => {
     expect(document.getElementById("section-filters")).toBeTruthy();
     expect(document.getElementById("section-players")).toBeTruthy();
 
+    const scrollTo = vi.spyOn(window, "scrollTo").mockImplementation(() => {});
     const filters = getByRole("button", { name: "Filters" });
     fireEvent.click(filters);
     expect(filters.getAttribute("aria-current")).toBe("true");
+    expect(scrollTo).toHaveBeenCalled();
+    scrollTo.mockRestore();
   });
 
   it("shows kickoff times in the viewer's time zone", () => {

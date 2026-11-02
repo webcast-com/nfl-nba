@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
+import { smoothScrollTo } from "../utils/scroll";
 import {
   IconBall,
   IconBell,
@@ -89,7 +90,7 @@ export function MobileSectionTabs() {
 
   const jump = (id) => {
     setActive(id);
-    document.getElementById(id)?.scrollIntoView?.({ behavior: "smooth", block: "start" });
+    smoothScrollTo(id);
   };
 
   return (

@@ -1565,3 +1565,11 @@ html[data-theme='light'] .sh-league-tag.is-w { color: #a21caf; background: rgba(
 
   .sh-site-tab.is-active svg { color: var(--accent-text); }
 }
+
+/* smooth anchor/programmatic scrolling, unless the visitor asked for less motion */
+html { scroll-behavior: smooth; }
+.sh-side-scroll { scroll-behavior: smooth; }
+
+@media (prefers-reduced-motion: reduce) {
+  html, .sh-side-scroll { scroll-behavior: auto; }
+}
