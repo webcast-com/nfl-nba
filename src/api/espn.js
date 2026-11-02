@@ -320,6 +320,16 @@ function competitionFor(event, league, sport) {
   };
 }
 
+const teamLogo = (team) =>
+  team?.logo ?? asArray(team?.logos)[0]?.href ?? null;
+
+function broadcastName(competition) {
+  const names = asArray(competition?.broadcasts).flatMap((entry) => asArray(entry?.names));
+  if (names.length) return names[0];
+  const media = competition?.media;
+  return asArray(media?.shortName)[0] ?? media?.shortName ?? null;
+}
+
 function normalizeEvent(event, league, sport, index) {
   const competition = asArray(event?.competitions)[0] ?? {};
   const competitors = asArray(competition.competitors);
@@ -371,8 +381,11 @@ function normalizeEvent(event, league, sport, index) {
     away: awayTeam.displayName ?? awayTeam.name ?? "TBD",
     homeCode: homeTeam.abbreviation ?? "—",
     awayCode: awayTeam.abbreviation ?? "—",
+    homeLogo: teamLogo(homeTeam),
+    awayLogo: teamLogo(awayTeam),
     homeScore: scoreOf(home),
     awayScore: scoreOf(away),
+    broadcast: broadcastName(competition),
     venue: venue.fullName ?? "Venue TBD",
     startTime: event.date ?? null,
     league: league.key,
@@ -464,6 +477,7 @@ function normalizeStandingRow(entry) {
   return {
     team: team.displayName ?? team.name ?? "TBD",
     code: team.abbreviation ?? "—",
+    logo: teamLogo(team),
     p: gamesPlayed ?? "—",
     w: wins ?? "—",
     l: losses ?? "—",
@@ -546,8 +560,9 @@ function findLeaderLists(node, out = [], depth = 0) {
   return out;
 }
 
-export function normalizeLeaders(payload) {
+export function normalizeLeaders(payload, { sport = "basketball" } = {}) {
   const lists = findLeaderLists(payload);
+  const sportPath = sport === "football" ? "nfl" : "nba";
   const leaders = [];
   const seenMetrics = new Set();
 
@@ -560,9 +575,17 @@ export function normalizeLeaders(payload) {
         const name = athlete.displayName ?? athlete.fullName ?? athlete.name ?? entry.displayName;
         const value = entry.displayValue ?? entry.value;
         if (!name || value === undefined || value === null) return null;
+        const team = athlete.team ?? entry.team ?? {};
+        const headshot =
+          athlete.headshot?.href ??
+          (athlete.id ? `https://a.espncdn.com/i/headshots/${sportPath}/players/full/${athlete.id}.png` : null);
         return {
           name,
-          team: athlete.team?.displayName ?? entry.team?.displayName ?? "—",
+          team: team.displayName ?? "—",
+          teamAbbr: team.abbreviation ?? null,
+          teamLogo: teamLogo(team),
+          position: athlete.position?.abbreviation ?? athlete.position?.name ?? null,
+          headshot,
           metric,
           value: String(value),
           initials: initials(name),
@@ -614,7 +637,7 @@ export async function loadLeaders(leagueKey, { force = false } = {}) {
     ttl: LEADERS_TTL,
     force,
   });
-  return normalizeLeaders(data);
+  return normalizeLeaders(data, { sport: requireLeague(leagueKey).sport });
 }
 
 async function mergeScoreboards(leagueKeys, options) {

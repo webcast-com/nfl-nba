@@ -1,14 +1,30 @@
-# ScoreHub Basketball + NFL pages
+# ScoreHub · Basketball + NFL live dashboard
 
-Responsive React page components for a dark ScoreHub-style sports dashboard, now backed by ESPN's public (keyless) endpoints with the bundled demo data as an automatic fallback.
+Dark, broadcast-style sports dashboard built with React + Vite. Scores, standings and player leaders come from ESPN's public (keyless) endpoints, with bundled demo data as an automatic offline fallback.
+
+## Interface
+
+- **Icon rail** on the far left with the app mark and section shortcuts.
+- **Top bar** with sport tabs (Basketball, Football, Cricket, Badminton, Hockey), search, notifications, a working light/dark theme switch (persisted in `localStorage`) and the profile chip.
+- **League sidebar**: popular leagues/season stages, countries with flags, and conference/region filters. Selecting a row filters the dashboard in place.
+- **Featured game hero** with the live matchup, venue, broadcast and clock.
+- **Live Score panel**: season pill, day/week rail, status tabs (ALL / LIVE / UPCOMING / FINAL), search, match cards with real team logos, live clocks, scores and broadcasters.
+- **Player Details rail** with photo (or team-coloured monogram) cards and a stats strip.
+- **Standings** grouped into conference/division cards, plus competition snapshot tiles.
+- Responsive down to phones: the rail hides, columns stack, sidebars move below the centre column.
+
+Sports without a feed yet (Cricket, Badminton, Hockey) render a placeholder page inside the same shell instead of pretending to have data.
 
 ## Included
-- `BasketballPage.jsx`: competition and country filters, scoreboard date picker, live/recent/upcoming game cards, league standings, player leaders and team statistics.
-- `NFLPage.jsx`: season stage/week pickers and conference filters, game cards, AFC/NFC standings, team leaders and league statistics.
-- `src/api/espn.js`: ESPN client — URL builders, 30s response cache, request de-duplication, timeouts, proxy fallback and normalisers for scores/standings/leaders.
-- `src/hooks/useEspnFeed.js`: polling hook (45s, paused in background tabs) that swaps demo data for live ESPN data and exposes a sync status badge.
-- Shared UI components and responsive CSS.
-- Sample data in `src/data/sportsData.js` (still the offline/first-paint fallback).
+
+- `src/pages/BasketballPage.jsx` — global basketball dashboard, date rail, league/country/region filters.
+- `src/pages/NFLPage.jsx` — NFL dashboard, season stage + week rail + conference filters.
+- `src/pages/ComingSoonPage.jsx` — placeholder for sports that don't have a feed yet.
+- `src/components/` — shell (rail/top bar), league sidebar, hero, score panel, match cards, player cards, standings, UI primitives, icon set.
+- `src/api/espn.js` — ESPN client and normalisers.
+- `src/hooks/useEspnFeed.js` — polling hook that swaps demo data for live data.
+- `src/data/sportsData.js` — demo data (scores, standings, leaders, team logos, broadcasters) used for the first paint and offline mode.
+- `src/utils/` — date/week rails and dashboard helpers.
 
 ## Add to a Vite React project
 
@@ -19,7 +35,6 @@ Responsive React page components for a dark ScoreHub-style sports dashboard, now
 import BasketballPage from "./pages/BasketballPage";
 import NFLPage from "./pages/NFLPage";
 
-// Example routes:
 // <Route path="/basketball" element={<BasketballPage />} />
 // <Route path="/nfl" element={<NFLPage />} />
 ```
@@ -29,6 +44,8 @@ import NFLPage from "./pages/NFLPage";
 ```jsx
 import "./styles.css";
 ```
+
+`src/App.jsx` shows the full shell (rail, top bar, routes, theme toggle).
 
 ## ESPN integration
 
@@ -43,9 +60,9 @@ import "./styles.css";
 How it behaves:
 
 - **No API key.** ESPN's public endpoints are keyless and send `Access-Control-Allow-Origin: *`, so the browser calls them directly. Each request also has a same-origin fallback (`/espn`, `/espn-web`) that the Vite dev/preview server proxies server-side (`vite.config.js`).
-- **Graceful degradation.** The page paints the bundled demo data immediately. When ESPN answers, scores/standings/leaders/stat tiles are replaced in place. If ESPN is unreachable the demo data stays and the badge reads `OFFLINE · DEMO`; a refresh button and automatic retry every 45s keep trying.
+- **Graceful degradation.** The page paints the bundled demo data immediately. When ESPN answers, scores/standings/leaders/stat tiles are replaced in place; team logos, broadcasters and player headshots come with them. If ESPN is unreachable the demo data stays and the chip reads `OFFLINE · DEMO`; a refresh button and a 45s retry keep trying.
 - **Filters still work.** ESPN statuses map to the existing tabs (`LIVE`, `UPCOMING`, `FINAL`), NFL season stages map to the existing competition ids (`nfl`, `preseason`, `playoffs`), and venue countries feed the country filter.
-- **New controls, same look.** Basketball gets a date stepper (`dates=YYYYMMDD`) and NFL gets week + season-stage pickers (`week` + `seasontype`), all styled with the existing filter bar.
+- **Navigation maps to real feeds.** The basketball date rail sends `dates=YYYYMMDD`; the NFL week rail sends `week` + `seasontype`.
 
 ### Configuration
 
@@ -59,11 +76,11 @@ VITE_ESPN_DISABLE=1                                  # demo data only
 
 When deploying the static build without a proxy, keep the default ESPN origins (browser-direct requests). If you prefer routing ESPN traffic through your own server, set `VITE_ESPN_SITE_BASE_URL=/espn` and mirror the `vite.config.js` proxy in your host config.
 
-Unit tests disable ESPN automatically (`import.meta.env.MODE === "test"`), so the existing component tests still assert against the demo dataset. `src/api/espn.test.js` covers the normalisers and the request fallback/cache behaviour with mocked `fetch`.
+Unit tests disable ESPN automatically (`import.meta.env.MODE === "test"`), so component tests assert against the demo dataset. `src/api/espn.test.js` covers the normalisers and the request fallback/cache behaviour; `src/hooks/useEspnFeed.test.jsx` covers the loading → live, offline and refresh states.
 
 ## Props
 
-Both pages accept optional props. Anything you pass wins over ESPN and disables polling for that page, so the components remain pure/controllable:
+Both dashboards accept optional props. Anything you pass wins over ESPN and disables polling for that page, so the components remain pure/controllable:
 
 - `games`
 - `competitions`

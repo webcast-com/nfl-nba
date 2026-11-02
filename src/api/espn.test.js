@@ -218,15 +218,26 @@ describe("ESPN leaders normalisation", () => {
           leaders: [
             {
               displayValue: "33.9",
-              athlete: { displayName: "Luka Dončić", team: { displayName: "Dallas Mavericks" } },
+              athlete: {
+                id: "3945274",
+                displayName: "Luka Dončić",
+                position: { abbreviation: "PG" },
+                team: { displayName: "Dallas Mavericks", abbreviation: "DAL" },
+              },
             },
           ],
         },
       ],
     });
-    expect(leaders).toEqual([
-      { name: "Luka Dončić", team: "Dallas Mavericks", metric: "Points Per Game", value: "33.9", initials: "LD" },
-    ]);
+    expect(leaders[0]).toMatchObject({
+      name: "Luka Dončić",
+      team: "Dallas Mavericks",
+      metric: "Points Per Game",
+      value: "33.9",
+      initials: "LD",
+    });
+    expect(leaders[0].headshot).toContain("a.espncdn.com/i/headshots/nba/players/full/3945274.png");
+    expect(leaders[0]).toMatchObject({ position: "PG", teamAbbr: "DAL" });
   });
 
   it("returns an empty list for unexpected shapes", () => {
