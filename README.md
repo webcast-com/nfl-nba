@@ -119,6 +119,10 @@ VITE_ESPN_DISABLE=1                                  # demo data only
 
 When deploying the static build without a proxy, keep the default ESPN origins (browser-direct requests). If you prefer routing ESPN traffic through your own server, set `VITE_ESPN_SITE_BASE_URL=/espn` and mirror the `vite.config.js` proxy in your host config.
 
+### Deployment
+
+`vercel.json` rewrites every path to `index.html`, so the client-side routes (`/nfl`, `/cricket`, `/badminton`, `/hockey`) survive a refresh or a shared link instead of hitting the host's 404 page — previously only `/` loaded and the rest 404'd on the Vercel deployments. On other static hosts, mirror that rewrite (`/* → /index.html`); `vite dev` and `vite preview` already do it.
+
 Unit tests disable ESPN automatically (`import.meta.env.MODE === "test"`), so component tests assert against the demo dataset. `src/api/espn.test.js` covers the normalisers and the request fallback/cache behaviour; `src/hooks/useEspnFeed.test.jsx` covers the loading → live, offline and refresh states.
 
 ## Props
