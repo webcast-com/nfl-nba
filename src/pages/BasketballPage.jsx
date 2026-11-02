@@ -1,42 +1,89 @@
 import React, { useMemo, useState } from "react";
-import {
-  basketballCompetitions as defaultCompetitions,
-  basketballCountries as defaultCountries,
-} from "../data/sportsData";
+import { basketballCompetitions as defaultCompetitions } from "../data/sportsData";
 import { LeagueSidebar } from "../components/LeagueSidebar";
 import { DateRail, FeaturedGame, ScoreboardPanel } from "../components/Scoreboard";
 import { PlayerDetails } from "../components/PlayerDetails";
 import { StandingsPanel, StatTiles } from "../components/Standings";
 import { useEspnFeed } from "../hooks/useEspnFeed";
-import { buildDateRail, formatDateKeyLabel, toDateKey } from "../utils/dates";
+import {
+  buildDateRail,
+  buildSeasonOptions,
+  formatDateKeyLabel,
+  seasonLabel,
+  seasonSampleDate,
+  seasonStartForDate,
+  toDateKey,
+} from "../utils/dates";
 import {
   buildTeamLogoMap,
   competitionColors,
   featuredGame,
-  seasonLabelFor,
 } from "../utils/dashboard";
 
-const REGIONS = ["Africa", "Asia", "Europe", "North America", "South America", "Oceania"];
+const CONTINENTS = [
+  "Africa",
+  "Asia",
+  "Europe",
+  "International",
+  "North America",
+  "Oceania",
+  "South America",
+];
+
+const CONTINENT_BADGES = {
+  Africa: "AF",
+  Asia: "AS",
+  Europe: "EU",
+  International: "INT",
+  "North America": "NA",
+  Oceania: "OC",
+  "South America": "SA",
+};
+
+const CONTINENT_COLORS = {
+  Africa: "#22a06b",
+  Asia: "#0ea5e9",
+  Europe: "#8b7cf6",
+  International: "#f59e0b",
+  "North America": "#1d428a",
+  Oceania: "#0b6bb3",
+  "South America": "#ea580c",
+};
+
+const GENDERS = ["All genders", "Men", "Women"];
+const GENDER_BADGES = { "All genders": "ALL", Men: "M", Women: "W" };
+const GENDER_COLORS = { "All genders": "#475569", Men: "#1d4ed8", Women: "#be185d" };
 
 export default function BasketballPage({
   games,
   competitions = defaultCompetitions,
-  countries = defaultCountries,
+  countries,
   standings,
   leaders,
   stats,
   lastUpdated,
   live = true,
 }) {
-  const [competition, setCompetition] = useState("all");
+  const [continent, setContinent] = useState("All continents");
   const [country, setCountry] = useState("All countries");
-  const [region, setRegion] = useState("All regions");
+  const [gender, setGender] = useState("All genders");
+  const [competition, setCompetition] = useState("all");
   const [status, setStatus] = useState("ALL");
   const [search, setSearch] = useState("");
-  const [date, setDate] = useState(() => toDateKey());
+  const [today] = useState(() => toDateKey());
+  const [date, setDate] = useState(today);
+  const [seasonStart, setSeasonStart] = useState(() => seasonStartForDate(today));
+
+  const currentSeasonStart = seasonStartForDate(today);
+  const seasons = useMemo(() => buildSeasonOptions(currentSeasonStart), [currentSeasonStart]);
 
   const isControlled = Boolean(games || standings || leaders || stats);
-  const feed = useEspnFeed({ sport: "basketball", enabled: live && !isControlled, date });
+  const feed = useEspnFeed({
+    sport: "basketball",
+    enabled: live && !isControlled,
+    date,
+    season: seasonStart + 1, // ESPN indexes basketball seasons by their end year
+  });
 
   // Explicit props always win, so the page stays usable as a pure component.
   const activeGames = games ?? feed.games;
@@ -47,23 +94,81 @@ export default function BasketballPage({
   const updated = lastUpdated ?? (isControlled ? "custom dataset" : feed.label);
 
   const leagueColors = useMemo(() => competitionColors(competitions), [competitions]);
+  const competitionMap = useMemo(
+    () => new Map(competitions.map((entry) => [entry.id, entry])),
+    [competitions]
+  );
+
+  const visibleCompetitions = useMemo(
+    () =>
+      competitions.filter(
+        (entry) =>
+          (continent === "All continents" || entry.continent === continent) &&
+          (country === "All countries" || entry.country === country) &&
+          (gender === "All genders" || entry.gender === gender)
+      ),
+    [competitions, continent, country, gender]
+  );
+
+  const visibleIds = useMemo(
+    () => new Set(visibleCompetitions.map((entry) => entry.id)),
+    [visibleCompetitions]
+  );
+
+  // A competition that is filtered out falls back to "all" instead of leaving a blank grid.
+  const activeCompetition =
+    competition !== "all" && visibleIds.has(competition) ? competition : "all";
+
+  const countryOptions = useMemo(() => {
+    if (countries?.length) {
+      return [...new Set(countries)].filter((entry) => entry !== "All countries").sort();
+    }
+    const set = new Set(
+      competitions
+        .filter(
+          (entry) =>
+            (continent === "All continents" || entry.continent === continent) &&
+            (gender === "All genders" || entry.gender === gender)
+        )
+        .map((entry) => entry.country)
+        .filter(Boolean)
+    );
+    return [...set].sort();
+  }, [countries, competitions, continent, gender]);
+
+  const activeCountry = countryOptions.includes(country) ? country : "All countries";
 
   const filtered = useMemo(
     () =>
       activeGames
-        .filter(
-          (game) =>
-            (competition === "all" || game.competitionId === competition) &&
-            (country === "All countries" || game.country === country) &&
-            (region === "All regions" ||
-              competitions.find((entry) => entry.id === game.competitionId)?.region === region) &&
+        .filter((game) => {
+          const meta = competitionMap.get(game.competitionId);
+          const gameCountry = game.country ?? meta?.country ?? null;
+          return (
+            (activeCompetition === "all" || game.competitionId === activeCompetition) &&
+            (continent === "All continents" || meta?.continent === continent) &&
+            (activeCountry === "All countries" ||
+              gameCountry === activeCountry ||
+              meta?.country === activeCountry) &&
+            (gender === "All genders" || meta?.gender === gender) &&
             (status === "ALL" || game.status === status) &&
             `${game.home} ${game.away} ${game.competition}`
               .toLowerCase()
               .includes(search.toLowerCase())
-        )
+          );
+        })
         .map((game) => ({ ...game, leagueColor: leagueColors[game.competitionId] })),
-    [activeGames, competition, country, region, status, search, competitions, leagueColors]
+    [
+      activeGames,
+      competitionMap,
+      activeCompetition,
+      continent,
+      activeCountry,
+      gender,
+      status,
+      search,
+      leagueColors,
+    ]
   );
 
   const hero = useMemo(() => featuredGame(filtered), [filtered]);
@@ -78,45 +183,81 @@ export default function BasketballPage({
   );
 
   const dateRail = useMemo(() => buildDateRail(date), [date]);
-  const today = toDateKey();
 
-  const leagueList = competitions.map((entry) => ({
-    id: entry.id,
-    name: entry.name,
-    short: entry.short,
-    color: entry.color,
-  }));
+  const selectDate = (key) => {
+    setDate(key);
+    setSeasonStart(seasonStartForDate(key));
+  };
 
-  const groups = [
-    {
-      title: "International",
-      items: countries
-        .filter((entry) => entry !== "All countries")
-        .map((entry) => ({
-          key: entry,
-          label: entry,
-          active: country === entry,
-          onClick: () => setCountry((current) => (current === entry ? "All countries" : entry)),
-        })),
-    },
-    {
-      title: "Regions",
-      items: [
-        {
-          key: "All regions",
-          label: "All regions",
-          active: region === "All regions",
-          onClick: () => setRegion("All regions"),
-        },
-        ...REGIONS.map((entry) => ({
-          key: entry,
-          label: entry,
-          active: region === entry,
-          onClick: () => setRegion((current) => (current === entry ? "All regions" : entry)),
-        })),
-      ],
-    },
-  ];
+  const selectSeason = (value) => {
+    const start = Number(value);
+    if (!Number.isFinite(start)) return;
+    setSeasonStart(start);
+    setDate(start === currentSeasonStart ? today : seasonSampleDate(start));
+  };
+
+  const continentGroup = {
+    title: "Continents",
+    showCount: false,
+    items: [
+      {
+        key: "all-continents",
+        label: "All continents",
+        badge: "ALL",
+        color: GENDER_COLORS["All genders"],
+        active: continent === "All continents",
+        onClick: () => setContinent("All continents"),
+        ariaLabel: "Continent: All continents",
+      },
+      ...CONTINENTS.map((name) => ({
+        key: name,
+        label: name,
+        badge: CONTINENT_BADGES[name],
+        color: CONTINENT_COLORS[name],
+        meta: competitions.filter((entry) => entry.continent === name).length,
+        active: continent === name,
+        onClick: () => setContinent(name),
+        ariaLabel: `Continent: ${name}`,
+      })),
+    ],
+  };
+
+  const genderGroup = {
+    title: "Gender",
+    showCount: false,
+    items: GENDERS.map((name) => ({
+      key: name,
+      label: name,
+      badge: GENDER_BADGES[name],
+      color: GENDER_COLORS[name],
+      active: gender === name,
+      onClick: () => setGender(name),
+      ariaLabel: `Gender: ${name}`,
+    })),
+  };
+
+  const countryGroup = {
+    title: "Countries",
+    scroll: countryOptions.length > 8,
+    items: [
+      {
+        key: "all-countries",
+        label: "All countries",
+        badge: "ALL",
+        color: GENDER_COLORS["All genders"],
+        active: activeCountry === "All countries",
+        onClick: () => setCountry("All countries"),
+        ariaLabel: "Country: All countries",
+      },
+      ...countryOptions.map((name) => ({
+        key: name,
+        label: name,
+        active: activeCountry === name,
+        onClick: () => setCountry(name),
+        ariaLabel: `Country: ${name}`,
+      })),
+    ],
+  };
 
   return (
     <main className="sh-dash">
@@ -124,10 +265,17 @@ export default function BasketballPage({
 
       <LeagueSidebar
         title="Popular Leagues"
-        leagues={leagueList}
-        activeLeague={competition}
+        leagues={visibleCompetitions.map((entry) => ({
+          id: entry.id,
+          name: entry.name,
+          short: entry.short,
+          color: entry.color,
+          tag: entry.gender === "Women" ? "W" : null,
+        }))}
+        activeLeague={activeCompetition}
         onLeague={(id) => setCompetition((current) => (current === id ? "all" : id))}
-        groups={groups}
+        groupsBefore={[continentGroup]}
+        groups={[genderGroup, countryGroup]}
       />
 
       <div className="sh-center">
@@ -136,9 +284,12 @@ export default function BasketballPage({
         <ScoreboardPanel
           games={filtered}
           note={`${filtered.length} matches`}
-          seasonLabel={seasonLabelFor("basketball", feed.meta)}
-          rail={<DateRail items={dateRail} activeKey={date} onSelect={setDate} label="Scoreboard date" />}
-          railReset={date === today ? undefined : { label: "Today", onClick: () => setDate(today) }}
+          seasonLabel={seasonLabel(seasonStart)}
+          seasons={seasons}
+          season={String(seasonStart)}
+          onSeasonChange={selectSeason}
+          rail={<DateRail items={dateRail} activeKey={date} onSelect={selectDate} label="Scoreboard date" />}
+          railReset={date === today ? undefined : { label: "Today", onClick: () => selectDate(today) }}
           status={status}
           onStatusChange={setStatus}
           search={search}
@@ -152,7 +303,7 @@ export default function BasketballPage({
 
         <StandingsPanel
           groups={activeStandings}
-          note={source === "espn" ? "ESPN standings" : "Sample table"}
+          note={`${seasonLabel(seasonStart)} · ${source === "espn" ? "ESPN standings" : "sample table"}`}
         />
         <p className="sh-updated">Updated: {updated}</p>
       </div>

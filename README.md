@@ -6,7 +6,7 @@ Dark, broadcast-style sports dashboard built with React + Vite. Scores, standing
 
 - **Icon rail** on the far left with the app mark and section shortcuts.
 - **Top bar** with sport tabs (Basketball, Football, Cricket, Badminton, Hockey), search, notifications, a working light/dark theme switch (persisted in `localStorage`) and the profile chip.
-- **League sidebar**: popular leagues/season stages, countries with flags, and conference/region filters. Selecting a row filters the dashboard in place.
+- **League sidebar**: continent filter, the full competition list, gender filter and countries with flags. Rows narrow each other and filter the dashboard in place; the section chevrons expand a list that is taller than the panel.
 - **Featured game hero** with the live matchup, venue, broadcast and clock.
 - **Live Score panel**: season pill, day/week rail, status tabs (ALL / LIVE / UPCOMING / FINAL), search, match cards with real team logos, live clocks, scores and broadcasters.
 - **Player Details rail** with photo (or team-coloured monogram) cards and a stats strip.
@@ -17,7 +17,7 @@ Sports without a feed yet (Cricket, Badminton, Hockey) render a placeholder page
 
 ## Included
 
-- `src/pages/BasketballPage.jsx` — global basketball dashboard, date rail, league/country/region filters.
+- `src/pages/BasketballPage.jsx` — global basketball dashboard: continent / competition / gender / country / season filters, date rail, status tabs and search.
 - `src/pages/NFLPage.jsx` — NFL dashboard, season stage + week rail + conference filters.
 - `src/pages/ComingSoonPage.jsx` — placeholder for sports that don't have a feed yet.
 - `src/components/` — shell (rail/top bar), league sidebar, hero, score panel, match cards, player cards, standings, UI primitives, icon set.
@@ -25,6 +25,32 @@ Sports without a feed yet (Cricket, Badminton, Hockey) render a placeholder page
 - `src/hooks/useEspnFeed.js` — polling hook that swaps demo data for live data.
 - `src/data/sportsData.js` — demo data (scores, standings, leaders, team logos, broadcasters) used for the first paint and offline mode.
 - `src/utils/` — date/week rails and dashboard helpers.
+
+## Basketball coverage and filters
+
+`src/data/sportsData.js` catalogues 40 competitions (id, name, short code, colour, country, continent, gender, optional ESPN slug). Seven regions are represented:
+
+| Region | Competitions |
+| --- | --- |
+| Africa (7) | Basketball Africa League, Women's Basketball League Africa, Kenya NBL, Kenya Women's Basketball League, Nigeria NBPL, Egypt EBSL, Senegal N1 |
+| Europe (13) | EuroLeague, EuroCup, Basketball Champions League, Liga ACB, BBL, LBA, LNB Élite, Greek Basket League, ABA League, EuroLeague Women, EuroCup Women, EuroBasket, EuroBasket Women |
+| Asia (7) | Chinese CBA, Japan B.LEAGUE, Korea KBL, Philippines PBA, WJBL, WCBA, FIBA Asia Cup |
+| North America (3) | NBA, WNBA, NBA G League |
+| Oceania (2) | NBL, WNBL |
+| South America (2) | Liga Nacional Argentina, Basketball Champions League Americas |
+| International (6) | FIBA World Cup and Women's World Cup, FIBA Olympic qualifiers, Olympic Qualifying Tournaments, FIBA 3x3 men's and women's series |
+
+Four of them are mapped to live ESPN scoreboards (`nba`, `wnba`, `euroleague`, `nbl`); the rest are demo-only until ESPN exposes a slug, and the dashboard keeps rendering them from demo data.
+
+Filters compose in a single pass — every one of them narrows the games, the hero, the standings label and the sidebar options at the same time:
+
+- **Continent** (with *All continents*) picks the region.
+- **Competition** (the sidebar list) is filtered by continent, gender, country and search; a selection that no longer matches falls back to *All competitions* instead of showing an empty page.
+- **Gender** (Men / Women / All) uses each competition's `gender`, so the list shows M/W tags and the header counts update.
+- **Country** (with flags) is derived from the remaining continent/gender selection.
+- **Season** (a `<select>` on the Live Score panel) offers the current season and the two before it. Choosing one re-queries ESPN with ESPN's end-year convention (`season start + 1`) and moves the date rail to today (current season) or 1 February of the season's end year (historical seasons).
+
+Status tabs (ALL / LIVE / UPCOMING / FINAL), team search, the day rail and competition selection are additive: a game must match all of them.
 
 ## Add to a Vite React project
 

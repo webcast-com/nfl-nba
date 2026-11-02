@@ -3,6 +3,7 @@ import { cleanup, render, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import BasketballPage from "./BasketballPage";
 import NFLPage from "./NFLPage";
+import { seasonStartForDate, toDateKey } from "../utils/dates";
 
 afterEach(cleanup);
 
@@ -26,8 +27,46 @@ describe("BasketballPage", () => {
 
   it("filters by competition from the league sidebar", () => {
     const { container, getByRole } = render(<BasketballPage />);
-    fireEvent.click(getByRole("button", { name: "WNBA" }));
+    fireEvent.click(getByRole("button", { name: "Competition: WNBA" }));
     expect(gameCards(container)).toHaveLength(1);
+  });
+
+  it("filters by continent", () => {
+    const { container, getByRole } = render(<BasketballPage />);
+    fireEvent.click(getByRole("button", { name: "Continent: Europe" }));
+    expect(gameCards(container)).toHaveLength(2); // EuroLeague + Liga ACB
+  });
+
+  it("filters by gender and narrows the competition list", () => {
+    const { container, getByRole, queryByRole, getByText } = render(<BasketballPage />);
+    fireEvent.click(getByRole("button", { name: "Gender: Women" }));
+    expect(gameCards(container)).toHaveLength(1); // WNBA
+    expect(getByRole("button", { name: "Competition: WNBA" })).toBeTruthy();
+    expect(queryByRole("button", { name: "Competition: NBA" })).toBeNull();
+    expect(getByText("Popular Leagues")).toBeTruthy();
+  });
+
+  it("filters by country and keeps the Kenya leagues visible", () => {
+    const { container, getByRole, queryByRole } = render(<BasketballPage />);
+    fireEvent.click(getByRole("button", { name: "Country: Kenya" }));
+    expect(getByRole("button", { name: "Competition: Kenya National Basketball League" })).toBeTruthy();
+    expect(getByRole("button", { name: "Competition: Kenya Women's Basketball League" })).toBeTruthy();
+    expect(queryByRole("button", { name: "Competition: NBA" })).toBeNull();
+    expect(gameCards(container)).toHaveLength(0);
+    expect(container.querySelector(".sh-empty")).toBeTruthy();
+  });
+
+  it("switches season and moves the scoreboard date into that season", () => {
+    const { container, getByLabelText, getAllByText } = render(<BasketballPage />);
+    const currentSeason = seasonStartForDate(toDateKey());
+    const select = getByLabelText("Season");
+    expect(select.value).toBe(String(currentSeason));
+
+    fireEvent.change(select, { target: { value: String(currentSeason - 2) } });
+
+    expect(select.value).toBe(String(currentSeason - 2));
+    expect(container.querySelector(".sh-date.is-active").textContent).toContain("01");
+    expect(getAllByText(new RegExp(`${currentSeason - 2}-${currentSeason - 1}`)).length).toBeGreaterThan(0);
   });
 });
 
@@ -50,7 +89,7 @@ describe("NFLPage", () => {
         <NFLPage />
       </MemoryRouter>
     );
-    fireEvent.click(getByRole("button", { name: "NFC" }));
+    fireEvent.click(getByRole("button", { name: "Conference: NFC" }));
     expect(gameCards(container)).toHaveLength(2);
   });
 });

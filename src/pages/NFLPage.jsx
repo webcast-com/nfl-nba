@@ -111,6 +111,7 @@ export default function NFLPage({
         color: entry === "AFC" ? "#c2410c" : entry === "NFC" ? "#1d4ed8" : "#475569",
         active: conference === entry,
         onClick: () => setConference(entry),
+        ariaLabel: `Conference: ${entry}`,
       })),
     },
     {
@@ -122,6 +123,7 @@ export default function NFLPage({
           label: entry,
           active: country === entry,
           onClick: () => setCountry((current) => (current === entry ? "All countries" : entry)),
+          ariaLabel: `Country: ${entry}`,
         })),
     },
   ];

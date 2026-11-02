@@ -1,19 +1,67 @@
 const basketballCompetitionsSample = [
-  { id: "nba", name: "NBA", country: "United States", region: "North America" },
-  { id: "wnba", name: "WNBA", country: "United States", region: "North America" },
-  { id: "euroleague", name: "EuroLeague", country: "Europe", region: "Europe" },
-  { id: "acb", name: "Liga ACB", country: "Spain", region: "Europe" },
-  { id: "bbl", name: "BBL", country: "Germany", region: "Europe" },
-  { id: "bcl", name: "Basketball Champions League", country: "Europe", region: "Europe" },
-  { id: "bal", name: "Basketball Africa League", country: "Africa", region: "Africa" },
-  { id: "nbl", name: "NBL", country: "Australia", region: "Oceania" },
-  { id: "cba", name: "CBA", country: "China", region: "Asia" },
-  { id: "pba", name: "PBA", country: "Philippines", region: "Asia" },
+  // Africa
+  { id: "bal", name: "Basketball Africa League", short: "BAL", color: "#22a06b", country: null, continent: "Africa", gender: "Men", espn: null },
+  { id: "wbl-africa", name: "Women's Basketball League Africa", short: "WBL", color: "#d946ef", country: null, continent: "Africa", gender: "Women", espn: null },
+  { id: "kenya-nbl", name: "Kenya National Basketball League", short: "KNBL", color: "#0f766e", country: "Kenya", continent: "Africa", gender: "Men", espn: null },
+  { id: "kenya-wbl", name: "Kenya Women's Basketball League", short: "KWBL", color: "#be185d", country: "Kenya", continent: "Africa", gender: "Women", espn: null },
+  { id: "nigeria-bpl", name: "Nigeria Basketball Premier League", short: "NBPL", color: "#15803d", country: "Nigeria", continent: "Africa", gender: "Men", espn: null },
+  { id: "egypt-super", name: "Egyptian Basketball Super League", short: "EBSL", color: "#b91c1c", country: "Egypt", continent: "Africa", gender: "Men", espn: null },
+  { id: "senegal-n1", name: "Senegal Nationale 1", short: "N1", color: "#ea580c", country: "Senegal", continent: "Africa", gender: "Men", espn: null },
+
+  // Europe
+  { id: "euroleague", name: "EuroLeague", short: "EL", color: "#f0a02a", country: null, continent: "Europe", gender: "Men", espn: "euroleague" },
+  { id: "eurocup", name: "EuroCup", short: "EC", color: "#f97316", country: null, continent: "Europe", gender: "Men", espn: null },
+  { id: "bcl", name: "Basketball Champions League", short: "BCL", color: "#f5b400", country: null, continent: "Europe", gender: "Men", espn: null },
+  { id: "acb", name: "Liga ACB", short: "ACB", color: "#c8102e", country: "Spain", continent: "Europe", gender: "Men", espn: null },
+  { id: "bbl", name: "BBL", short: "BBL", color: "#1e88e5", country: "Germany", continent: "Europe", gender: "Men", espn: null },
+  { id: "lega-a", name: "Lega Basket Serie A", short: "LBA", color: "#0b6bb3", country: "Italy", continent: "Europe", gender: "Men", espn: null },
+  { id: "lnb", name: "LNB Élite", short: "LNB", color: "#2563eb", country: "France", continent: "Europe", gender: "Men", espn: null },
+  { id: "greek-league", name: "Greek Basket League", short: "GBL", color: "#0891b2", country: "Greece", continent: "Europe", gender: "Men", espn: null },
+  { id: "aba-league", name: "ABA League", short: "ABA", color: "#7c3aed", country: "Serbia", continent: "Europe", gender: "Men", espn: null },
+  { id: "euroleague-women", name: "EuroLeague Women", short: "ELW", color: "#c026d3", country: null, continent: "Europe", gender: "Women", espn: null },
+  { id: "eurocup-women", name: "EuroCup Women", short: "ECW", color: "#db2777", country: null, continent: "Europe", gender: "Women", espn: null },
+  { id: "fiba-eurobasket", name: "FIBA EuroBasket", short: "EB", color: "#0369a1", country: null, continent: "Europe", gender: "Men", espn: null },
+  { id: "fiba-eurobasket-w", name: "FIBA Women's EuroBasket", short: "EBW", color: "#a21caf", country: null, continent: "Europe", gender: "Women", espn: null },
+
+  // Asia
+  { id: "cba", name: "CBA", short: "CBA", color: "#d32f2f", country: "China", continent: "Asia", gender: "Men", espn: null },
+  { id: "b-league", name: "B.LEAGUE", short: "B1", color: "#dc2626", country: "Japan", continent: "Asia", gender: "Men", espn: null },
+  { id: "kbl", name: "KBL", short: "KBL", color: "#1e40af", country: "South Korea", continent: "Asia", gender: "Men", espn: null },
+  { id: "pba", name: "PBA", short: "PBA", color: "#1565c0", country: "Philippines", continent: "Asia", gender: "Men", espn: null },
+  { id: "wjbl", name: "WJBL", short: "WJBL", color: "#be185d", country: "Japan", continent: "Asia", gender: "Women", espn: null },
+  { id: "wcba", name: "WCBA", short: "WCBA", color: "#e11d48", country: "China", continent: "Asia", gender: "Women", espn: null },
+  { id: "fiba-asia-cup", name: "FIBA Asia Cup", short: "FAC", color: "#0ea5e9", country: null, continent: "Asia", gender: "Men", espn: null },
+
+  // North America
+  { id: "nba", name: "NBA", short: "NBA", color: "#1d428a", country: "United States", continent: "North America", gender: "Men", espn: "nba" },
+  { id: "wnba", name: "WNBA", short: "WNBA", color: "#e8590c", country: "United States", continent: "North America", gender: "Women", espn: "wnba" },
+  { id: "nba-gleague", name: "NBA G League", short: "GLG", color: "#475569", country: "United States", continent: "North America", gender: "Men", espn: null },
+
+  // Oceania
+  { id: "nbl", name: "NBL", short: "NBL", color: "#0b6bb3", country: "Australia", continent: "Oceania", gender: "Men", espn: "nbl" },
+  { id: "wnbl", name: "WNBL", short: "WNBL", color: "#7e22ce", country: "Australia", continent: "Oceania", gender: "Women", espn: null },
+
+  // South America
+  { id: "bcla", name: "Basketball Champions League Americas", short: "BCLA", color: "#ea580c", country: null, continent: "South America", gender: "Men", espn: null },
+  { id: "argentina-liga", name: "Liga Nacional Argentina", short: "LNA", color: "#0ea5e9", country: "Argentina", continent: "South America", gender: "Men", espn: null },
+
+  // International
+  { id: "fiba-wc", name: "FIBA Basketball World Cup", short: "WC", color: "#0284c7", country: null, continent: "International", gender: "Men", espn: null },
+  { id: "fiba-wc-w", name: "FIBA Women's Basketball World Cup", short: "WWC", color: "#db2777", country: null, continent: "International", gender: "Women", espn: null },
+  { id: "fiba-qualifiers", name: "FIBA World Cup Qualifiers", short: "Q", color: "#0369a1", country: null, continent: "International", gender: "Men", espn: null },
+  { id: "fiba-oqt", name: "FIBA Olympic Qualifying Tournaments", short: "OQT", color: "#075985", country: null, continent: "International", gender: "Men", espn: null },
+  { id: "fiba-3x3", name: "FIBA 3x3 World Tour", short: "3X3", color: "#f59e0b", country: null, continent: "International", gender: "Men", espn: null },
+  { id: "fiba-3x3-w", name: "FIBA 3x3 Women's Series", short: "3X3W", color: "#ec4899", country: null, continent: "International", gender: "Women", espn: null },
+];
+
+export const basketballContinents = [
+  "Africa", "Asia", "Europe", "International", "North America", "Oceania", "South America",
 ];
 
 export const basketballCountries = [
-  "All countries", "United States", "Spain", "Germany", "Europe", "Africa",
-  "Australia", "China", "Philippines", "Kenya"
+  "All countries", "Argentina", "Australia", "China", "Egypt", "France", "Germany",
+  "Greece", "Italy", "Japan", "Kenya", "Nigeria", "Philippines", "Senegal", "Serbia",
+  "South Korea", "Spain", "United States",
 ];
 
 const basketballGamesSample = [
@@ -200,8 +248,9 @@ const withLogos = (games, broadcasts) =>
 
 const withLeagueMeta = (competitions) =>
   competitions.map((competition) => ({
-    ...competition,
     ...COMPETITION_META[competition.id],
+    ...competition,
+    region: competition.region ?? competition.continent ?? null,
   }));
 
 const withTeamLogos = (groups) =>

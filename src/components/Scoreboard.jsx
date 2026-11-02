@@ -178,6 +178,9 @@ export function ScoreboardPanel({
   note,
   rail,
   seasonLabel = "2025-2026",
+  seasons,
+  season,
+  onSeasonChange,
   status,
   onStatusChange,
   search,
@@ -197,11 +200,29 @@ export function ScoreboardPanel({
         note={note}
         actions={
           <>
-            <span className="sh-season-pill">
-              <IconCalendar size={13} />
-              {seasonLabel}
-              <IconChevronDown size={12} />
-            </span>
+            {seasons?.length ? (
+              <label className="sh-season-pill">
+                <IconCalendar size={13} />
+                <select
+                  value={season}
+                  onChange={(event) => onSeasonChange?.(event.target.value)}
+                  aria-label="Season"
+                >
+                  {seasons.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                <IconChevronDown size={12} />
+              </label>
+            ) : (
+              <span className="sh-season-pill">
+                <IconCalendar size={13} />
+                {seasonLabel}
+                <IconChevronDown size={12} />
+              </span>
+            )}
             {railReset ? (
               <button type="button" className="sh-rail-reset" onClick={railReset.onClick}>
                 {railReset.label}

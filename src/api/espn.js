@@ -663,12 +663,13 @@ async function mergeScoreboards(leagueKeys, options) {
   return { games, meta };
 }
 
-export async function fetchBasketballSnapshot({ date, force = false } = {}) {
+export async function fetchBasketballSnapshot({ date, force = false, season } = {}) {
   const { games, meta } = await mergeScoreboards(BASKETBALL_LIVE_LEAGUES, { date, force });
 
   let standings = null;
   try {
-    standings = await loadStandings("nba", { force });
+    // ESPN indexes basketball seasons by their end year (2025 → 2024-25).
+    standings = await loadStandings("nba", { force, season });
   } catch {
     standings = null; // scores still render with the demo standings table
   }

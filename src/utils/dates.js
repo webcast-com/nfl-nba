@@ -74,3 +74,31 @@ export function buildWeekRail(total = 18) {
     return { key: String(week), day: String(week), weekday: "Wk", title: `Week ${week}` };
   });
 }
+
+const SEASON_START_MONTH = 8; // basketball seasons tip off around September/October
+
+/** Season start year (e.g. 2025 for the 2025-2026 season) for a YYYYMMDD date. */
+export function seasonStartForDate(key) {
+  const date = fromDateKey(key) ?? new Date();
+  return date.getMonth() >= SEASON_START_MONTH
+    ? date.getFullYear()
+    : date.getFullYear() - 1;
+}
+
+/** "2025-2026" label for a season start year. */
+export function seasonLabel(startYear) {
+  return `${startYear}-${startYear + 1}`;
+}
+
+/** Descending season options, newest first. */
+export function buildSeasonOptions(currentStart, count = 5) {
+  return Array.from({ length: count }, (_, index) => {
+    const start = currentStart - index;
+    return { value: String(start), label: seasonLabel(start) };
+  });
+}
+
+/** A representative in-season date (1 February) for a season start year. */
+export function seasonSampleDate(startYear) {
+  return `${startYear + 1}0201`;
+}
