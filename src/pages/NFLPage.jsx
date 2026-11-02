@@ -172,6 +172,7 @@ export default function NFLPage({
           sourceLabel={isControlled ? "CUSTOM DATA" : feed.badge}
           onRefresh={isControlled ? undefined : feed.refresh}
           refreshing={feed.refreshing}
+          matchBasePath="/nfl"
           emptyHint={`No games in week ${currentWeek} for these filters.`}
         />
 
@@ -189,6 +190,7 @@ export default function NFLPage({
       <aside className="sh-right" id="section-players">
         <PlayerDetails
           linkBase="/nfl"
+          viewAllHref="/nfl/top-scorers"
           leaders={playerCards}
           note={source === "espn" ? "ESPN leaders" : "Demo leaders"}
         />

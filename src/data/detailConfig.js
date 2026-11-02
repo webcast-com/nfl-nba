@@ -1,3 +1,4 @@
+import { basketballScorers, nflScorers } from "./scorersData";
 import {
   basketballGames,
   basketballLeaders,
@@ -7,6 +8,16 @@ import {
   nflStandings,
 } from "./sportsData";
 
+function rosterAndScorers(leaders, boards) {
+  const byName = new Map(leaders.map((player) => [player.name, player]));
+  boards.forEach((board) => {
+    board.entries.forEach((entry) => {
+      if (!byName.has(entry.name)) byName.set(entry.name, { ...entry });
+    });
+  });
+  return [...byName.values()];
+}
+
 /** Per-sport wiring for the team / player detail pages. */
 export const DETAIL_SPORTS = {
   basketball: {
@@ -14,6 +25,7 @@ export const DETAIL_SPORTS = {
     games: basketballGames,
     standings: basketballStandings,
     leaders: basketballLeaders,
+    players: rosterAndScorers(basketballLeaders, basketballScorers),
     competitionId: "nba",
     leagueKey: "nba",
     hub: "/basketball",
@@ -26,6 +38,7 @@ export const DETAIL_SPORTS = {
     games: nflGames,
     standings: nflStandings,
     leaders: nflLeaders,
+    players: rosterAndScorers(nflLeaders, nflScorers),
     competitionId: "nfl",
     leagueKey: "nfl",
     hub: "/nfl",

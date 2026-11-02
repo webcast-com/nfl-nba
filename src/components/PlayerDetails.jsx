@@ -85,7 +85,7 @@ function PlayerCard({ player, rank, linkBase }) {
   );
 }
 
-export function PlayerDetails({ leaders = [], title = "Player Details", note, linkBase }) {
+export function PlayerDetails({ leaders = [], title = "Player Details", note, linkBase, viewAllHref }) {
   if (!leaders.length) return null;
 
   return (
@@ -94,10 +94,10 @@ export function PlayerDetails({ leaders = [], title = "Player Details", note, li
         title={title}
         note={note}
         actions={
-          <span className="sh-viewall">
+          <MaybeLink className="sh-viewall" to={viewAllHref ?? "#"} aria-label="View all player leaders">
             View all
             <IconArrowUpRight size={12} />
-          </span>
+          </MaybeLink>
         }
       />
       <div className="sh-players">

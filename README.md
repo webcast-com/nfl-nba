@@ -6,6 +6,7 @@ Dark, broadcast-style sports dashboard built with React + Vite. Scores, standing
 
 - **Icon rail** on the far left with the app mark and section shortcuts.
 - **Top bar** with sport tabs (Basketball, Football, Cricket, Badminton, Hockey), search, notifications, a working light/dark theme switch (persisted in `localStorage`) and the profile chip.
+- **Section pill bar** under the top bar (Live / Upcoming / Top scorers / News) that opens the other screens of the current sport; every screen keeps the same sport in the URL.
 - **League sidebar**: continent filter, the full competition list, gender filter and countries with flags. Rows narrow each other and filter the dashboard in place; the section chevrons expand a list that is taller than the panel.
 - **Featured game hero** with the live matchup, venue, broadcast and clock.
 - **Live Score panel**: season pill, viewer time-zone chip, day/week rail, status tabs (ALL / LIVE / UPCOMING / FINAL), search, match cards with real team logos, live clocks, scores and broadcasters.
@@ -20,11 +21,13 @@ Sports without a feed yet (Cricket, Badminton, Hockey) render a placeholder page
 - `src/pages/BasketballPage.jsx` — global basketball dashboard: continent / competition / gender / country / season filters, date rail, status tabs and search.
 - `src/pages/NFLPage.jsx` — NFL dashboard, season stage + week rail + conference filters.
 - `src/pages/TeamPage.jsx` / `src/pages/PlayerPage.jsx` — team and player detail pages reached from the standings table, the player rail and the squad list.
+- `src/pages/NewsPage.jsx` / `TopScorersPage.jsx` / `UpcomingPage.jsx` / `MatchPage.jsx` — the news, leaderboard, schedule and match-commentary screens, plus `src/components/SubNav.jsx`, the pill bar that switches between them.
 - `src/pages/ComingSoonPage.jsx` — placeholder for sports that don't have a feed yet.
 - `src/components/` — shell (rail/top bar), league sidebar, hero, score panel, match cards, player cards, standings, UI primitives, icon set.
 - `src/api/espn.js` — ESPN client and normalisers.
 - `src/hooks/useEspnFeed.js` — polling hook that swaps demo data for live data.
 - `src/data/sportsData.js` — demo data (scores, standings, leaders, team logos, broadcasters) used for the first paint and offline mode.
+- `src/data/newsData.js` / `scorersData.js` / `commentaryData.js` — offline newsroom stories, per-category leader boards and sample play-by-play.
 - `src/utils/` — date/week rails and dashboard helpers.
 
 ## Team and player pages
@@ -39,6 +42,22 @@ Every team name in a standings table and every card in the Player Details rail l
 - Keys are readable slugs (`/basketball/team/boston-celtics`, `/basketball/player/luka-doncic`); codes and ESPN ids resolve too, so `bos` and ESPN's numeric id land on the same page.
 - Everything renders from the bundled demo data first — records come from the standings table, fixtures from the games feed, profiles from the leaders rail — then ESPN enriches them when it answers: team info + `teams/{id}/schedule` + `teams/{id}/roster` for teams, `athletes/{id}` for players.
 - The standings table and player cards render plain markup when no router is present, so the components stay usable standalone (see `MaybeLink` in `src/components/ui.jsx`).
+
+## Multipage screens
+
+Each hub is a small site of its own. A pill bar under the top bar (`SubNav`) switches between the four screens, and every screen keeps the same sport in the URL:
+
+| Screen | Route | What it shows |
+| --- | --- | --- |
+| Live | `/basketball` · `/nfl` | The full dashboard (hero, scores, standings, players) |
+| Upcoming | `/basketball/upcoming` · `/nfl/upcoming` | Every fixture still to play, grouped by `In progress` / `Today` / `Tomorrow` / date, with tip-off times in the viewer's zone |
+| Top scorers | `/basketball/top-scorers` · `/nfl/top-scorers` | Four leader boards (points, rebounds, assists, blocks for basketball; passing, rushing, receiving, sacks for the NFL) with player links |
+| News | `/basketball/news` · `/nfl/news` | The newsroom grid of reports, previews and analysis |
+| Match commentary | `/basketball/match/:matchId` · `/nfl/match/:matchId` | Scoreline hero plus the play-by-play timeline, reached from any match card or Upcoming fixture |
+
+- Everything renders from bundled demo content first (`newsData.js`, `scorersData.js`, `commentaryData.js`) and is replaced in place when ESPN answers: `…/news` for the newsroom, `…/leaders` for the boards, `/summary?event={id}` for real play-by-play. Offline, the match page labels its feed `Sample play-by-play` instead of pretending to be live.
+- Leader names link to their `/player/:playerKey` page whenever a profile exists, so the boards, the player rail and the standings all lead into the same detail pages.
+- Match cards on both dashboards (and every fixture row) now link to the commentary screen; the commentary screen is the only place the app shows a play-by-play timeline.
 
 ## Mobile layout
 
@@ -114,6 +133,8 @@ import "./styles.css";
 | Season leaders (best effort) | `site.web.api.espn.com/apis/common/v3/sports/{basketball/nba,football/nfl}/leaders` |
 | Team page (info, schedule, roster) | `site.api.espn.com/apis/site/v2/sports/basketball/{nba,…}/teams/{id,abbr}/…` |
 | Player page stats (best effort) | `site.web.api.espn.com/apis/common/v3/sports/{basketball/nba,football/nfl}/athletes/{id}` |
+| Newsroom | `site.api.espn.com/apis/site/v2/sports/{basketball/nba,football/nfl}/news` |
+| Match commentary | `site.api.espn.com/apis/site/v2/sports/{basketball/nba,football/nfl}/summary?event={id}` |
 
 How it behaves:
 

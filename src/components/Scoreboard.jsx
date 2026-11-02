@@ -3,7 +3,7 @@ import heroBasketball from "../assets/hero-basketball.jpg";
 import heroFootball from "../assets/hero-football.jpg";
 import { IconCalendar, IconCamera, IconChart, IconChevronDown, IconClock, IconSearch } from "./Icons";
 import { gameClockLabel, viewerTimeZone, viewerTimeZoneLabel } from "../utils/dates";
-import { EmptyState, Panel, PanelHead, RefreshButton, SourceChip, TeamLogo } from "./ui";
+import { EmptyState, MaybeLink, Panel, PanelHead, RefreshButton, SourceChip, TeamLogo } from "./ui";
 
 const STATUS_COPY = { LIVE: "Live", FINAL: "Final", UPCOMING: "Upcoming" };
 
@@ -130,12 +130,12 @@ export function StatusTabs({ value = "ALL", onChange }) {
   );
 }
 
-export function MatchCard({ game }) {
+export function MatchCard({ game, matchBasePath }) {
   const isLive = game.status === "LIVE";
   const clockClass = isLive ? "is-live" : game.status === "FINAL" ? "is-final" : "is-soon";
   const clock = gameClockLabel(game);
 
-  return (
+  const card = (
     <article className="sh-match sh-game">
       <div className="sh-match-logos">
         <TeamLogo src={game.homeLogo} code={game.homeCode} size="md" />
@@ -173,6 +173,18 @@ export function MatchCard({ game }) {
       </div>
     </article>
   );
+
+  if (!matchBasePath) return card;
+
+  return (
+    <MaybeLink
+      className="sh-match-link"
+      to={`${matchBasePath}/match/${game.id}`}
+      aria-label={`Match commentary: ${game.home} v ${game.away}`}
+    >
+      {card}
+    </MaybeLink>
+  );
 }
 
 export function ScoreboardPanel({
@@ -194,6 +206,7 @@ export function ScoreboardPanel({
   refreshing = false,
   emptyHint,
   railReset,
+  matchBasePath,
 }) {
   const timeZone = viewerTimeZone();
 
@@ -268,7 +281,7 @@ export function ScoreboardPanel({
       {games.length ? (
         <div className="sh-matches">
           {games.map((game) => (
-            <MatchCard key={game.id} game={game} />
+            <MatchCard key={game.id} game={game} matchBasePath={matchBasePath} />
           ))}
         </div>
       ) : (

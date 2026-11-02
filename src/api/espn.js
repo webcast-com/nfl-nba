@@ -38,6 +38,7 @@ const SCOREBOARD_TTL = 30 * 1000;
 const STANDINGS_TTL = 5 * 60 * 1000;
 const LEADERS_TTL = 60 * 60 * 1000;
 const DETAIL_TTL = 60 * 1000;
+const NEWS_TTL = 5 * 60 * 1000;
 const REQUEST_TIMEOUT = 12 * 1000;
 
 /** ESPN league slugs we know how to place in the existing competition filters. */
@@ -738,6 +739,106 @@ export function normalizeLeaders(payload, { sport = "basketball" } = {}) {
   return leaders.slice(0, 4);
 }
 
+export function normalizeNews(payload) {
+  return asArray(payload?.articles)
+    .map((article) => {
+      const headline = article?.headline ?? article?.title;
+      if (!headline) return null;
+      const image = asArray(article?.images)[0]?.url ?? article?.image ?? null;
+      const category = asArray(article?.categories)[0];
+      return {
+        id: article.id ?? headline,
+        headline,
+        description: article.description ?? article.summary ?? "",
+        published: article.published ?? null,
+        image,
+        tag: category?.description ?? category?.name ?? "ESPN",
+        byline: article?.byline ?? null,
+      };
+    })
+    .filter(Boolean)
+    .slice(0, 12);
+}
+
+export function normalizeLeaderboard(payload, { limit = 5 } = {}) {
+  const lists = findLeaderLists(payload);
+  const seen = new Set();
+  const boards = [];
+
+  lists.forEach(({ label, entries }) => {
+    const metric = String(label || "Season leaders").replace(/\s*leaders?$/i, "").trim();
+    if (!metric || seen.has(metric)) return;
+    const rows = asArray(entries)
+      .map((entry) => {
+        const athlete = entry?.athlete ?? entry?.player ?? {};
+        const name = athlete.displayName ?? athlete.fullName ?? athlete.name ?? entry?.displayName;
+        const value = entry?.displayValue ?? entry?.value;
+        if (!name || value === undefined || value === null) return null;
+        const team = athlete.team ?? entry?.team ?? {};
+        return {
+          name,
+          value: String(value),
+          team: team.displayName ?? "—",
+          teamAbbr: team.abbreviation ?? null,
+          teamLogo: teamLogo(team),
+          key: slugify(name),
+          initials: initials(name),
+        };
+      })
+      .filter(Boolean)
+      .slice(0, limit);
+    if (!rows.length) return;
+    seen.add(metric);
+    boards.push({ metric, short: metric.split(/\s+/)[0].slice(0, 5).toUpperCase(), entries: rows });
+  });
+
+  return boards.slice(0, 6);
+}
+
+export function normalizeSummary(payload) {
+  const wrapped = [
+    ...asArray(payload?.commentary),
+    ...asArray(payload?.plays),
+    ...asArray(payload?.drives).flatMap((drive) => asArray(drive?.plays)),
+    ...asArray(payload?.scoringPlays),
+  ];
+
+  const plays = wrapped
+    .map((entry) => {
+      const play = entry?.play ?? entry;
+      const text = play?.text ?? play?.description ?? entry?.text;
+      if (!text) return null;
+      const clock = play?.clock?.displayValue ?? play?.clock ?? entry?.clock ?? "";
+      const team = play?.team?.abbreviation ?? entry?.team?.abbreviation ?? null;
+      const away = play?.awayScore ?? entry?.awayScore;
+      const home = play?.homeScore ?? entry?.homeScore;
+      const score = away !== undefined && home !== undefined ? `${away}-${home}` : null;
+      return { clock: String(clock), team, text, score };
+    })
+    .filter(Boolean)
+    .slice(0, 60);
+
+  const competition = payload?.header?.competitions?.[0] ?? {};
+  const competitors = asArray(competition.competitors);
+  const teamOf = (entry) => ({
+    name: entry?.team?.displayName ?? entry?.team?.name ?? null,
+    code: entry?.team?.abbreviation ?? null,
+    logo: teamLogo(entry?.team),
+    score: entry?.score ?? null,
+    homeAway: entry?.homeAway ?? null,
+  });
+
+  return {
+    plays,
+    period:
+      competition?.status?.type?.shortDetail ??
+      competition?.status?.type?.detail ??
+      null,
+    venue: competition?.venue?.fullName ?? null,
+    teams: competitors.map(teamOf).filter((team) => team.name),
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Loaders
 // ---------------------------------------------------------------------------
@@ -776,6 +877,33 @@ export async function loadLeaders(leagueKey, { force = false } = {}) {
     force,
   });
   return normalizeLeaders(data, { sport: requireLeague(leagueKey).sport });
+}
+
+/** Full leaderboards (top N per metric) for the Top scorers screen. */
+export async function loadLeaderboard(leagueKey, { limit = 5, force = false } = {}) {
+  const data = await requestEspn(leadersUrls(leagueKey), { ttl: LEADERS_TTL, force });
+  return normalizeLeaderboard(data, { sport: requireLeague(leagueKey).sport, limit });
+}
+
+export function newsUrls(leagueKey) {
+  const league = requireLeague(leagueKey);
+  return withProxyFallback(ESPN_SITE_BASE, ESPN_SITE_PROXY, `/apis/site/v2/sports/${league.path}/news`);
+}
+
+export function summaryUrls(leagueKey, eventId) {
+  const league = requireLeague(leagueKey);
+  const path = `/apis/site/v2/sports/${league.path}/summary${buildQuery({ event: eventId })}`;
+  return withProxyFallback(ESPN_SITE_BASE, ESPN_SITE_PROXY, path);
+}
+
+export async function loadNews(leagueKey, { force = false } = {}) {
+  const data = await requestEspn(newsUrls(leagueKey), { ttl: NEWS_TTL, force });
+  return normalizeNews(data);
+}
+
+export async function loadMatchSummary(leagueKey, eventId, { force = false } = {}) {
+  const data = await requestEspn(summaryUrls(leagueKey, eventId), { ttl: DETAIL_TTL, force });
+  return normalizeSummary(data);
 }
 
 async function mergeScoreboards(leagueKeys, options) {

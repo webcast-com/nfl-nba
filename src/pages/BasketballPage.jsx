@@ -301,6 +301,7 @@ export default function BasketballPage({
           sourceLabel={isControlled ? "CUSTOM DATA" : feed.badge}
           onRefresh={isControlled ? undefined : feed.refresh}
           refreshing={feed.refreshing}
+          matchBasePath="/basketball"
           emptyHint={`No games on ${formatDateKeyLabel(date)} for these filters.`}
         />
 
@@ -317,6 +318,7 @@ export default function BasketballPage({
       <aside className="sh-right" id="section-players">
         <PlayerDetails
           linkBase="/basketball"
+          viewAllHref="/basketball/top-scorers"
           leaders={playerCards}
           note={source === "espn" ? "ESPN leaders" : "Demo leaders"}
         />
