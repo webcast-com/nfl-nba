@@ -20,6 +20,20 @@ export function GameCard({ game }) {
   </article>;
 }
 
+export function DataStatus({ status, label, onRefresh, refreshing = false }) {
+  const tone = status === "live" || status === "refreshing"
+    ? "live"
+    : status === "offline" || status === "stale"
+      ? "warn"
+      : "demo";
+  return <div className="sh-data-status">
+    <span className={`sh-source sh-source-${tone}`} title={label}><i className="sh-source-dot" />{label}</span>
+    {onRefresh ? <button type="button" className="sh-refresh" onClick={onRefresh} disabled={refreshing} aria-label="Refresh ESPN data">
+      {refreshing ? "Refreshing…" : "Refresh"}
+    </button> : null}
+  </div>;
+}
+
 export function Panel({ title, note, children }) {
   return <section className="sh-panel"><div className="sh-panel-head"><div className="sh-panel-title">{title}</div>{note && <div className="sh-panel-note">{note}</div>}</div>{children}</section>;
 }
@@ -32,8 +46,8 @@ export function Leaders({ leaders, title = "Player leaders" }) {
   return <Panel title={title} note="Season leaders"><div className="sh-leaders">{leaders.map((p,i) => <div className="sh-leader" key={p.name}><div className="sh-leader-rank">{String(i+1).padStart(2,"0")}</div><div className="sh-avatar">{p.initials}</div><div className="sh-leader-info"><div className="sh-leader-name">{p.name}</div><div className="sh-leader-meta">{p.team} · {p.metric}</div></div><div className="sh-leader-value">{p.value}<small>{p.metric}</small></div></div>)}</div></Panel>;
 }
 
-export function StandingsTable({ groups, nfl = false }) {
-  return <Panel title={nfl ? "Conference & division standings" : "League standings"} note="Sample table">
+export function StandingsTable({ groups, nfl = false, note = "Sample table" }) {
+  return <Panel title={nfl ? "Conference & division standings" : "League standings"} note={note}>
     {groups.map(group => <div key={group.group}>
       <div style={{padding:"12px 17px 5px",fontSize:11,fontWeight:800,color:"var(--sh-green)",letterSpacing:".5px"}}>{group.group}</div>
       <div className="sh-table-wrap"><table className="sh-table"><thead><tr><th>TEAM</th><th>GP</th><th>W</th><th>L</th>{nfl ? <th>T</th> : null}<th>{nfl ? "PCT" : "PCT"}</th>{nfl ? <><th>PF</th><th>PA</th></> : <><th>GB</th><th>STRK</th></>}</tr></thead>
@@ -52,9 +66,12 @@ export function FilterBar({ competitions, countries, competition, setCompetition
   </div>;
 }
 
-export function GamesPanel({ games, title = "Scores & fixtures" }) {
+export function GamesPanel({ games, title = "Scores & fixtures", source = "demo" }) {
+  const live = source === "espn";
   return <Panel title={title} note={`${games.length} matches`}>
     {games.length ? <div className="sh-games">{games.map(g=><GameCard key={g.id} game={g}/>)}</div> : <div className="sh-empty">No matches match these filters.</div>}
-    <div className="sh-footnote">Scores shown are demonstration data. Connect a verified sports data feed for live updates.</div>
+    <div className="sh-footnote">{live
+      ? "Live scores and fixtures via ESPN. Times shown in your local timezone."
+      : "Scores shown are demonstration data. Connect a verified sports data feed for live updates."}</div>
   </Panel>;
 }

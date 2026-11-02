@@ -95,3 +95,27 @@ button { cursor: pointer; }
  .sh-search { min-width:100%; }
  .sh-title { letter-spacing:-1px; }
 }
+
+/* ESPN data status + scoreboard navigation */
+.sh-meta { display:flex; flex-direction:column; align-items:flex-end; gap:8px; flex:none; }
+.sh-data-status { display:flex; align-items:center; gap:8px; }
+.sh-source { display:inline-flex; align-items:center; gap:7px; padding:6px 10px; border-radius:999px; font-size:10px; font-weight:900; letter-spacing:.8px; border:1px solid #2a3a4e; background:#121e2b; color:var(--sh-muted); white-space:nowrap; }
+.sh-source-dot { width:6px; height:6px; border-radius:50%; background:currentColor; box-shadow:0 0 0 3px #ffffff10; }
+.sh-source-live { color:var(--sh-green); border-color:#2c6d4d; background:#0f2a1e; }
+.sh-source-warn { color:#ffb45c; border-color:#6b4b23; background:#241a0d; }
+.sh-source-demo { color:#8fa2b8; }
+.sh-refresh { border:1px solid #2a3a4e; background:#111c29; color:#c3d0de; border-radius:9px; padding:7px 11px; font-size:11px; font-weight:700; }
+.sh-refresh:hover:not(:disabled) { border-color:var(--sh-green); color:#eaf4ee; }
+.sh-refresh:disabled { opacity:.55; cursor:progress; }
+.sh-stepper { display:inline-flex; align-items:center; gap:4px; background:#121e2b; border:1px solid #2a3a4e; border-radius:10px; padding:3px; min-height:40px; }
+.sh-step { border:0; background:transparent; color:#c3d0de; font-size:16px; line-height:1; padding:6px 9px; border-radius:7px; }
+.sh-step:hover { background:#1b2a3b; color:#fff; }
+.sh-step-label { font-size:11px; font-weight:800; color:#e7edf5; padding:0 6px; white-space:nowrap; min-width:96px; text-align:center; }
+.sh-step-today { border:1px solid #2a3a4e; background:#111c29; color:#aebacc; font-size:10px; font-weight:800; letter-spacing:.4px; padding:6px 8px; border-radius:7px; }
+.sh-step-today:hover { color:#06150d; background:var(--sh-green); border-color:var(--sh-green); }
+@media (max-width: 640px) {
+  .sh-meta { align-items:flex-start; }
+  .sh-data-status { flex-wrap:wrap; }
+  .sh-step { padding:7px 10px; }
+  .sh-step-label { min-width:82px; }
+}
