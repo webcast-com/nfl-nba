@@ -1418,7 +1418,7 @@ html[data-theme='light'] .sh-topbar { background: rgba(255, 255, 255, 0.85); }
 }
 
 .sh-side-scroll {
-  max-height: 348px;
+  max-height: 368px;
   overflow-y: auto;
   padding-right: 2px;
   scrollbar-width: thin;
