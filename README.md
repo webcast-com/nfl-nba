@@ -8,7 +8,7 @@ Dark, broadcast-style sports dashboard built with React + Vite. Scores, standing
 - **Top bar** with sport tabs (Basketball, Football, Cricket, Badminton, Hockey), search, notifications, a working light/dark theme switch (persisted in `localStorage`) and the profile chip.
 - **League sidebar**: continent filter, the full competition list, gender filter and countries with flags. Rows narrow each other and filter the dashboard in place; the section chevrons expand a list that is taller than the panel.
 - **Featured game hero** with the live matchup, venue, broadcast and clock.
-- **Live Score panel**: season pill, day/week rail, status tabs (ALL / LIVE / UPCOMING / FINAL), search, match cards with real team logos, live clocks, scores and broadcasters.
+- **Live Score panel**: season pill, viewer time-zone chip, day/week rail, status tabs (ALL / LIVE / UPCOMING / FINAL), search, match cards with real team logos, live clocks, scores and broadcasters.
 - **Player Details rail** with photo (or team-coloured monogram) cards and a stats strip.
 - **Standings** grouped into conference/division cards, plus competition snapshot tiles.
 - Responsive down to phones: the rail hides, columns stack, sidebars move below the centre column.
@@ -89,6 +89,7 @@ How it behaves:
 - **Graceful degradation.** The page paints the bundled demo data immediately. When ESPN answers, scores/standings/leaders/stat tiles are replaced in place; team logos, broadcasters and player headshots come with them. If ESPN is unreachable the demo data stays and the chip reads `OFFLINE · DEMO`; a refresh button and a 45s retry keep trying.
 - **Filters still work.** ESPN statuses map to the existing tabs (`LIVE`, `UPCOMING`, `FINAL`), NFL season stages map to the existing competition ids (`nfl`, `preseason`, `playoffs`), and venue countries feed the country filter.
 - **Navigation maps to real feeds.** The basketball date rail sends `dates=YYYYMMDD`; the NFL week rail sends `week` + `seasontype`.
+- **Kick-offs follow the viewer's clock.** Every upcoming game is rendered from its ISO `startTime` with `Intl.DateTimeFormat` in the device time zone, so the day label and time move with the viewer — a tip-off in Kigali reads `Today · 20:00` for a Nairobi viewer (GMT+3) and `17:00` for a London one. The Live Score header carries a `GMT+3`-style chip naming the active zone (`title`/`aria-label` give the IANA zone). Demo fixtures generate their tip-offs relative to the current clock instead of hard-coding times.
 
 ### Configuration
 

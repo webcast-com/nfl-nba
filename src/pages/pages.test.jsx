@@ -19,6 +19,17 @@ describe("BasketballPage", () => {
     expect(container.querySelector(".sh-feature")).toBeTruthy();
   });
 
+  it("shows kickoff times in the viewer's time zone", () => {
+    const { container, getByLabelText } = render(<BasketballPage />);
+    expect(getByLabelText(/Kickoff times in your time zone/i).textContent).toMatch(/\w/);
+
+    const upcoming = [...container.querySelectorAll(".sh-clock.is-soon")].map((node) => node.textContent);
+    expect(upcoming.length).toBeGreaterThan(0);
+    for (const label of upcoming) {
+      expect(label).toMatch(/^(Today|Tomorrow|Yesterday|[A-Z][a-z]{2} \d{1,2} [A-Z][a-z]{2}) · \d{2}:\d{2}$/);
+    }
+  });
+
   it("narrows the fixtures when the LIVE filter is selected", () => {
     const { container, getByRole } = render(<BasketballPage />);
     fireEvent.click(getByRole("tab", { name: "LIVE" }));

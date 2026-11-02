@@ -18,6 +18,8 @@
  * app still works behind strict CORS setups and in the sandbox preview.
  */
 
+import { formatKickoff } from "../utils/dates";
+
 const env = (typeof import.meta !== "undefined" && import.meta.env) || {};
 
 const trimTrailingSlash = (value) => String(value).replace(/\/+$/, "");
@@ -277,21 +279,8 @@ function periodLabel(sport, period) {
   return period > 4 ? "OT" : `Q${period}`;
 }
 
-export function formatKickoff(isoDate) {
-  const date = new Date(isoDate);
-  if (Number.isNaN(date.getTime())) return "TBD";
-  try {
-    const label = date.toLocaleString([], {
-      weekday: "short",
-      hour: "2-digit",
-      minute: "2-digit",
-      hourCycle: "h23",
-    });
-    return label.replace(",", " ·");
-  } catch {
-    return "TBD";
-  }
-}
+// Kickoff labels are rendered in the viewer's device time zone (see utils/dates).
+export { formatKickoff };
 
 const COUNTRY_LABELS = {
   USA: "United States",

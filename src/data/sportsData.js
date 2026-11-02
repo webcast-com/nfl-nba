@@ -64,12 +64,31 @@ export const basketballCountries = [
   "South Korea", "Spain", "United States",
 ];
 
+/** Demo tip-offs ride the viewer's own clock so the sample never shows a stale fixed time. */
+function demoTipoff(hour, minute, dayOffset = 0) {
+  const date = new Date();
+  date.setDate(date.getDate() + dayOffset);
+  date.setHours(hour, minute, 0, 0);
+  if (dayOffset === 0 && date.getTime() <= Date.now()) date.setDate(date.getDate() + 1);
+  return date.toISOString();
+}
+
+/** Next occurrence of a weekday tip-off (0 = Sunday), in the viewer's local time. */
+function nextWeekdayTipoff(weekday, hour, minute) {
+  const date = new Date();
+  date.setHours(hour, minute, 0, 0);
+  let delta = (weekday - date.getDay() + 7) % 7;
+  if (delta === 0 && date.getTime() <= Date.now()) delta = 7;
+  date.setDate(date.getDate() + delta);
+  return date.toISOString();
+}
+
 const basketballGamesSample = [
   { id: 1, competitionId: "nba", competition: "NBA", country: "United States", status: "LIVE", clock: "Q3 · 04:32", home: "Boston Celtics", away: "New York Knicks", homeCode: "BOS", awayCode: "NYK", homeScore: 84, awayScore: 79, venue: "TD Garden" },
   { id: 2, competitionId: "euroleague", competition: "EuroLeague", country: "Europe", status: "LIVE", clock: "Q4 · 07:18", home: "Real Madrid", away: "Olympiacos", homeCode: "RMA", awayCode: "OLY", homeScore: 72, awayScore: 68, venue: "WiZink Center" },
-  { id: 3, competitionId: "bal", competition: "Basketball Africa League", country: "Africa", status: "UPCOMING", clock: "20:00", home: "Nairobi City Thunder", away: "Cape Town Tigers", homeCode: "NCT", awayCode: "CTT", homeScore: null, awayScore: null, venue: "Kigali Arena" },
+  { id: 3, competitionId: "bal", competition: "Basketball Africa League", country: "Africa", status: "UPCOMING", startTime: demoTipoff(20, 0), home: "Nairobi City Thunder", away: "Cape Town Tigers", homeCode: "NCT", awayCode: "CTT", homeScore: null, awayScore: null, venue: "Kigali Arena" },
   { id: 4, competitionId: "wnba", competition: "WNBA", country: "United States", status: "FINAL", clock: "Final", home: "Las Vegas Aces", away: "New York Liberty", homeCode: "LVA", awayCode: "NYL", homeScore: 91, awayScore: 87, venue: "Michelob ULTRA Arena" },
-  { id: 5, competitionId: "acb", competition: "Liga ACB", country: "Spain", status: "UPCOMING", clock: "Tomorrow · 19:30", home: "FC Barcelona", away: "Valencia Basket", homeCode: "BAR", awayCode: "VAL", homeScore: null, awayScore: null, venue: "Palau Blaugrana" },
+  { id: 5, competitionId: "acb", competition: "Liga ACB", country: "Spain", status: "UPCOMING", startTime: demoTipoff(19, 30, 1), home: "FC Barcelona", away: "Valencia Basket", homeCode: "BAR", awayCode: "VAL", homeScore: null, awayScore: null, venue: "Palau Blaugrana" },
   { id: 6, competitionId: "nbl", competition: "NBL", country: "Australia", status: "FINAL", clock: "Final", home: "Sydney Kings", away: "Melbourne United", homeCode: "SYD", awayCode: "MEL", homeScore: 98, awayScore: 102, venue: "Qudos Bank Arena" },
 ];
 
@@ -113,7 +132,7 @@ export const nflCountries = ["All countries", "United States", "International ga
 const nflGamesSample = [
   { id: 11, competitionId: "nfl", competition: "NFL", country: "United States", conference: "AFC", status: "LIVE", clock: "3rd · 08:41", home: "Kansas City Chiefs", away: "Buffalo Bills", homeCode: "KC", awayCode: "BUF", homeScore: 24, awayScore: 20, venue: "Arrowhead Stadium" },
   { id: 12, competitionId: "nfl", competition: "NFL", country: "United States", conference: "NFC", status: "LIVE", clock: "2nd · 02:15", home: "San Francisco 49ers", away: "Dallas Cowboys", homeCode: "SF", awayCode: "DAL", homeScore: 14, awayScore: 10, venue: "Levi's Stadium" },
-  { id: 13, competitionId: "playoffs", competition: "NFL Playoffs", country: "United States", conference: "AFC", status: "UPCOMING", clock: "Sun · 20:20", home: "Baltimore Ravens", away: "Cincinnati Bengals", homeCode: "BAL", awayCode: "CIN", homeScore: null, awayScore: null, venue: "M&T Bank Stadium" },
+  { id: 13, competitionId: "playoffs", competition: "NFL Playoffs", country: "United States", conference: "AFC", status: "UPCOMING", startTime: nextWeekdayTipoff(0, 20, 20), home: "Baltimore Ravens", away: "Cincinnati Bengals", homeCode: "BAL", awayCode: "CIN", homeScore: null, awayScore: null, venue: "M&T Bank Stadium" },
   { id: 14, competitionId: "nfl", competition: "NFL", country: "United States", conference: "NFC", status: "FINAL", clock: "Final", home: "Detroit Lions", away: "Green Bay Packers", homeCode: "DET", awayCode: "GB", homeScore: 31, awayScore: 27, venue: "Ford Field" },
 ];
 
