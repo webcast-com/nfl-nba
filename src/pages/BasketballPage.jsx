@@ -305,8 +305,10 @@ export default function BasketballPage({
         />
 
         <div id="section-standings">
-          <StandingsPanel            groups={activeStandings}
+          <StandingsPanel
+            groups={activeStandings}
             note={`${seasonLabel(seasonStart)} · ${source === "espn" ? "ESPN standings" : "sample table"}`}
+            teamBasePath="/basketball"
           />
         </div>
         <p className="sh-updated">Updated: {updated}</p>
@@ -314,6 +316,7 @@ export default function BasketballPage({
 
       <aside className="sh-right" id="section-players">
         <PlayerDetails
+          linkBase="/basketball"
           leaders={playerCards}
           note={source === "espn" ? "ESPN leaders" : "Demo leaders"}
         />

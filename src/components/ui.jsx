@@ -1,5 +1,20 @@
 import React from "react";
+import { Link, useInRouterContext } from "react-router-dom";
 import { IconRefresh } from "./Icons";
+
+/**
+ * Renders a router link when the component sits inside a <Router>, and a plain
+ * element otherwise, so the dashboards stay usable as standalone components.
+ */
+export function MaybeLink({ to, children, ...rest }) {
+  const inRouter = useInRouterContext();
+  if (!inRouter) return <span {...rest}>{children}</span>;
+  return (
+    <Link to={to} {...rest}>
+      {children}
+    </Link>
+  );
+}
 
 export function Panel({ children, className = "", as: Tag = "section", ...rest }) {
   return (

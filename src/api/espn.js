@@ -19,6 +19,7 @@
  */
 
 import { formatKickoff } from "../utils/dates";
+import { slugify } from "../utils/entities";
 
 const env = (typeof import.meta !== "undefined" && import.meta.env) || {};
 
@@ -36,6 +37,7 @@ export const ESPN_WEB_PROXY = "/espn-web";
 const SCOREBOARD_TTL = 30 * 1000;
 const STANDINGS_TTL = 5 * 60 * 1000;
 const LEADERS_TTL = 60 * 60 * 1000;
+const DETAIL_TTL = 60 * 1000;
 const REQUEST_TIMEOUT = 12 * 1000;
 
 /** ESPN league slugs we know how to place in the existing competition filters. */
@@ -263,6 +265,151 @@ export function leadersUrls(leagueKey) {
   return withProxyFallback(ESPN_WEB_BASE, ESPN_WEB_PROXY, path);
 }
 
+export function teamUrls(leagueKey, teamId) {
+  const league = requireLeague(leagueKey);
+  const base = `/apis/site/v2/sports/${league.path}/teams/${encodeURIComponent(teamId)}`;
+  return {
+    info: withProxyFallback(ESPN_SITE_BASE, ESPN_SITE_PROXY, base),
+    schedule: withProxyFallback(ESPN_SITE_BASE, ESPN_SITE_PROXY, `${base}/schedule`),
+    roster: withProxyFallback(ESPN_SITE_BASE, ESPN_SITE_PROXY, `${base}/roster`),
+  };
+}
+
+export function athleteUrls(leagueKey, athleteId) {
+  const league = requireLeague(leagueKey);
+  const path = `/apis/common/v3/sports/${league.path}/athletes/${encodeURIComponent(athleteId)}`;
+  return withProxyFallback(ESPN_WEB_BASE, ESPN_WEB_PROXY, path);
+}
+
+// ---------------------------------------------------------------------------
+// Team + player detail normalisation (best effort, demo data always wins as a
+// fallback so the detail pages render even when ESPN is unreachable)
+// ---------------------------------------------------------------------------
+
+export function normalizeTeamInfo(payload) {
+  const team = payload?.team ?? payload;
+  if (!team || typeof team !== "object") return null;
+  const recordEntry = asArray(team.record?.items)[0] ?? team.record ?? null;
+  const recordSummary =
+    (typeof recordEntry === "string" ? recordEntry : recordEntry?.summary ?? recordEntry?.displayValue) ?? null;
+
+  return {
+    id: team.id ?? null,
+    name: team.displayName ?? team.name ?? null,
+    code: team.abbreviation ?? null,
+    logo: teamLogo(team),
+    record: recordSummary,
+    standing: team.standingSummary ?? null,
+    location: team.location ?? null,
+    color: team.color ?? null,
+    links: asArray(team.links).map((link) => link?.href).filter(Boolean),
+  };
+}
+
+export function normalizeRoster(payload, { sport = "basketball" } = {}) {
+  const entries = asArray(payload?.athletes ?? payload?.team?.athletes);
+  const sportPath = sport === "football" ? "nfl" : "nba";
+
+  return entries
+    .map((athlete) => {
+      const name = athlete?.displayName ?? athlete?.fullName ?? athlete?.name;
+      if (!name) return null;
+      const id = athlete.id ?? null;
+      return {
+        id,
+        key: slugify(name),
+        name,
+        jersey: athlete.jersey ?? null,
+        position: athlete.position?.abbreviation ?? athlete.position?.name ?? "—",
+        headshot:
+          athlete.headshot?.href ??
+          (id ? `https://a.espncdn.com/i/headshots/${sportPath}/players/full/${id}.png` : null),
+        height: athlete.displayHeight ?? null,
+        age: athlete.age ?? null,
+        experience: athlete.experience?.years ?? null,
+      };
+    })
+    .filter(Boolean);
+}
+
+export function normalizeAthlete(payload, { sport = "basketball" } = {}) {
+  const athlete = payload?.athlete ?? payload;
+  if (!athlete || typeof athlete !== "object") return null;
+  const sportPath = sport === "football" ? "nfl" : "nba";
+  const id = athlete.id ?? null;
+
+  const categories = asArray(
+    payload?.statistics?.splits?.categories ?? payload?.statistics?.categories ?? payload?.categories
+  );
+  const statGroups = categories
+    .map((category) => {
+      const name = category?.name ?? category?.displayName ?? "Season stats";
+      const stats = asArray(category?.stats)
+        .map((stat) => ({
+          label: stat?.displayName ?? stat?.name ?? stat?.abbreviation,
+          value: stat?.displayValue ?? stat?.value,
+        }))
+        .filter((stat) => stat.label && stat.value !== undefined && stat.value !== null && stat.value !== "");
+      return { name, stats: stats.slice(0, 8) };
+    })
+    .filter((group) => group.stats.length)
+    .slice(0, 2);
+
+  return {
+    id,
+    name: athlete.displayName ?? athlete.fullName ?? null,
+    headshot:
+      athlete.headshot?.href ??
+      (id ? `https://a.espncdn.com/i/headshots/${sportPath}/players/full/${id}.png` : null),
+    position: athlete.position?.abbreviation ?? athlete.position?.name ?? null,
+    jersey: athlete.jersey ?? null,
+    age: athlete.age ?? null,
+    height: athlete.displayHeight ?? null,
+    weight: athlete.displayWeight ?? null,
+    college: athlete.college?.name ?? null,
+    team: athlete.team
+      ? {
+          name: athlete.team.displayName ?? null,
+          code: athlete.team.abbreviation ?? null,
+          logo: teamLogo(athlete.team),
+        }
+      : null,
+    statGroups,
+  };
+}
+
+export async function loadTeamDetail(leagueKey, teamId, { force = false } = {}) {
+  const league = requireLeague(leagueKey);
+  const urls = teamUrls(leagueKey, teamId);
+  const [infoResult, scheduleResult, rosterResult] = await Promise.allSettled([
+    requestEspn(urls.info, { ttl: DETAIL_TTL, force }),
+    requestEspn(urls.schedule, { ttl: DETAIL_TTL, force }),
+    requestEspn(urls.roster, { ttl: DETAIL_TTL, force }),
+  ]);
+
+  if ([infoResult, scheduleResult, rosterResult].every((result) => result.status === "rejected")) {
+    throw new EspnRequestError("ESPN team feed is unreachable");
+  }
+
+  return {
+    info: infoResult.status === "fulfilled" ? normalizeTeamInfo(infoResult.value) : null,
+    games:
+      scheduleResult.status === "fulfilled"
+        ? normalizeScoreboard(scheduleResult.value, { league })
+        : [],
+    roster:
+      rosterResult.status === "fulfilled"
+        ? normalizeRoster(rosterResult.value, { sport: league.sport })
+        : [],
+  };
+}
+
+export async function loadAthleteDetail(leagueKey, athleteId, { force = false } = {}) {
+  const league = requireLeague(leagueKey);
+  const data = await requestEspn(athleteUrls(leagueKey, athleteId), { ttl: DETAIL_TTL, force });
+  return normalizeAthlete(data, { sport: league.sport });
+}
+
 // ---------------------------------------------------------------------------
 // Scoreboard normalisation
 // ---------------------------------------------------------------------------
@@ -465,6 +612,7 @@ function normalizeStandingRow(entry) {
 
   return {
     team: team.displayName ?? team.name ?? "TBD",
+    espnId: team.id ?? null,
     code: team.abbreviation ?? "—",
     logo: teamLogo(team),
     p: gamesPlayed ?? "—",
@@ -569,6 +717,7 @@ export function normalizeLeaders(payload, { sport = "basketball" } = {}) {
           athlete.headshot?.href ??
           (athlete.id ? `https://a.espncdn.com/i/headshots/${sportPath}/players/full/${athlete.id}.png` : null);
         return {
+          espnId: athlete.id ?? null,
           name,
           team: team.displayName ?? "—",
           teamAbbr: team.abbreviation ?? null,

@@ -176,9 +176,11 @@ export default function NFLPage({
         />
 
         <div id="section-standings">
-          <StandingsPanel            groups={activeStandings}
+          <StandingsPanel
+            groups={activeStandings}
             nfl
             note={source === "espn" ? "ESPN standings" : "Sample table"}
+            teamBasePath="/nfl"
           />
         </div>
         <p className="sh-updated">Updated: {updated}</p>
@@ -186,6 +188,7 @@ export default function NFLPage({
 
       <aside className="sh-right" id="section-players">
         <PlayerDetails
+          linkBase="/nfl"
           leaders={playerCards}
           note={source === "espn" ? "ESPN leaders" : "Demo leaders"}
         />

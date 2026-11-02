@@ -19,12 +19,26 @@ Sports without a feed yet (Cricket, Badminton, Hockey) render a placeholder page
 
 - `src/pages/BasketballPage.jsx` — global basketball dashboard: continent / competition / gender / country / season filters, date rail, status tabs and search.
 - `src/pages/NFLPage.jsx` — NFL dashboard, season stage + week rail + conference filters.
+- `src/pages/TeamPage.jsx` / `src/pages/PlayerPage.jsx` — team and player detail pages reached from the standings table, the player rail and the squad list.
 - `src/pages/ComingSoonPage.jsx` — placeholder for sports that don't have a feed yet.
 - `src/components/` — shell (rail/top bar), league sidebar, hero, score panel, match cards, player cards, standings, UI primitives, icon set.
 - `src/api/espn.js` — ESPN client and normalisers.
 - `src/hooks/useEspnFeed.js` — polling hook that swaps demo data for live data.
 - `src/data/sportsData.js` — demo data (scores, standings, leaders, team logos, broadcasters) used for the first paint and offline mode.
 - `src/utils/` — date/week rails and dashboard helpers.
+
+## Team and player pages
+
+Every team name in a standings table and every card in the Player Details rail links to a dedicated page, so the hub is no longer a dead end:
+
+| Route | Page |
+| --- | --- |
+| `/basketball/team/:teamKey` · `/nfl/team/:teamKey` | Team profile: record, PCT, streak, group, the team's results/fixtures, squad list and its conference table |
+| `/basketball/player/:playerKey` · `/nfl/player/:playerKey` | Player profile: portrait, position, jersey, headline stat, ESPN season splits and the rest of the leaders board |
+
+- Keys are readable slugs (`/basketball/team/boston-celtics`, `/basketball/player/luka-doncic`); codes and ESPN ids resolve too, so `bos` and ESPN's numeric id land on the same page.
+- Everything renders from the bundled demo data first — records come from the standings table, fixtures from the games feed, profiles from the leaders rail — then ESPN enriches them when it answers: team info + `teams/{id}/schedule` + `teams/{id}/roster` for teams, `athletes/{id}` for players.
+- The standings table and player cards render plain markup when no router is present, so the components stay usable standalone (see `MaybeLink` in `src/components/ui.jsx`).
 
 ## Mobile layout
 
@@ -98,6 +112,8 @@ import "./styles.css";
 | NFL scores (preseason / regular / postseason) | `site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard` |
 | NFL standings (AFC/NFC → divisions) | `site.api.espn.com/apis/v2/sports/football/nfl/standings` |
 | Season leaders (best effort) | `site.web.api.espn.com/apis/common/v3/sports/{basketball/nba,football/nfl}/leaders` |
+| Team page (info, schedule, roster) | `site.api.espn.com/apis/site/v2/sports/basketball/{nba,…}/teams/{id,abbr}/…` |
+| Player page stats (best effort) | `site.web.api.espn.com/apis/common/v3/sports/{basketball/nba,football/nfl}/athletes/{id}` |
 
 How it behaves:
 
