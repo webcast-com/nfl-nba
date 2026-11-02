@@ -28,6 +28,7 @@ Sports without a feed yet (Cricket, Badminton, Hockey) render a placeholder page
 - `src/hooks/useEspnFeed.js` — polling hook that swaps demo data for live data.
 - `src/data/sportsData.js` — demo data (scores, standings, leaders, team logos, broadcasters) used for the first paint and offline mode.
 - `src/data/newsData.js` / `scorersData.js` / `commentaryData.js` — offline newsroom stories, per-category leader boards and sample play-by-play.
+- `src/assets/news/` and `src/assets/players/` — card photography and portrait art bundled with the app so both screens stay illustrated offline.
 - `src/utils/` — date/week rails and dashboard helpers.
 
 ## Team and player pages
@@ -51,13 +52,16 @@ Each hub is a small site of its own. A pill bar under the top bar (`SubNav`) swi
 | --- | --- | --- |
 | Live | `/basketball` · `/nfl` | The full dashboard (hero, scores, standings, players) |
 | Upcoming | `/basketball/upcoming` · `/nfl/upcoming` | Every fixture still to play, grouped by `In progress` / `Today` / `Tomorrow` / date, with tip-off times in the viewer's zone |
-| Top scorers | `/basketball/top-scorers` · `/nfl/top-scorers` | Four leader boards (points, rebounds, assists, blocks for basketball; passing, rushing, receiving, sacks for the NFL) with player links |
-| News | `/basketball/news` · `/nfl/news` | The newsroom grid of reports, previews and analysis |
+| Top scorers | `/basketball/top-scorers` · `/nfl/top-scorers` | Four leader boards (points, rebounds, assists, blocks for basketball; passing, rushing, receiving, sacks for the NFL) with player portraits and links |
+| News | `/basketball/news` · `/nfl/news` | The newsroom grid of reports, previews and analysis, each card with its own image |
 | Match commentary | `/basketball/match/:matchId` · `/nfl/match/:matchId` | Scoreline hero plus the play-by-play timeline, reached from any match card or Upcoming fixture |
 
 - Everything renders from bundled demo content first (`newsData.js`, `scorersData.js`, `commentaryData.js`) and is replaced in place when ESPN answers: `…/news` for the newsroom, `…/leaders` for the boards, `/summary?event={id}` for real play-by-play. Offline, the match page labels its feed `Sample play-by-play` instead of pretending to be live.
+- **News cards carry artwork.** Every demo story ships a photo from `src/assets/news/`, so the grid is illustrated before the first network call; ESPN stories use their own image and fall back to the bundled set. A photo that fails to load drops back to the story's accent gradient instead of a broken-image icon.
+- **Top scorers carry portraits.** Each row is a 36px portrait chip: ESPN headshot → bundled portrait art from `src/assets/players/` (picked deterministically per player, so a name keeps the same face on every board) → initials. The page footnotes that portraits are ESPN headshots when the feed answers and sample artwork otherwise.
 - Leader names link to their `/player/:playerKey` page whenever a profile exists, so the boards, the player rail and the standings all lead into the same detail pages.
 - Match cards on both dashboards (and every fixture row) now link to the commentary screen; the commentary screen is the only place the app shows a play-by-play timeline.
+- The bundled photography is placeholder stock and the portraits are generated artwork, not the real players — they exist so the screens stay illustrated offline. Once ESPN answers, the real headshots and article images replace them.
 
 ## Mobile layout
 

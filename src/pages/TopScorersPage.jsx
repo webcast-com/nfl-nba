@@ -1,11 +1,48 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { detailSport } from "../data/detailConfig";
-import { basketballScorers, nflScorers } from "../data/scorersData";
+import { basketballScorers, nflScorers, portraitFor } from "../data/scorersData";
 import { isEspnDisabled, loadLeaderboard } from "../api/espn";
 import { buildPlayerIndex, findPlayer, slugify } from "../utils/entities";
 import { Panel, PanelHead } from "../components/ui";
 import { IconChart } from "../components/Icons";
+
+/**
+ * Portrait ladder: ESPN headshot -> bundled artwork -> initials.
+ * A broken or missing image never leaves a hole in the row.
+ */
+function ScorerAvatar({ sport, name, photo, initials }) {
+  const fallback = useMemo(() => portraitFor(sport, name), [sport, name]);
+  const [source, setSource] = useState(photo ?? fallback);
+  const [broken, setBroken] = useState(false);
+
+  useEffect(() => {
+    setSource(photo ?? fallback);
+    setBroken(false);
+  }, [photo, fallback]);
+
+  const handleError = () => {
+    if (source !== fallback && fallback) {
+      setSource(fallback);
+      return;
+    }
+    setBroken(true);
+  };
+
+  if (broken) {
+    return (
+      <span className="sh-scorer-avatar is-mono" aria-hidden="true">
+        {initials ?? name.slice(0, 2).toUpperCase()}
+      </span>
+    );
+  }
+
+  return (
+    <span className="sh-scorer-avatar">
+      <img src={source} alt="" loading="lazy" decoding="async" onError={handleError} />
+    </span>
+  );
+}
 
 export default function TopScorersPage({ sport = "basketball" }) {
   const config = detailSport(sport);
@@ -55,9 +92,12 @@ export default function TopScorersPage({ sport = "basketball" }) {
                 const row = (
                   <>
                     <span className="sh-scorer-rank">{index + 1}</span>
-                    <span className="sh-scorer-mono" aria-hidden="true">
-                      {entry.initials ?? entry.name.slice(0, 2).toUpperCase()}
-                    </span>
+                    <ScorerAvatar
+                      sport={sport}
+                      name={entry.name}
+                      photo={entry.headshot}
+                      initials={entry.initials}
+                    />
                     <span className="sh-scorer-name">
                       <b>{entry.name}</b>
                       <i>{entry.team}</i>
@@ -81,6 +121,10 @@ export default function TopScorersPage({ sport = "basketball" }) {
           </Panel>
         ))}
       </div>
+
+      <p className="sh-detail-note">
+        Portraits are the players' ESPN headshots when the feed answers; sample artwork otherwise.
+      </p>
     </main>
   );
 }

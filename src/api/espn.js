@@ -760,8 +760,9 @@ export function normalizeNews(payload) {
     .slice(0, 12);
 }
 
-export function normalizeLeaderboard(payload, { limit = 5 } = {}) {
+export function normalizeLeaderboard(payload, { limit = 5, sport = "basketball" } = {}) {
   const lists = findLeaderLists(payload);
+  const headshotPath = sport === "football" ? "nfl" : "nba";
   const seen = new Set();
   const boards = [];
 
@@ -775,9 +776,13 @@ export function normalizeLeaderboard(payload, { limit = 5 } = {}) {
         const value = entry?.displayValue ?? entry?.value;
         if (!name || value === undefined || value === null) return null;
         const team = athlete.team ?? entry?.team ?? {};
+        const headshot =
+          athlete.headshot?.href ??
+          (athlete.id ? `https://a.espncdn.com/i/headshots/${headshotPath}/players/full/${athlete.id}.png` : null);
         return {
           name,
           value: String(value),
+          headshot,
           team: team.displayName ?? "—",
           teamAbbr: team.abbreviation ?? null,
           teamLogo: teamLogo(team),

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { cleanup, render } from "@testing-library/react";
+import { cleanup, fireEvent, render } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import BasketballPage from "./BasketballPage";
 import NFLPage from "./NFLPage";
@@ -81,6 +81,29 @@ describe("news page", () => {
     expect(container.textContent).not.toContain("Nairobi City Thunder");
   });
 
+  it("gives every card bundled artwork so the newsroom reads offline", () => {
+    const { container } = renderAt("/basketball/news");
+    const images = [...container.querySelectorAll("img.sh-news-img")];
+    expect(images).toHaveLength(6);
+    images.forEach((image) => {
+      expect(image.getAttribute("src")).toBeTruthy();
+      expect(image.getAttribute("alt")).toBe("");
+      expect(image.getAttribute("loading")).toBe("lazy");
+    });
+  });
+
+  it("swaps a broken photo for the accent gradient instead of a broken icon", () => {
+    const { container } = renderAt("/basketball/news");
+    const media = container.querySelector(".sh-news-media");
+    expect(media.className).toContain("has-image");
+
+    fireEvent.error(media.querySelector("img"));
+
+    const after = container.querySelector(".sh-news-media");
+    expect(after.querySelector("img")).toBeNull();
+    expect(after.className).not.toContain("has-image");
+  });
+
   it("links back to the hub", () => {
     const { container } = renderAt("/basketball/news");
     const back = container.querySelector(".sh-detail-note a");
@@ -105,6 +128,34 @@ describe("top scorers page", () => {
     const link = container.querySelector('a[href="/basketball/player/luka-doncic"]');
     expect(link).toBeTruthy();
     expect(link.textContent).toContain("Luka Dončić");
+  });
+
+  it("shows a portrait for every leader", () => {
+    const { container } = renderAt("/basketball/top-scorers");
+    const avatars = container.querySelectorAll(".sh-scorer-avatar");
+    expect(avatars).toHaveLength(20);
+    expect(container.querySelector(".sh-scorer-avatar img")).toBeTruthy();
+    expect(container.querySelector(".sh-scorer-row .sh-scorer-avatar img").getAttribute("src")).toBeTruthy();
+  });
+
+  it("keeps the same portrait for a player across boards", () => {
+    const { container } = renderAt("/basketball/top-scorers");
+    const sources = {};
+    container.querySelectorAll(".sh-scorer-row").forEach((row) => {
+      const name = row.querySelector(".sh-scorer-name b").textContent;
+      const src = row.querySelector(".sh-scorer-avatar img").getAttribute("src");
+      if (sources[name]) expect(src).toBe(sources[name]);
+      else sources[name] = src;
+    });
+    expect(Object.keys(sources).length).toBeGreaterThan(5);
+  });
+
+  it("falls back to initials when the portrait cannot load", () => {
+    const { container } = renderAt("/nfl/top-scorers");
+    fireEvent.error(container.querySelector(".sh-scorer-avatar img"));
+    const second = container.querySelector(".sh-scorer-avatar img");
+    fireEvent.error(second);
+    expect(container.querySelectorAll(".sh-scorer-avatar.is-mono").length).toBeGreaterThan(0);
   });
 
   it("uses the football boards for the NFL hub", () => {

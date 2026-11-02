@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { detailSport } from "../data/detailConfig";
-import { basketballNews, nflNews } from "../data/newsData";
+import { basketballNews, nflNews, demoNewsImages } from "../data/newsData";
 import { isEspnDisabled, loadNews } from "../api/espn";
 import { EmptyState } from "../components/ui";
 
-function fromEspn(article) {
+function fromEspn(article, fallbackImage) {
   return {
     id: article.id,
     tag: article.tag ?? "ESPN",
@@ -17,13 +17,49 @@ function fromEspn(article) {
       ? new Date(article.published).toLocaleDateString([], { day: "numeric", month: "short" })
       : "",
     readTime: "ESPN",
-    image: article.image,
+    image: article.image ?? fallbackImage,
   };
+}
+
+/** Card artwork that degrades to the accent gradient when a photo fails. */
+function NewsCard({ article }) {
+  const [broken, setBroken] = useState(false);
+  const showImage = Boolean(article.image) && !broken;
+
+  return (
+    <article className="sh-news-card" style={{ "--news-accent": article.accent }}>
+      <div className={`sh-news-media ${showImage ? "has-image" : ""}`}>
+        {showImage ? (
+          <img
+            className="sh-news-img"
+            src={article.image}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            onError={() => setBroken(true)}
+          />
+        ) : null}
+        <span className="sh-news-tag">{article.tag}</span>
+      </div>
+      <div className="sh-news-body">
+        <h2 className="sh-news-title">{article.title}</h2>
+        <p className="sh-news-summary">{article.summary}</p>
+        <div className="sh-news-meta">
+          <span>{article.author}</span>
+          <span aria-hidden="true">·</span>
+          <span>{article.published}</span>
+          <span aria-hidden="true">·</span>
+          <span>{article.readTime}</span>
+        </div>
+      </div>
+    </article>
+  );
 }
 
 export default function NewsPage({ sport = "basketball" }) {
   const config = detailSport(sport);
   const demo = sport === "football" ? nflNews : basketballNews;
+  const fallbacks = useMemo(() => demoNewsImages[sport] ?? demoNewsImages.basketball, [sport]);
   const [articles, setArticles] = useState(demo);
 
   useEffect(() => {
@@ -32,13 +68,17 @@ export default function NewsPage({ sport = "basketball" }) {
     let active = true;
     loadNews(config.leagueKey)
       .then((remote) => {
-        if (active && remote.length) setArticles([...remote.map(fromEspn), ...demo]);
+        if (!active || !remote.length) return;
+        const live = remote.map((article, index) =>
+          fromEspn(article, fallbacks[index % fallbacks.length])
+        );
+        setArticles([...live, ...demo]);
       })
       .catch(() => {});
     return () => {
       active = false;
     };
-  }, [config.leagueKey, demo]);
+  }, [config.leagueKey, demo, fallbacks]);
 
   return (
     <main className="sh-detail">
@@ -53,21 +93,7 @@ export default function NewsPage({ sport = "basketball" }) {
       {articles.length ? (
         <div className="sh-news-grid">
           {articles.map((article) => (
-            <article className="sh-news-card" key={article.id ?? article.title}>
-              <span className="sh-news-accent" style={{ "--news-accent": article.accent }} />
-              <div className="sh-news-body">
-                <span className="sh-news-tag">{article.tag}</span>
-                <h2 className="sh-news-title">{article.title}</h2>
-                <p className="sh-news-summary">{article.summary}</p>
-                <div className="sh-news-meta">
-                  <span>{article.author}</span>
-                  <span aria-hidden="true">·</span>
-                  <span>{article.published}</span>
-                  <span aria-hidden="true">·</span>
-                  <span>{article.readTime}</span>
-                </div>
-              </div>
-            </article>
+            <NewsCard article={article} key={article.id ?? article.title} />
           ))}
         </div>
       ) : (

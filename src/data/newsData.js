@@ -1,5 +1,24 @@
 /** Sample newsroom copy used for the first paint and offline mode. */
 
+// Photography bundled with the app so the newsroom still has artwork offline.
+import bballCourtAction from "../assets/news/bball-court-action.jpg";
+import bballGame1 from "../assets/news/bball-game-1.jpg";
+import bballGame2 from "../assets/news/bball-game-2.jpg";
+import bballGame3 from "../assets/news/bball-game-3.jpg";
+import bballGame4 from "../assets/news/bball-game-4.jpg";
+import bballCourt2 from "../assets/news/bball-court-2.jpg";
+import nflTackle1 from "../assets/news/nfl-tackle-1.jpg";
+import nflTackle2 from "../assets/news/nfl-tackle-2.jpg";
+import nflTackle3 from "../assets/news/nfl-tackle-3.jpg";
+import nflTackle4 from "../assets/news/nfl-tackle-4.jpg";
+import nflPlayerRed from "../assets/news/nfl-player-red.jpg";
+import nflPreSnap from "../assets/news/nfl-pre-snap.jpg";
+
+export const demoNewsImages = {
+  basketball: [bballCourtAction, bballGame1, bballGame2, bballGame3, bballGame4, bballCourt2],
+  football: [nflTackle1, nflTackle2, nflTackle3, nflTackle4, nflPlayerRed, nflPreSnap],
+};
+
 export const basketballNews = [
   {
     id: "bal-final",
@@ -11,6 +30,7 @@ export const basketballNews = [
     author: "ScoreHub Desk",
     published: "2h ago",
     readTime: "4 min read",
+    image: bballCourtAction,
   },
   {
     id: "euroleague-round",
@@ -22,6 +42,7 @@ export const basketballNews = [
     author: "Elena Costa",
     published: "4h ago",
     readTime: "5 min read",
+    image: bballGame1,
   },
   {
     id: "wnba-race",
@@ -33,6 +54,7 @@ export const basketballNews = [
     author: "Maya Turner",
     published: "6h ago",
     readTime: "3 min read",
+    image: bballGame2,
   },
   {
     id: "nba-celtics",
@@ -44,6 +66,7 @@ export const basketballNews = [
     author: "Jordan Ellis",
     published: "9h ago",
     readTime: "6 min read",
+    image: bballGame3,
   },
   {
     id: "acb-derby",
@@ -55,6 +78,7 @@ export const basketballNews = [
     author: "Pau Ferrer",
     published: "12h ago",
     readTime: "4 min read",
+    image: bballGame4,
   },
   {
     id: "nbl-sydney",
@@ -66,6 +90,7 @@ export const basketballNews = [
     author: "Tom Bradley",
     published: "1d ago",
     readTime: "3 min read",
+    image: bballCourt2,
   },
 ];
 
@@ -80,6 +105,7 @@ export const nflNews = [
     author: "ScoreHub Desk",
     published: "1h ago",
     readTime: "4 min read",
+    image: nflTackle1,
   },
   {
     id: "niners-cowboys",
@@ -91,6 +117,7 @@ export const nflNews = [
     author: "Danielle Reed",
     published: "3h ago",
     readTime: "5 min read",
+    image: nflTackle2,
   },
   {
     id: "playoffs-picture",
@@ -102,6 +129,7 @@ export const nflNews = [
     author: "Chris Nolan",
     published: "5h ago",
     readTime: "6 min read",
+    image: nflTackle3,
   },
   {
     id: "lions-packers",
@@ -113,6 +141,7 @@ export const nflNews = [
     author: "Alicia Grant",
     published: "8h ago",
     readTime: "3 min read",
+    image: nflTackle4,
   },
   {
     id: "afc-north",
@@ -124,6 +153,7 @@ export const nflNews = [
     author: "Marcus Lee",
     published: "11h ago",
     readTime: "5 min read",
+    image: nflPlayerRed,
   },
   {
     id: "draft-watch",
@@ -135,5 +165,6 @@ export const nflNews = [
     author: "Nina Patel",
     published: "1d ago",
     readTime: "7 min read",
+    image: nflPreSnap,
   },
 ];
