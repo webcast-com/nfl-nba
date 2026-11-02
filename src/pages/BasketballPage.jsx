@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { basketballCompetitions as defaultCompetitions } from "../data/sportsData";
 import { LeagueSidebar } from "../components/LeagueSidebar";
+import { MobileSectionTabs } from "../components/Shell";
 import { DateRail, FeaturedGame, ScoreboardPanel } from "../components/Scoreboard";
 import { PlayerDetails } from "../components/PlayerDetails";
 import { StandingsPanel, StatTiles } from "../components/Standings";
@@ -279,7 +280,9 @@ export default function BasketballPage({
       />
 
       <div className="sh-center">
-        <FeaturedGame game={hero} sport="basketball" />
+        <div id="section-live">
+          <FeaturedGame game={hero} sport="basketball" />
+        </div>
 
         <ScoreboardPanel
           games={filtered}
@@ -301,20 +304,23 @@ export default function BasketballPage({
           emptyHint={`No games on ${formatDateKeyLabel(date)} for these filters.`}
         />
 
-        <StandingsPanel
-          groups={activeStandings}
-          note={`${seasonLabel(seasonStart)} · ${source === "espn" ? "ESPN standings" : "sample table"}`}
-        />
+        <div id="section-standings">
+          <StandingsPanel            groups={activeStandings}
+            note={`${seasonLabel(seasonStart)} · ${source === "espn" ? "ESPN standings" : "sample table"}`}
+          />
+        </div>
         <p className="sh-updated">Updated: {updated}</p>
       </div>
 
-      <aside className="sh-right">
+      <aside className="sh-right" id="section-players">
         <PlayerDetails
           leaders={playerCards}
           note={source === "espn" ? "ESPN leaders" : "Demo leaders"}
         />
         <StatTiles stats={activeStats} title="Competition snapshot" />
       </aside>
+
+      <MobileSectionTabs />
     </main>
   );
 }

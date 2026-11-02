@@ -19,6 +19,21 @@ describe("BasketballPage", () => {
     expect(container.querySelector(".sh-feature")).toBeTruthy();
   });
 
+  it("offers phone section tabs for the desktop-only columns", () => {
+    const { getByRole } = render(<BasketballPage />);
+    const nav = getByRole("navigation", { name: "Page sections" });
+    const labels = [...nav.querySelectorAll("button")].map((node) => node.textContent.trim());
+    expect(labels).toEqual(["Live", "Standings", "Filters", "Players"]);
+    expect(document.getElementById("section-live")).toBeTruthy();
+    expect(document.getElementById("section-standings")).toBeTruthy();
+    expect(document.getElementById("section-filters")).toBeTruthy();
+    expect(document.getElementById("section-players")).toBeTruthy();
+
+    const filters = getByRole("button", { name: "Filters" });
+    fireEvent.click(filters);
+    expect(filters.getAttribute("aria-current")).toBe("true");
+  });
+
   it("shows kickoff times in the viewer's time zone", () => {
     const { container, getByLabelText } = render(<BasketballPage />);
     expect(getByLabelText(/Kickoff times in your time zone/i).textContent).toMatch(/\w/);
@@ -82,6 +97,14 @@ describe("BasketballPage", () => {
 });
 
 describe("NFLPage", () => {
+  it("offers the same phone section tabs", () => {
+    const { getByRole } = render(<NFLPage />);
+    const nav = getByRole("navigation", { name: "Page sections" });
+    expect(nav.querySelectorAll("button")).toHaveLength(4);
+    expect(document.getElementById("section-players")).toBeTruthy();
+    expect(document.getElementById("section-filters")).toBeTruthy();
+  });
+
   it("renders fixtures and division standings", () => {
     const { container, getByText, getAllByRole } = render(
       <MemoryRouter>

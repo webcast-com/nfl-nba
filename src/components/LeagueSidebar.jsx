@@ -138,7 +138,7 @@ export function LeagueSidebar({
     ));
 
   return (
-    <aside className="sh-sidebar" aria-label="Competition filters">
+    <aside className="sh-sidebar" id="section-filters" aria-label="Competition filters">
       {renderGroups(groupsBefore)}
 
       <SideSection

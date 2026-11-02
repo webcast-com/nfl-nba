@@ -11,7 +11,7 @@ Dark, broadcast-style sports dashboard built with React + Vite. Scores, standing
 - **Live Score panel**: season pill, viewer time-zone chip, day/week rail, status tabs (ALL / LIVE / UPCOMING / FINAL), search, match cards with real team logos, live clocks, scores and broadcasters.
 - **Player Details rail** with photo (or team-coloured monogram) cards and a stats strip.
 - **Standings** grouped into conference/division cards, plus competition snapshot tiles.
-- Responsive down to phones: the rail hides, columns stack, sidebars move below the centre column.
+- Responsive down to phones: the rail hides, the header wraps onto two rows so all five sport tabs stay reachable, columns stack, and a phone-only section tab bar (Live / Standings / Filters / Players) jumps straight to the panels that would otherwise be buried below the scores.
 
 Sports without a feed yet (Cricket, Badminton, Hockey) render a placeholder page inside the same shell instead of pretending to have data.
 
@@ -25,6 +25,21 @@ Sports without a feed yet (Cricket, Badminton, Hockey) render a placeholder page
 - `src/hooks/useEspnFeed.js` — polling hook that swaps demo data for live data.
 - `src/data/sportsData.js` — demo data (scores, standings, leaders, team logos, broadcasters) used for the first paint and offline mode.
 - `src/utils/` — date/week rails and dashboard helpers.
+
+## Mobile layout
+
+Below 960px the icon rail is hidden and the three dashboard columns stack. To keep the desktop components reachable, both dashboards render a fixed bottom **section tab bar**:
+
+| Tab | Jumps to | Desktop equivalent |
+| --- | --- | --- |
+| Live | Featured game | Centre column, top |
+| Standings | League standings panel | Centre column, below the scores |
+| Filters | Continent / competition / gender / country sidebar | Left sidebar |
+| Players | Player Details rail | Right column |
+
+- Each tab smooth-scrolls to its `#section-*` target, clears the sticky header (`scroll-margin-top`) and stays highlighted while that section is in view; the page reserves bottom padding so the bar never covers the last row.
+- The tabs are `display: none` above 960px, so the desktop layout is untouched, and they are plain buttons with `aria-current` — keyboard and screen-reader friendly.
+- The top bar wraps to two rows below 960px (brand and actions, then the full-width sports switcher), fixing the clipped "Footb…" tab on narrow phones.
 
 ## Basketball coverage and filters
 
