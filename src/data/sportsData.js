@@ -1,4 +1,4 @@
-export const basketballCompetitions = [
+const basketballCompetitionsSample = [
   { id: "nba", name: "NBA", country: "United States", region: "North America" },
   { id: "wnba", name: "WNBA", country: "United States", region: "North America" },
   { id: "euroleague", name: "EuroLeague", country: "Europe", region: "Europe" },
@@ -16,7 +16,7 @@ export const basketballCountries = [
   "Australia", "China", "Philippines", "Kenya"
 ];
 
-export const basketballGames = [
+const basketballGamesSample = [
   { id: 1, competitionId: "nba", competition: "NBA", country: "United States", status: "LIVE", clock: "Q3 · 04:32", home: "Boston Celtics", away: "New York Knicks", homeCode: "BOS", awayCode: "NYK", homeScore: 84, awayScore: 79, venue: "TD Garden" },
   { id: 2, competitionId: "euroleague", competition: "EuroLeague", country: "Europe", status: "LIVE", clock: "Q4 · 07:18", home: "Real Madrid", away: "Olympiacos", homeCode: "RMA", awayCode: "OLY", homeScore: 72, awayScore: 68, venue: "WiZink Center" },
   { id: 3, competitionId: "bal", competition: "Basketball Africa League", country: "Africa", status: "UPCOMING", clock: "20:00", home: "Nairobi City Thunder", away: "Cape Town Tigers", homeCode: "NCT", awayCode: "CTT", homeScore: null, awayScore: null, venue: "Kigali Arena" },
@@ -25,7 +25,7 @@ export const basketballGames = [
   { id: 6, competitionId: "nbl", competition: "NBL", country: "Australia", status: "FINAL", clock: "Final", home: "Sydney Kings", away: "Melbourne United", homeCode: "SYD", awayCode: "MEL", homeScore: 98, awayScore: 102, venue: "Qudos Bank Arena" },
 ];
 
-export const basketballStandings = [
+const basketballStandingsSample = [
   { group: "NBA · Eastern Conference", rows: [
     { team: "Boston Celtics", code: "BOS", p: 82, w: 61, l: 21, pct: ".744", gb: "—", streak: "W4" },
     { team: "New York Knicks", code: "NYK", p: 82, w: 50, l: 32, pct: ".610", gb: "11.0", streak: "W2" },
@@ -40,7 +40,7 @@ export const basketballStandings = [
   ]},
 ];
 
-export const basketballLeaders = [
+const basketballLeadersSample = [
   { name: "Luka Dončić", team: "Dallas Mavericks", metric: "Points per game", value: "33.9", initials: "LD" },
   { name: "Nikola Jokić", team: "Denver Nuggets", metric: "Rebounds per game", value: "12.4", initials: "NJ" },
   { name: "Tyrese Haliburton", team: "Indiana Pacers", metric: "Assists per game", value: "10.9", initials: "TH" },
@@ -54,7 +54,7 @@ export const basketballStats = [
   { label: "Countries / regions", value: "9", foot: "Sample coverage map" },
 ];
 
-export const nflCompetitions = [
+const nflCompetitionsSample = [
   { id: "nfl", name: "NFL", country: "United States", region: "North America" },
   { id: "preseason", name: "NFL Preseason", country: "United States", region: "North America" },
   { id: "playoffs", name: "NFL Playoffs", country: "United States", region: "North America" },
@@ -62,14 +62,14 @@ export const nflCompetitions = [
 
 export const nflCountries = ["All countries", "United States", "International games"];
 
-export const nflGames = [
+const nflGamesSample = [
   { id: 11, competitionId: "nfl", competition: "NFL", country: "United States", conference: "AFC", status: "LIVE", clock: "3rd · 08:41", home: "Kansas City Chiefs", away: "Buffalo Bills", homeCode: "KC", awayCode: "BUF", homeScore: 24, awayScore: 20, venue: "Arrowhead Stadium" },
   { id: 12, competitionId: "nfl", competition: "NFL", country: "United States", conference: "NFC", status: "LIVE", clock: "2nd · 02:15", home: "San Francisco 49ers", away: "Dallas Cowboys", homeCode: "SF", awayCode: "DAL", homeScore: 14, awayScore: 10, venue: "Levi's Stadium" },
   { id: 13, competitionId: "playoffs", competition: "NFL Playoffs", country: "United States", conference: "AFC", status: "UPCOMING", clock: "Sun · 20:20", home: "Baltimore Ravens", away: "Cincinnati Bengals", homeCode: "BAL", awayCode: "CIN", homeScore: null, awayScore: null, venue: "M&T Bank Stadium" },
   { id: 14, competitionId: "nfl", competition: "NFL", country: "United States", conference: "NFC", status: "FINAL", clock: "Final", home: "Detroit Lions", away: "Green Bay Packers", homeCode: "DET", awayCode: "GB", homeScore: 31, awayScore: 27, venue: "Ford Field" },
 ];
 
-export const nflStandings = [
+const nflStandingsSample = [
   { group: "AFC East", rows: [
     { team: "Buffalo Bills", code: "BUF", p: 17, w: 11, l: 6, t: 0, pct: ".647", pf: 451, pa: 311 },
     { team: "Miami Dolphins", code: "MIA", p: 17, w: 11, l: 6, t: 0, pct: ".647", pf: 496, pa: 391 },
@@ -96,7 +96,7 @@ export const nflStandings = [
   ]},
 ];
 
-export const nflLeaders = [
+const nflLeadersSample = [
   { name: "Lamar Jackson", team: "Baltimore Ravens", metric: "Passing yards", value: "3,678", initials: "LJ" },
   { name: "Christian McCaffrey", team: "San Francisco 49ers", metric: "Rushing yards", value: "1,459", initials: "CM" },
   { name: "Tyreek Hill", team: "Miami Dolphins", metric: "Receiving yards", value: "1,799", initials: "TH" },
@@ -109,3 +109,116 @@ export const nflStats = [
   { label: "Games per team", value: "17", foot: "Regular-season format" },
   { label: "Playoff places", value: "14", foot: "Seven per conference" },
 ];
+
+
+// ---------------------------------------------------------------------------
+// Presentation metadata for the demo data (team logos, broadcasters, badges)
+// ---------------------------------------------------------------------------
+
+const teamLogo = (league, code) => `https://a.espncdn.com/i/teamlogos/${league}/500/${code}.png`;
+
+const TEAM_LOGOS = {
+  "Boston Celtics": teamLogo("nba", "bos"),
+  "New York Knicks": teamLogo("nba", "nyk"),
+  "Milwaukee Bucks": teamLogo("nba", "mil"),
+  "Cleveland Cavaliers": teamLogo("nba", "cle"),
+  "Oklahoma City": teamLogo("nba", "okc"),
+  "Denver Nuggets": teamLogo("nba", "den"),
+  Minnesota: teamLogo("nba", "min"),
+  "LA Clippers": teamLogo("nba", "lac"),
+  "Kansas City Chiefs": teamLogo("nfl", "kc"),
+  "Buffalo Bills": teamLogo("nfl", "buf"),
+  "San Francisco 49ers": teamLogo("nfl", "sf"),
+  "Dallas Cowboys": teamLogo("nfl", "dal"),
+  "Baltimore Ravens": teamLogo("nfl", "bal"),
+  "Cincinnati Bengals": teamLogo("nfl", "cin"),
+  "Detroit Lions": teamLogo("nfl", "det"),
+  "Green Bay Packers": teamLogo("nfl", "gb"),
+  "Miami Dolphins": teamLogo("nfl", "mia"),
+  "New York Jets": teamLogo("nfl", "nyj"),
+  "New England": teamLogo("nfl", "ne"),
+  "Las Vegas Raiders": teamLogo("nfl", "lv"),
+  "Denver Broncos": teamLogo("nfl", "den"),
+  "LA Chargers": teamLogo("nfl", "lac"),
+  "Philadelphia Eagles": teamLogo("nfl", "phi"),
+  "NY Giants": teamLogo("nfl", "nyg"),
+  Washington: teamLogo("nfl", "wsh"),
+  "LA Rams": teamLogo("nfl", "lar"),
+  "Seattle Seahawks": teamLogo("nfl", "sea"),
+  "Arizona Cardinals": teamLogo("nfl", "ari"),
+};
+
+const BASKETBALL_BROADCASTS = {
+  nba: "ESPN",
+  wnba: "ESPN2",
+  acb: "Movistar+",
+  nbl: "ESPN",
+  euroleague: "EuroLeague TV",
+  bal: "BAL TV",
+  bbl: "Dyn",
+  bcl: "BCL TV",
+  cba: "CCTV-5",
+  pba: "PBA Rush",
+};
+
+const NFL_BROADCASTS = { nfl: "NFL Network", preseason: "NFL Network", playoffs: "CBS" };
+
+const COMPETITION_META = {
+  nba: { short: "NBA", color: "#1d428a" },
+  wnba: { short: "WNBA", color: "#e8590c" },
+  euroleague: { short: "EL", color: "#f0a02a" },
+  acb: { short: "ACB", color: "#c8102e" },
+  bbl: { short: "BBL", color: "#1e88e5" },
+  bcl: { short: "BCL", color: "#f5b400" },
+  bal: { short: "BAL", color: "#22a06b" },
+  nbl: { short: "NBL", color: "#0b6bb3" },
+  cba: { short: "CBA", color: "#d32f2f" },
+  pba: { short: "PBA", color: "#1565c0" },
+  nfl: { short: "NFL", color: "#1b3a6b" },
+  preseason: { short: "PRE", color: "#3b6ea5" },
+  playoffs: { short: "POST", color: "#b8860b" },
+};
+
+const PLAYER_META = {
+  "Luka Dončić": { position: "PG", teamAbbr: "DAL" },
+  "Nikola Jokić": { position: "C", teamAbbr: "DEN" },
+  "Tyrese Haliburton": { position: "PG", teamAbbr: "IND" },
+  "Victor Wembanyama": { position: "C", teamAbbr: "SAS" },
+  "Lamar Jackson": { position: "QB", teamAbbr: "BAL" },
+  "Christian McCaffrey": { position: "RB", teamAbbr: "SF" },
+  "Tyreek Hill": { position: "WR", teamAbbr: "MIA" },
+  "Myles Garrett": { position: "DE", teamAbbr: "CLE" },
+};
+
+const withLogos = (games, broadcasts) =>
+  games.map((game) => ({
+    ...game,
+    homeLogo: TEAM_LOGOS[game.home] ?? null,
+    awayLogo: TEAM_LOGOS[game.away] ?? null,
+    broadcast: game.broadcast ?? broadcasts[game.competitionId] ?? "—",
+  }));
+
+const withLeagueMeta = (competitions) =>
+  competitions.map((competition) => ({
+    ...competition,
+    ...COMPETITION_META[competition.id],
+  }));
+
+const withTeamLogos = (groups) =>
+  groups.map((group) => ({
+    ...group,
+    rows: group.rows.map((row) => ({ ...row, logo: TEAM_LOGOS[row.team] ?? null })),
+  }));
+
+const withPlayerMeta = (leaders) =>
+  leaders.map((player) => ({ ...player, ...PLAYER_META[player.name] }));
+
+export const basketballCompetitions = withLeagueMeta(basketballCompetitionsSample);
+export const basketballGames = withLogos(basketballGamesSample, BASKETBALL_BROADCASTS);
+export const basketballStandings = withTeamLogos(basketballStandingsSample);
+export const basketballLeaders = withPlayerMeta(basketballLeadersSample);
+
+export const nflCompetitions = withLeagueMeta(nflCompetitionsSample);
+export const nflGames = withLogos(nflGamesSample, NFL_BROADCASTS);
+export const nflStandings = withTeamLogos(nflStandingsSample);
+export const nflLeaders = withPlayerMeta(nflLeadersSample);
