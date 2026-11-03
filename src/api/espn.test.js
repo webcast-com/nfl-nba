@@ -3,6 +3,8 @@ import {
   clearEspnCache,
   formatKickoff,
   isEspnDisabled,
+  leagueKeyForCompetition,
+  liveLeaguesFor,
   normalizeLeaderboard,
   normalizeLeaders,
   normalizeScoreboard,
@@ -320,5 +322,25 @@ describe("ESPN request layer", () => {
 
   it("is disabled inside the test environment", () => {
     expect(isEspnDisabled()).toBe(true);
+  });
+});
+
+describe("NCAA league routing", () => {
+  it("keeps the flagship boards on the default view", () => {
+    expect(liveLeaguesFor("basketball")).toEqual(["nba", "wnba", "nbl", "euroleague"]);
+    expect(liveLeaguesFor("football", "all")).toEqual(["nfl"]);
+  });
+
+  it("fetches a single college board once that competition is selected", () => {
+    expect(liveLeaguesFor("basketball", "ncaam")).toEqual(["mens-college-basketball"]);
+    expect(liveLeaguesFor("basketball", "ncaaw")).toEqual(["womens-college-basketball"]);
+    expect(liveLeaguesFor("football", "cfb")).toEqual(["college-football"]);
+  });
+
+  it("maps competition ids to ESPN league keys", () => {
+    expect(leagueKeyForCompetition("ncaam")).toBe("mens-college-basketball");
+    expect(leagueKeyForCompetition("cfb")).toBe("college-football");
+    expect(leagueKeyForCompetition("nfl")).toBe("nfl");
+    expect(leagueKeyForCompetition(undefined)).toBeNull();
   });
 });

@@ -13,7 +13,7 @@ describe("BasketballPage", () => {
   it("renders the full demo scoreboard", () => {
     const { container, getByText } = render(<BasketballPage />);
     expect(getByText("Basketball Center")).toBeTruthy();
-    expect(gameCards(container)).toHaveLength(6);
+    expect(gameCards(container)).toHaveLength(8); // NBA, EuroLeague, BAL, WNBA, ACB, NBL + NCAA men/women
     expect(container.querySelectorAll(".sh-date")).toHaveLength(10);
     expect(container.querySelectorAll(".sh-player")).toHaveLength(4);
     expect(container.querySelector(".sh-feature")).toBeTruthy();
@@ -51,7 +51,7 @@ describe("BasketballPage", () => {
   it("narrows the fixtures when the LIVE filter is selected", () => {
     const { container, getByRole } = render(<BasketballPage />);
     fireEvent.click(getByRole("tab", { name: "LIVE" }));
-    expect(gameCards(container)).toHaveLength(2);
+    expect(gameCards(container)).toHaveLength(3); // NBA, EuroLeague + NCAA men
   });
 
   it("filters by competition from the league sidebar", () => {
@@ -69,7 +69,7 @@ describe("BasketballPage", () => {
   it("filters by gender and narrows the competition list", () => {
     const { container, getByRole, queryByRole, getByText } = render(<BasketballPage />);
     fireEvent.click(getByRole("button", { name: "Gender: Women" }));
-    expect(gameCards(container)).toHaveLength(1); // WNBA
+    expect(gameCards(container)).toHaveLength(2); // WNBA + NCAA women
     expect(getByRole("button", { name: "Competition: WNBA" })).toBeTruthy();
     expect(queryByRole("button", { name: "Competition: NBA" })).toBeNull();
     expect(getByText("Popular Leagues")).toBeTruthy();
@@ -115,7 +115,7 @@ describe("NFLPage", () => {
       </MemoryRouter>
     );
     expect(getByText("NFL Center")).toBeTruthy();
-    expect(gameCards(container)).toHaveLength(4);
+    expect(gameCards(container)).toHaveLength(5); // NFL + College Football
     expect(container.querySelectorAll(".sh-table")).toHaveLength(4);
     expect(getAllByRole("tab", { name: "LIVE" }).length).toBe(1);
   });
@@ -128,5 +128,51 @@ describe("NFLPage", () => {
     );
     fireEvent.click(getByRole("button", { name: "Conference: NFC" }));
     expect(gameCards(container)).toHaveLength(2);
+  });
+});
+
+describe("NCAA coverage", () => {
+  it("lists the college competitions in the basketball sidebar", () => {
+    const { getByRole } = render(<BasketballPage />);
+    expect(getByRole("button", { name: "Competition: NCAA Men's Division I" })).toBeTruthy();
+    expect(getByRole("button", { name: "Competition: NCAA Women's Division I" })).toBeTruthy();
+  });
+
+  it("narrows the basketball board to a college competition", () => {
+    const { container, getByRole } = render(<BasketballPage />);
+    fireEvent.click(getByRole("button", { name: "Competition: NCAA Men's Division I" }));
+    expect(gameCards(container)).toHaveLength(1);
+    expect(container.textContent).toContain("Duke Blue Devils");
+    expect(container.textContent).toContain("North Carolina Tar Heels");
+    expect(container.textContent).not.toContain("Boston Celtics");
+  });
+
+  it("keeps the women's college board separate", () => {
+    const { container, getByRole } = render(<BasketballPage />);
+    fireEvent.click(getByRole("button", { name: "Competition: NCAA Women's Division I" }));
+    expect(gameCards(container)).toHaveLength(1);
+    expect(container.textContent).toContain("UConn Huskies");
+    expect(container.textContent).toContain("South Carolina Gamecocks");
+  });
+
+  it("swaps the standings panel for the college conferences", () => {
+    const { container, getByRole } = render(<BasketballPage />);
+    fireEvent.click(getByRole("button", { name: "Competition: NCAA Women's Division I" }));
+    expect(container.textContent).toContain("Big East");
+    expect(container.textContent).toContain("UConn Huskies");
+  });
+
+  it("offers College Football on the football board", () => {
+    const { container, getByRole } = render(
+      <MemoryRouter>
+        <NFLPage />
+      </MemoryRouter>
+    );
+    fireEvent.click(getByRole("button", { name: "Competition: College Football" }));
+    expect(gameCards(container)).toHaveLength(1);
+    expect(container.textContent).toContain("Alabama Crimson Tide");
+    expect(container.textContent).toContain("Georgia Bulldogs");
+    expect(container.textContent).toContain("Big Ten");
+    expect(container.textContent).toContain("Ohio State Buckeyes");
   });
 });

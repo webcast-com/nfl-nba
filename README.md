@@ -88,12 +88,12 @@ Below 960px the icon rail is hidden and the three dashboard columns stack. To ke
 | Africa (7) | Basketball Africa League, Women's Basketball League Africa, Kenya NBL, Kenya Women's Basketball League, Nigeria NBPL, Egypt EBSL, Senegal N1 |
 | Europe (13) | EuroLeague, EuroCup, Basketball Champions League, Liga ACB, BBL, LBA, LNB Élite, Greek Basket League, ABA League, EuroLeague Women, EuroCup Women, EuroBasket, EuroBasket Women |
 | Asia (7) | Chinese CBA, Japan B.LEAGUE, Korea KBL, Philippines PBA, WJBL, WCBA, FIBA Asia Cup |
-| North America (3) | NBA, WNBA, NBA G League |
+| North America (5) | NBA, WNBA, NBA G League, NCAA Men's Division I, NCAA Women's Division I |
 | Oceania (2) | NBL, WNBL |
 | South America (2) | Liga Nacional Argentina, Basketball Champions League Americas |
 | International (6) | FIBA World Cup and Women's World Cup, FIBA Olympic qualifiers, Olympic Qualifying Tournaments, FIBA 3x3 men's and women's series |
 
-Four of them are mapped to live ESPN scoreboards (`nba`, `wnba`, `euroleague`, `nbl`); the rest are demo-only until ESPN exposes a slug, and the dashboard keeps rendering them from demo data.
+Six of them are mapped to live ESPN scoreboards (`nba`, `wnba`, `euroleague`, `nbl`, plus college basketball's `mens-college-basketball` and `womens-college-basketball`); the rest are demo-only until ESPN exposes a slug, and the dashboard keeps rendering them from demo data.
 
 Filters compose in a single pass — every one of them narrows the games, the hero, the standings label and the sidebar options at the same time:
 
@@ -104,6 +104,22 @@ Filters compose in a single pass — every one of them narrows the games, the he
 - **Season** (a `<select>` on the Live Score panel) offers the current season and the two before it. Choosing one re-queries ESPN with ESPN's end-year convention (`season start + 1`) and moves the date rail to today (current season) or 1 February of the season's end year (historical seasons).
 
 Status tabs (ALL / LIVE / UPCOMING / FINAL), team search, the day rail and competition selection are additive: a game must match all of them.
+
+### NCAA / college
+
+College is a first-class competition rather than a separate app:
+
+| Sport | Competition | ESPN feed | Notes |
+| --- | --- | --- | --- |
+| Basketball | NCAA Men's Division I (`ncaam`) | `basketball/mens-college-basketball` | ACC / Big Ten / SEC / Big 12 sample table, demo fixture Duke–North Carolina |
+| Basketball | NCAA Women's Division I (`ncaaw`) | `basketball/womens-college-basketball` | SEC / Big East / ACC / Big Ten sample table, demo fixture UConn–South Carolina |
+| Football | College Football (`cfb`) | `football/college-football` | SEC / Big Ten / ACC / Big 12 sample table, demo fixture Alabama–Georgia |
+
+- Both colleges sit in the North America continent and in the Men / Women gender filters, so the existing filters, search and status tabs apply unchanged.
+- The college scoreboards are **fetched on demand**: the default *All competitions* view still merges only the four flagship basketball leagues (and the NFL), so the dashboard never fills with 100+ college games. Selecting an NCAA competition re-queries ESPN for just that board and switches the standings panel to its conference table.
+- On the football board, *College Football* replaces the NFL week rail (college has no preseason/week stages) and shows conference tables instead of AFC/NFC divisions.
+- Team pages resolve for college programmes too (`/basketball/team/duke-blue-devils`), and their ESPN lookups use the college league key rather than the NBA one. Rich detail still comes from the bundled data, since ESPN's college endpoints return a different shape.
+- The news / top scorers / upcoming / commentary screens stay per sport on the flagship league (`nba`, `nfl`); selecting a college competition changes the hub, not those screens.
 
 ## Add to a Vite React project
 
@@ -133,6 +149,8 @@ import "./styles.css";
 | NBA / WNBA / NBL / EuroLeague scores | `site.api.espn.com/apis/site/v2/sports/basketball/{nba,wnba,nbl,euroleague}/scoreboard` |
 | NBA standings | `site.api.espn.com/apis/v2/sports/basketball/nba/standings` |
 | NFL scores (preseason / regular / postseason) | `site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard` |
+| NCAA basketball scores (men / women) | `site.api.espn.com/apis/site/v2/sports/basketball/{mens,womens}-college-basketball/scoreboard` |
+| College football scores | `site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard` |
 | NFL standings (AFC/NFC → divisions) | `site.api.espn.com/apis/v2/sports/football/nfl/standings` |
 | Season leaders (best effort) | `site.web.api.espn.com/apis/common/v3/sports/{basketball/nba,football/nfl}/leaders` |
 | Team page (info, schedule, roster) | `site.api.espn.com/apis/site/v2/sports/basketball/{nba,…}/teams/{id,abbr}/…` |

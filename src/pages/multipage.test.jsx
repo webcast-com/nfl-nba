@@ -170,7 +170,7 @@ describe("upcoming page", () => {
     const { container, getByRole } = renderAt("/basketball/upcoming");
     expect(getByRole("heading", { level: 1 }).textContent).toBe("Upcoming");
     const fixtures = container.querySelectorAll(".sh-detail-fixture");
-    expect(fixtures).toHaveLength(4);
+    expect(fixtures).toHaveLength(6); // 3 live + BAL, Liga ACB and NCAA women
     expect(container.textContent).toContain("In progress");
     expect(container.textContent).not.toContain("Detroit Pistons");
   });
@@ -178,15 +178,21 @@ describe("upcoming page", () => {
   it("links each fixture to its commentary screen", () => {
     const { container } = renderAt("/basketball/upcoming");
     const hrefs = [...container.querySelectorAll("a.sh-fixture-link")].map((a) => a.getAttribute("href"));
-    expect(hrefs.slice(0, 2)).toEqual(["/basketball/match/1", "/basketball/match/2"]);
-    expect(new Set(hrefs.slice(2))).toEqual(new Set(["/basketball/match/3", "/basketball/match/5"]));
+    expect(hrefs.slice(0, 3)).toEqual([
+      "/basketball/match/1",
+      "/basketball/match/2",
+      "/basketball/match/7",
+    ]);
+    expect(new Set(hrefs.slice(3))).toEqual(
+      new Set(["/basketball/match/3", "/basketball/match/5", "/basketball/match/8"])
+    );
   });
 
   it("groups NFL fixtures by day", () => {
     const { container } = renderAt("/nfl/upcoming");
     expect(container.textContent).toContain("Football schedule");
-    expect(container.querySelectorAll(".sh-detail-fixture")).toHaveLength(3);
-    expect(container.querySelectorAll(".sh-detail-panel")).toHaveLength(2);
+    expect(container.querySelectorAll(".sh-detail-fixture")).toHaveLength(4); // + College Football
+    expect(container.querySelectorAll(".sh-detail-panel")).toHaveLength(3);
   });
 });
 

@@ -43,6 +43,13 @@ describe("team page", () => {
     expect(container.querySelector(".sh-detail-hero")).toBeNull();
   });
 
+  it("opens a college team from the NCAA conference table", () => {
+    const { getByRole, container } = renderAt("/basketball/team/duke-blue-devils");
+    expect(getByRole("heading", { level: 1 }).textContent).toBe("Duke Blue Devils");
+    expect(container.textContent).toContain("24–7");
+    expect(container.textContent).toContain("ACC");
+  });
+
   it("renders NFL teams with the football data", () => {
     const { getByRole, container } = renderAt("/nfl/team/kansas-city-chiefs");
     expect(getByRole("heading", { level: 1 }).textContent).toContain("Kansas City");

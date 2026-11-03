@@ -1,5 +1,9 @@
 import React, { useMemo, useState } from "react";
-import { basketballCompetitions as defaultCompetitions } from "../data/sportsData";
+import {
+  basketballCompetitions as defaultCompetitions,
+  ncaaBasketballStandings,
+  ncaaWomenStandings,
+} from "../data/sportsData";
 import { LeagueSidebar } from "../components/LeagueSidebar";
 import { MobileSectionTabs } from "../components/Shell";
 import { DateRail, FeaturedGame, ScoreboardPanel } from "../components/Scoreboard";
@@ -78,22 +82,6 @@ export default function BasketballPage({
   const currentSeasonStart = seasonStartForDate(today);
   const seasons = useMemo(() => buildSeasonOptions(currentSeasonStart), [currentSeasonStart]);
 
-  const isControlled = Boolean(games || standings || leaders || stats);
-  const feed = useEspnFeed({
-    sport: "basketball",
-    enabled: live && !isControlled,
-    date,
-    season: seasonStart + 1, // ESPN indexes basketball seasons by their end year
-  });
-
-  // Explicit props always win, so the page stays usable as a pure component.
-  const activeGames = games ?? feed.games;
-  const activeStandings = standings ?? feed.standings;
-  const activeLeaders = leaders ?? feed.leaders;
-  const activeStats = stats ?? feed.stats;
-  const source = games ? "demo" : feed.source;
-  const updated = lastUpdated ?? (isControlled ? "custom dataset" : feed.label);
-
   const leagueColors = useMemo(() => competitionColors(competitions), [competitions]);
   const competitionMap = useMemo(
     () => new Map(competitions.map((entry) => [entry.id, entry])),
@@ -119,6 +107,30 @@ export default function BasketballPage({
   // A competition that is filtered out falls back to "all" instead of leaving a blank grid.
   const activeCompetition =
     competition !== "all" && visibleIds.has(competition) ? competition : "all";
+
+  const isControlled = Boolean(games || standings || leaders || stats);
+  // NCAA boards are fetched only while their competition is selected.
+  const feed = useEspnFeed({
+    sport: "basketball",
+    enabled: live && !isControlled,
+    date,
+    season: seasonStart + 1, // ESPN indexes basketball seasons by their end year
+    competition: activeCompetition,
+  });
+
+  // Explicit props always win, so the page stays usable as a pure component.
+  const activeGames = games ?? feed.games;
+  const competitionStandings =
+    activeCompetition === "ncaam"
+      ? ncaaBasketballStandings
+      : activeCompetition === "ncaaw"
+        ? ncaaWomenStandings
+        : null;
+  const activeStandings = standings ?? competitionStandings ?? feed.standings;
+  const activeLeaders = leaders ?? feed.leaders;
+  const activeStats = stats ?? feed.stats;
+  const source = games ? "demo" : feed.source;
+  const updated = lastUpdated ?? (isControlled ? "custom dataset" : feed.label);
 
   const countryOptions = useMemo(() => {
     if (countries?.length) {
@@ -308,7 +320,13 @@ export default function BasketballPage({
         <div id="section-standings">
           <StandingsPanel
             groups={activeStandings}
-            note={`${seasonLabel(seasonStart)} · ${source === "espn" ? "ESPN standings" : "sample table"}`}
+            note={`${seasonLabel(seasonStart)} · ${
+              competitionStandings
+                ? "conference table"
+                : source === "espn"
+                  ? "ESPN standings"
+                  : "sample table"
+            }`}
             teamBasePath="/basketball"
           />
         </div>
