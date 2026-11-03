@@ -13,6 +13,19 @@ export const demoCommentary = {
       { clock: "Q3 · 04:32", team: "BOS", text: "Timeout Boston after a 6-2 run.", score: "84-79" },
     ],
   },
+  7: {
+    period: "Q2 · 04:12",
+    plays: [
+      { clock: "Q2 · 07:12", team: "DUKE", text: "Cooper Flagg finishes the alley-oop from the baseline out of bounds.", score: "60-58" },
+      { clock: "Q2 · 06:40", team: "UNC", text: "RJ Davis pulls up for two over the screen.", score: "60-60" },
+      { clock: "Q2 · 06:02", team: "DUKE", text: "Khaman Maluach tips in the miss at the rim.", score: "62-60" },
+      { clock: "Q2 · 05:24", team: "UNC", text: "Elliot Cadeau drives the lane for the layup.", score: "62-62" },
+      { clock: "Q2 · 04:58", team: "DUKE", text: "Tyrese Proctor hits the floater in the paint.", score: "64-62" },
+      { clock: "Q2 · 04:41", team: "UNC", text: "RJ Davis buries a three from the logo.", score: "64-65" },
+      { clock: "Q2 · 04:28", team: "DUKE", text: "Flagg takes the feed and throws it down in transition.", score: "66-65" },
+      { clock: "Q2 · 04:12", team: "DUKE", text: "Flagg steals the inbounds and lays it in.", score: "68-65" },
+    ],
+  },
   2: {
     period: "Q4 · 07:18",
     plays: [

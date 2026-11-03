@@ -4,6 +4,7 @@ import { detailSport } from "../data/detailConfig";
 import { isEspnDisabled } from "../api/espn";
 import { useEspnFeed } from "../hooks/useEspnFeed";
 import { gameClockLabel } from "../utils/dates";
+import { matchPath } from "../utils/dashboard";
 import { EmptyState, Panel, PanelHead, TeamLogo } from "../components/ui";
 import { IconCalendar } from "../components/Icons";
 
@@ -58,7 +59,7 @@ export default function UpcomingPage({ sport = "basketball" }) {
               <ul className="sh-detail-matches is-rows">
                 {list.map((game) => (
                   <li className="sh-detail-fixture" key={game.id}>
-                    <Link className="sh-fixture-link" to={`${config.hub}/match/${game.id}`}>
+                    <Link className="sh-fixture-link" to={matchPath(config.hub, game)}>
                       <span className="sh-fixture-comp">{game.competition ?? config.label}</span>
                       <span className="sh-fixture-teams">
                         <TeamLogo src={game.homeLogo} code={game.homeCode} size="xs" />

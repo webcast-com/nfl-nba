@@ -42,6 +42,19 @@ export function sortByStatus(games = []) {
   );
 }
 
+const BOARD_DEFAULT_COMPETITION = { "/basketball": "nba", "/nfl": "nfl" };
+
+/**
+ * Match screen URL. Games outside the board's flagship league (college, EuroLeague…)
+ * carry their competition so the commentary asks the right ESPN feed.
+ */
+export function matchPath(base, game) {
+  if (!base || !game) return base ?? "";
+  const competitionId = game.competitionId;
+  const isFlagship = !competitionId || competitionId === BOARD_DEFAULT_COMPETITION[base];
+  return `${base}/match/${game.id}${isFlagship ? "" : `?competition=${encodeURIComponent(competitionId)}`}`;
+}
+
 export function featuredGame(games = []) {
   if (!games.length) return null;
   return (

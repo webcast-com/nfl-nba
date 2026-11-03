@@ -62,6 +62,8 @@ Each hub is a small site of its own. A pill bar under the top bar (`SubNav`) swi
 - **Top scorers carry portraits.** Each row is a 36px portrait chip: ESPN headshot → bundled portrait art from `src/assets/players/` (picked deterministically per player, so a name keeps the same face on every board) → initials. The page footnotes that portraits are ESPN headshots when the feed answers and sample artwork otherwise.
 - Leader names link to their `/player/:playerKey` page whenever a profile exists, so the boards, the player rail and the standings all lead into the same detail pages.
 - Match cards on both dashboards (and every fixture row) now link to the commentary screen; the commentary screen is the only place the app shows a play-by-play timeline.
+- **Match links carry their competition.** Cards outside the board's flagship league append `?competition=` (`/basketball/match/401…?competition=ncaam`), so a college or EuroLeague game opens the commentary for that game's ESPN feed instead of the NBA one. Flagship links stay clean (`/nfl/match/401…`).
+- **The commentary page works for real ESPN games, not just bundled ones.** Any game opened from the live rail renders its hero (both teams, crests, scores, venue) straight from `/summary`, and the status chip reads the game's actual state — green for live with its clock, grey `Final` once it is over, kick-off time while it is scheduled. A summary with a scoreline but no plays yet keeps the page (it says ESPN has not published play-by-play) instead of claiming the match is missing, an in-flight request shows a loading line rather than that error, and plays keep their clock, team badge and scoreline.
 - The bundled photography is placeholder stock and the portraits are generated artwork, not the real players — they exist so the screens stay illustrated offline. Once ESPN answers, the real headshots and article images replace them.
 
 ## Mobile layout
@@ -120,7 +122,7 @@ College is a first-class competition rather than a separate app:
 - The college scoreboards are **fetched on demand**: the default *All competitions* view still merges only the four flagship basketball leagues (and the NFL), so the dashboard never fills with 100+ college games. Selecting an NCAA competition re-queries ESPN for just that board and switches the standings panel to its conference table.
 - On the football board, *College Football* replaces the NFL week rail (college has no preseason/week stages) and shows conference tables instead of AFC/NFC divisions.
 - Team pages resolve for college programmes too (`/basketball/team/duke-blue-devils`), and their ESPN lookups use the college league key rather than the NBA one. Rich detail still comes from the bundled data, since ESPN's college endpoints return a different shape.
-- The news / top scorers / upcoming / commentary screens stay per sport on the flagship league (`nba`, `nfl`); selecting a college competition changes the hub, not those screens.
+- The news / top scorers / upcoming screens stay per sport on the flagship league (`nba`, `nfl`); selecting a college competition changes the hub, not those screens. The commentary screen is the exception — it follows the game you opened, so a college fixture loads its own conference feed.
 
 ## Add to a Vite React project
 

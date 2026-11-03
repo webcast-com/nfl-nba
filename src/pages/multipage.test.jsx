@@ -178,13 +178,18 @@ describe("upcoming page", () => {
   it("links each fixture to its commentary screen", () => {
     const { container } = renderAt("/basketball/upcoming");
     const hrefs = [...container.querySelectorAll("a.sh-fixture-link")].map((a) => a.getAttribute("href"));
+    // Non-flagship competitions ride along so the commentary page asks the right feed.
     expect(hrefs.slice(0, 3)).toEqual([
       "/basketball/match/1",
-      "/basketball/match/2",
-      "/basketball/match/7",
+      "/basketball/match/2?competition=euroleague",
+      "/basketball/match/7?competition=ncaam",
     ]);
     expect(new Set(hrefs.slice(3))).toEqual(
-      new Set(["/basketball/match/3", "/basketball/match/5", "/basketball/match/8"])
+      new Set([
+        "/basketball/match/3?competition=bal",
+        "/basketball/match/5?competition=acb",
+        "/basketball/match/8?competition=ncaaw",
+      ])
     );
   });
 

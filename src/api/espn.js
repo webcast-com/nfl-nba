@@ -878,7 +878,8 @@ export function normalizeSummary(payload) {
       const team = play?.team?.abbreviation ?? entry?.team?.abbreviation ?? null;
       const away = play?.awayScore ?? entry?.awayScore;
       const home = play?.homeScore ?? entry?.homeScore;
-      const score = away !== undefined && home !== undefined ? `${away}-${home}` : null;
+      // Home–away, matching the scoreline in the hero.
+      const score = home !== undefined && away !== undefined ? `${home}-${away}` : null;
       return { clock: String(clock), team, text, score };
     })
     .filter(Boolean)
@@ -894,12 +895,13 @@ export function normalizeSummary(payload) {
     homeAway: entry?.homeAway ?? null,
   });
 
+  const statusType = competition?.status?.type ?? {};
+
   return {
     plays,
-    period:
-      competition?.status?.type?.shortDetail ??
-      competition?.status?.type?.detail ??
-      null,
+    period: statusType.shortDetail ?? statusType.detail ?? null,
+    statusText: statusType.shortDetail ?? statusType.detail ?? null,
+    state: statusType.state ?? null, // pre · in · post
     venue: competition?.venue?.fullName ?? null,
     teams: competitors.map(teamOf).filter((team) => team.name),
   };
