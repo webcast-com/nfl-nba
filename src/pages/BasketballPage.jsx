@@ -23,6 +23,7 @@ import {
   buildTeamLogoMap,
   competitionColors,
   featuredGame,
+  sortByStatus,
 } from "../utils/dashboard";
 
 const CONTINENTS = [
@@ -153,24 +154,26 @@ export default function BasketballPage({
 
   const filtered = useMemo(
     () =>
-      activeGames
-        .filter((game) => {
-          const meta = competitionMap.get(game.competitionId);
-          const gameCountry = game.country ?? meta?.country ?? null;
-          return (
-            (activeCompetition === "all" || game.competitionId === activeCompetition) &&
-            (continent === "All continents" || meta?.continent === continent) &&
-            (activeCountry === "All countries" ||
-              gameCountry === activeCountry ||
-              meta?.country === activeCountry) &&
-            (gender === "All genders" || meta?.gender === gender) &&
-            (status === "ALL" || game.status === status) &&
-            `${game.home} ${game.away} ${game.competition}`
-              .toLowerCase()
-              .includes(search.toLowerCase())
-          );
-        })
-        .map((game) => ({ ...game, leagueColor: leagueColors[game.competitionId] })),
+      sortByStatus(
+        activeGames
+          .filter((game) => {
+            const meta = competitionMap.get(game.competitionId);
+            const gameCountry = game.country ?? meta?.country ?? null;
+            return (
+              (activeCompetition === "all" || game.competitionId === activeCompetition) &&
+              (continent === "All continents" || meta?.continent === continent) &&
+              (activeCountry === "All countries" ||
+                gameCountry === activeCountry ||
+                meta?.country === activeCountry) &&
+              (gender === "All genders" || meta?.gender === gender) &&
+              (status === "ALL" || game.status === status) &&
+              `${game.home} ${game.away} ${game.competition}`
+                .toLowerCase()
+                .includes(search.toLowerCase())
+            );
+          })
+          .map((game) => ({ ...game, leagueColor: leagueColors[game.competitionId] }))
+      ),
     [
       activeGames,
       competitionMap,

@@ -30,6 +30,18 @@ export function competitionColors(competitions = []) {
   }, {});
 }
 
+const STATUS_ORDER = { LIVE: 0, UPCOMING: 1, FINAL: 2 };
+
+/**
+ * Live first, then what is about to start, then what is over. The sort is
+ * stable, so games keep their league/feed order inside each group.
+ */
+export function sortByStatus(games = []) {
+  return [...games].sort(
+    (a, b) => (STATUS_ORDER[a.status] ?? 3) - (STATUS_ORDER[b.status] ?? 3)
+  );
+}
+
 export function featuredGame(games = []) {
   if (!games.length) return null;
   return (

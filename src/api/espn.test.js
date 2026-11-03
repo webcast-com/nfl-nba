@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   clearEspnCache,
   formatKickoff,
+  fetchBasketballSnapshot,
   isEspnDisabled,
   leagueKeyForCompetition,
   liveLeaguesFor,
@@ -13,6 +14,7 @@ import {
   scoreboardUrls,
   standingsUrls,
 } from "./espn";
+import { shiftDateKey, toDateKey } from "../utils/dates";
 
 const nbaScoreboard = {
   events: [
@@ -342,5 +344,69 @@ describe("NCAA league routing", () => {
     expect(leagueKeyForCompetition("cfb")).toBe("college-football");
     expect(leagueKeyForCompetition("nfl")).toBe("nfl");
     expect(leagueKeyForCompetition(undefined)).toBeNull();
+  });
+});
+
+describe("live games across the local midnight", () => {
+  const originalFetch = global.fetch;
+  const today = toDateKey();
+  const yesterday = shiftDateKey(today, -1);
+
+  const espnGame = (id, { state = "in", home = "Boston Celtics", away = "New York Knicks" } = {}) => ({
+    id,
+    date: "2026-11-04T00:30:00Z",
+    competitions: [
+      {
+        competitors: [
+          { homeAway: "home", score: "84", team: { displayName: home, abbreviation: "BOS" } },
+          { homeAway: "away", score: "79", team: { displayName: away, abbreviation: "NYK" } },
+        ],
+        venue: { fullName: "TD Garden" },
+        status: { period: 3, displayClock: "4:32", type: { state, completed: state === "post" } },
+      },
+    ],
+  });
+
+  const respond = (payload) => Promise.resolve({ ok: true, json: async () => payload });
+
+  beforeEach(() => {
+    clearEspnCache();
+  });
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+    vi.restoreAllMocks();
+  });
+
+  it("keeps last night's still-live game on the viewer's today", async () => {
+    global.fetch = vi.fn((url) => {
+      if (String(url).includes(`dates=${today}`)) return respond({ events: [espnGame("today-live")] });
+      if (String(url).includes(`dates=${yesterday}`)) {
+        return respond({ events: [espnGame("carry-over"), espnGame("yesterday-final", { state: "post" })] });
+      }
+      return respond({ events: [] });
+    });
+
+    const snapshot = await fetchBasketballSnapshot({ date: today });
+    const ids = snapshot.games.map((game) => game.id);
+
+    expect(ids[0]).toBe("carry-over"); // leading, because it is what is live now
+    expect(ids).toContain("today-live");
+    expect(ids).not.toContain("yesterday-final");
+  });
+
+  it("does not ask for yesterday when another day is selected", async () => {
+    global.fetch = vi.fn(() => respond({ events: [] }));
+
+    await fetchBasketballSnapshot({ date: shiftDateKey(today, -3) });
+    const urls = global.fetch.mock.calls.map(([url]) => String(url));
+    expect(urls.some((url) => url.includes(`dates=${yesterday}`))).toBe(false);
+  });
+
+  it("does not list the same game twice", async () => {
+    global.fetch = vi.fn(() => respond({ events: [espnGame("shared")] }));
+
+    const snapshot = await fetchBasketballSnapshot({ date: today });
+    expect(snapshot.games.filter((game) => game.id === "shared")).toHaveLength(1);
   });
 });

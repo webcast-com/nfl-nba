@@ -16,6 +16,7 @@ import {
   competitionColors,
   featuredGame,
   seasonLabelFor,
+  sortByStatus,
 } from "../utils/dashboard";
 
 const MAX_WEEKS = { 1: 4, 2: 18, 3: 5 };
@@ -65,21 +66,23 @@ export default function NFLPage({
 
   const filtered = useMemo(
     () =>
-      activeGames
-        .filter(
-          (game) =>
-            (competition === "all" || game.competitionId === competition) &&
-            (country === "All countries" ||
-              (country === "International games"
-                ? game.country !== "United States"
-                : game.country === country)) &&
-            (conference === "All conferences" || game.conference === conference) &&
-            (status === "ALL" || game.status === status) &&
-            `${game.home} ${game.away} ${game.competition}`
-              .toLowerCase()
-              .includes(search.toLowerCase())
-        )
-        .map((game) => ({ ...game, leagueColor: leagueColors[game.competitionId] })),
+      sortByStatus(
+        activeGames
+          .filter(
+            (game) =>
+              (competition === "all" || game.competitionId === competition) &&
+              (country === "All countries" ||
+                (country === "International games"
+                  ? game.country !== "United States"
+                  : game.country === country)) &&
+              (conference === "All conferences" || game.conference === conference) &&
+              (status === "ALL" || game.status === status) &&
+              `${game.home} ${game.away} ${game.competition}`
+                .toLowerCase()
+                .includes(search.toLowerCase())
+          )
+          .map((game) => ({ ...game, leagueColor: leagueColors[game.competitionId] }))
+      ),
     [activeGames, competition, country, conference, status, search, leagueColors]
   );
 
