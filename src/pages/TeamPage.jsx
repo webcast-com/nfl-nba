@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { detailSport } from "../data/detailConfig";
-import { isEspnDisabled, loadTeamDetail } from "../api/espn";
+import { isEspnDisabled, leagueKeyForCompetition, loadTeamDetail } from "../api/espn";
 import {
   buildTeamIndex,
   findTeam,
@@ -58,7 +58,7 @@ export default function TeamPage({ sport = "basketball" }) {
 
   const index = useMemo(() => buildTeamIndex(config), [config]);
   const team = useMemo(() => findTeam(index, teamKey), [index, teamKey]);
-  const leagueKey = team?.league ?? config.leagueKey;
+  const leagueKey = team?.league ?? leagueKeyForCompetition(team?.competitionId) ?? config.leagueKey;
 
   useEffect(() => {
     setDetail(null);

@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import {
   nflCompetitions as defaultCompetitions,
   nflCountries as defaultCountries,
+  collegeFootballStandings,
 } from "../data/sportsData";
 import { LeagueSidebar } from "../components/LeagueSidebar";
 import { MobileSectionTabs } from "../components/Shell";
@@ -18,7 +19,8 @@ import {
 } from "../utils/dashboard";
 
 const MAX_WEEKS = { 1: 4, 2: 18, 3: 5 };
-const SEASON_TYPE_BY_COMPETITION = { nfl: 2, preseason: 1, playoffs: 3 };
+const SEASON_TYPE_BY_COMPETITION = { nfl: 2, preseason: 1, playoffs: 3, cfb: 2 };
+const MAX_WEEKS_CFB = 15;
 
 export default function NFLPage({
   games,
@@ -39,22 +41,26 @@ export default function NFLPage({
   const [week, setWeek] = useState(null);
 
   const isControlled = Boolean(games || standings || leaders || stats);
+  const college = competition === "cfb";
+  // The college board is a season-long schedule, so it is fetched on demand and
+  // without the NFL week/stage parameters.
   const feed = useEspnFeed({
     sport: "football",
     enabled: live && !isControlled,
-    week: week ?? undefined,
-    seasonType,
+    week: college ? undefined : week ?? undefined,
+    seasonType: college ? undefined : seasonType,
+    competition,
   });
 
   const activeGames = games ?? feed.games;
-  const activeStandings = standings ?? feed.standings;
+  const activeStandings = standings ?? (college ? collegeFootballStandings : null) ?? feed.standings;
   const activeLeaders = leaders ?? feed.leaders;
   const activeStats = stats ?? feed.stats;
   const source = games ? "demo" : feed.source;
   const updated = lastUpdated ?? (isControlled ? "custom dataset" : feed.label);
 
   const leagueColors = useMemo(() => competitionColors(competitions), [competitions]);
-  const maxWeek = MAX_WEEKS[seasonType] ?? 18;
+  const maxWeek = college ? MAX_WEEKS_CFB : MAX_WEEKS[seasonType] ?? 18;
   const currentWeek = Math.min(Math.max(week ?? feed.meta?.week ?? 1, 1), maxWeek);
 
   const filtered = useMemo(
@@ -134,7 +140,7 @@ export default function NFLPage({
       <h1 className="sh-sr-only">NFL Center</h1>
 
       <LeagueSidebar
-        title="Season stage"
+        title="Competition"
         leagues={competitions.map((entry) => ({
           id: entry.id,
           name: entry.name,
@@ -156,14 +162,20 @@ export default function NFLPage({
           note={`${filtered.length} matches`}
           seasonLabel={seasonLabelFor("football", feed.meta)}
           rail={
-            <DateRail
-              items={weekRail}
-              activeKey={String(currentWeek)}
-              onSelect={(key) => setWeek(Number(key))}
-              label="Season week"
-            />
+            college ? undefined : (
+              <DateRail
+                items={weekRail}
+                activeKey={String(currentWeek)}
+                onSelect={(key) => setWeek(Number(key))}
+                label="Season week"
+              />
+            )
           }
-          railReset={week === null ? undefined : { label: "This week", onClick: () => setWeek(null) }}
+          railReset={
+            week === null || college
+              ? undefined
+              : { label: "This week", onClick: () => setWeek(null) }
+          }
           status={status}
           onStatusChange={setStatus}
           search={search}
@@ -180,7 +192,13 @@ export default function NFLPage({
           <StandingsPanel
             groups={activeStandings}
             nfl
-            note={source === "espn" ? "ESPN standings" : "Sample table"}
+            note={
+              college
+                ? "Conference table"
+                : source === "espn"
+                  ? "ESPN standings"
+                  : "Sample table"
+            }
             teamBasePath="/nfl"
           />
         </div>

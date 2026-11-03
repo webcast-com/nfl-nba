@@ -75,12 +75,36 @@ export const ESPN_LEAGUES = {
     competition: "EuroLeague",
     country: "Europe",
   },
+  "mens-college-basketball": {
+    key: "mens-college-basketball",
+    sport: "basketball",
+    path: "basketball/mens-college-basketball",
+    competitionId: "ncaam",
+    competition: "NCAA Men's Basketball",
+    country: "United States",
+  },
+  "womens-college-basketball": {
+    key: "womens-college-basketball",
+    sport: "basketball",
+    path: "basketball/womens-college-basketball",
+    competitionId: "ncaaw",
+    competition: "NCAA Women's Basketball",
+    country: "United States",
+  },
   nfl: {
     key: "nfl",
     sport: "football",
     path: "football/nfl",
     competitionId: "nfl",
     competition: "NFL",
+    country: "United States",
+  },
+  "college-football": {
+    key: "college-football",
+    sport: "football",
+    path: "football/college-football",
+    competitionId: "cfb",
+    competition: "College Football",
     country: "United States",
   },
 };
@@ -90,6 +114,36 @@ export const BASKETBALL_LIVE_LEAGUES = ["nba", "wnba", "nbl", "euroleague"];
 
 /** Leagues merged into the NFL scoreboard. */
 export const FOOTBALL_LIVE_LEAGUES = ["nfl"];
+
+/**
+ * Competitions the hub can load on demand. The default "All competitions" view
+ * keeps the four flagship basketball leagues; NCAA boards are only fetched once
+ * that competition is selected, so the dashboard never floods with 100+ games.
+ */
+export const LEAGUE_BY_COMPETITION = {
+  nba: "nba",
+  wnba: "wnba",
+  nbl: "nbl",
+  euroleague: "euroleague",
+  ncaam: "mens-college-basketball",
+  ncaaw: "womens-college-basketball",
+  nfl: "nfl",
+  cfb: "college-football",
+};
+
+/** Which ESPN leagues feed a sport, optionally narrowed to one competition. */
+export function liveLeaguesFor(sport, competition) {
+  const base = sport === "football" ? FOOTBALL_LIVE_LEAGUES : BASKETBALL_LIVE_LEAGUES;
+  const league = competition && competition !== "all" ? LEAGUE_BY_COMPETITION[competition] : null;
+  if (!league || base.includes(league)) return base;
+  return [league];
+}
+
+/** Competition id → ESPN league key (used by the team pages). */
+export function leagueKeyForCompetition(competitionId) {
+  if (!competitionId) return null;
+  return LEAGUE_BY_COMPETITION[competitionId] ?? null;
+}
 
 const NFL_COMPETITION_NAMES = {
   nfl: "NFL",
@@ -934,28 +988,43 @@ async function mergeScoreboards(leagueKeys, options) {
   return { games, meta };
 }
 
-export async function fetchBasketballSnapshot({ date, force = false, season } = {}) {
-  const { games, meta } = await mergeScoreboards(BASKETBALL_LIVE_LEAGUES, { date, force });
+export async function fetchBasketballSnapshot({ date, force = false, season, competition } = {}) {
+  const { games, meta } = await mergeScoreboards(liveLeaguesFor("basketball", competition), {
+    date,
+    force,
+  });
 
   let standings = null;
-  try {
-    // ESPN indexes basketball seasons by their end year (2025 → 2024-25).
-    standings = await loadStandings("nba", { force, season });
-  } catch {
-    standings = null; // scores still render with the demo standings table
+  // NCAA conference tables come from the bundled demo data; ESPN's college
+  // standings endpoints use a different shape, so they are left out for now.
+  const standingsLeague = competition === "nba" || !competition ? "nba" : null;
+  if (standingsLeague) {
+    try {
+      // ESPN indexes basketball seasons by their end year (2025 → 2024-25).
+      standings = await loadStandings(standingsLeague, { force, season });
+    } catch {
+      standings = null; // scores still render with the demo standings table
+    }
   }
 
   return { games, standings, meta };
 }
 
-export async function fetchFootballSnapshot({ week, seasonType, force = false } = {}) {
-  const { games, meta } = await mergeScoreboards(FOOTBALL_LIVE_LEAGUES, { week, seasonType, force });
+export async function fetchFootballSnapshot({ week, seasonType, force = false, competition } = {}) {
+  const { games, meta } = await mergeScoreboards(liveLeaguesFor("football", competition), {
+    week,
+    seasonType,
+    force,
+  });
 
   let standings = null;
-  try {
-    standings = await loadStandings("nfl", { force });
-  } catch {
-    standings = null;
+  const standingsLeague = competition === "cfb" ? null : "nfl";
+  if (standingsLeague) {
+    try {
+      standings = await loadStandings(standingsLeague, { force });
+    } catch {
+      standings = null;
+    }
   }
 
   return { games, standings, meta };

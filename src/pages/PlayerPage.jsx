@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { detailSport } from "../data/detailConfig";
+import { portraitFor } from "../data/scorersData";
 import { isEspnDisabled, loadAthleteDetail } from "../api/espn";
 import {
   buildPlayerIndex,
@@ -14,18 +15,39 @@ import {
 import { metricShort, EmptyState, Panel, PanelHead, TeamLogo } from "../components/ui";
 import { IconArrowUpRight, IconChart, IconUsers } from "../components/Icons";
 
-function PlayerPortrait({ player, size = "lg" }) {
+/**
+ * A player page always shows a face: the ESPN headshot when there is one, the
+ * bundled portrait art otherwise, and initials only if both images fail.
+ */
+function PlayerPortrait({ player, sport = "basketball", size = "lg" }) {
+  const fallback = useMemo(() => portraitFor(sport, player.name), [sport, player.name]);
+  const [source, setSource] = useState(player.headshot ?? fallback);
   const [broken, setBroken] = useState(false);
-  if (player.headshot && !broken) {
+
+  useEffect(() => {
+    setSource(player.headshot ?? fallback);
+    setBroken(false);
+  }, [player.headshot, fallback]);
+
+  const handleError = () => {
+    if (source !== fallback && fallback) {
+      setSource(fallback);
+      return;
+    }
+    setBroken(true);
+  };
+
+  if (source && !broken) {
     return (
       <img
         className={`sh-detail-portrait is-${size}`}
-        src={player.headshot}
+        src={source}
         alt={player.name}
-        onError={() => setBroken(true)}
+        onError={handleError}
       />
     );
   }
+
   return (
     <span className={`sh-detail-portrait is-${size} is-mono`} aria-hidden="true">
       {player.initials ?? player.name?.slice(0, 2).toUpperCase()}
@@ -102,7 +124,10 @@ export default function PlayerPage({ sport = "basketball" }) {
       </nav>
 
       <header className="sh-detail-hero">
-        <PlayerPortrait player={{ ...player, headshot: profile?.headshot ?? player.headshot }} />
+        <PlayerPortrait
+          sport={sport}
+          player={{ ...player, headshot: profile?.headshot ?? player.headshot }}
+        />
         <div className="sh-detail-id">
           <span className="sh-detail-kicker">
             {profile?.team?.name ?? player.team ?? config.label}

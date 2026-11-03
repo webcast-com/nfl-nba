@@ -36,6 +36,8 @@ const basketballCompetitionsSample = [
   { id: "nba", name: "NBA", short: "NBA", color: "#1d428a", country: "United States", continent: "North America", gender: "Men", espn: "nba" },
   { id: "wnba", name: "WNBA", short: "WNBA", color: "#e8590c", country: "United States", continent: "North America", gender: "Women", espn: "wnba" },
   { id: "nba-gleague", name: "NBA G League", short: "GLG", color: "#475569", country: "United States", continent: "North America", gender: "Men", espn: null },
+  { id: "ncaam", name: "NCAA Men's Division I", short: "NCAAM", color: "#0f4c9c", country: "United States", continent: "North America", gender: "Men", espn: "mens-college-basketball" },
+  { id: "ncaaw", name: "NCAA Women's Division I", short: "NCAAW", color: "#0e7490", country: "United States", continent: "North America", gender: "Women", espn: "womens-college-basketball" },
 
   // Oceania
   { id: "nbl", name: "NBL", short: "NBL", color: "#0b6bb3", country: "Australia", continent: "Oceania", gender: "Men", espn: "nbl" },
@@ -90,6 +92,8 @@ const basketballGamesSample = [
   { id: 4, competitionId: "wnba", competition: "WNBA", country: "United States", status: "FINAL", clock: "Final", home: "Las Vegas Aces", away: "New York Liberty", homeCode: "LVA", awayCode: "NYL", homeScore: 91, awayScore: 87, venue: "Michelob ULTRA Arena" },
   { id: 5, competitionId: "acb", competition: "Liga ACB", country: "Spain", status: "UPCOMING", startTime: demoTipoff(19, 30, 1), home: "FC Barcelona", away: "Valencia Basket", homeCode: "BAR", awayCode: "VAL", homeScore: null, awayScore: null, venue: "Palau Blaugrana" },
   { id: 6, competitionId: "nbl", competition: "NBL", country: "Australia", status: "FINAL", clock: "Final", home: "Sydney Kings", away: "Melbourne United", homeCode: "SYD", awayCode: "MEL", homeScore: 98, awayScore: 102, venue: "Qudos Bank Arena" },
+  { id: 7, competitionId: "ncaam", competition: "NCAA Men's Basketball", country: "United States", status: "LIVE", clock: "Q2 · 04:12", home: "Duke Blue Devils", away: "North Carolina Tar Heels", homeCode: "DUKE", awayCode: "UNC", homeScore: 68, awayScore: 65, venue: "Cameron Indoor Stadium" },
+  { id: 8, competitionId: "ncaaw", competition: "NCAA Women's Basketball", country: "United States", status: "UPCOMING", startTime: demoTipoff(18, 30), home: "UConn Huskies", away: "South Carolina Gamecocks", homeCode: "CONN", awayCode: "SC", homeScore: null, awayScore: null, venue: "Gampel Pavilion" },
 ];
 
 const basketballStandingsSample = [
@@ -125,6 +129,7 @@ const nflCompetitionsSample = [
   { id: "nfl", name: "NFL", country: "United States", region: "North America" },
   { id: "preseason", name: "NFL Preseason", country: "United States", region: "North America" },
   { id: "playoffs", name: "NFL Playoffs", country: "United States", region: "North America" },
+  { id: "cfb", name: "College Football", country: "United States", region: "North America" },
 ];
 
 export const nflCountries = ["All countries", "United States", "International games"];
@@ -134,6 +139,7 @@ const nflGamesSample = [
   { id: 12, competitionId: "nfl", competition: "NFL", country: "United States", conference: "NFC", status: "LIVE", clock: "2nd · 02:15", home: "San Francisco 49ers", away: "Dallas Cowboys", homeCode: "SF", awayCode: "DAL", homeScore: 14, awayScore: 10, venue: "Levi's Stadium" },
   { id: 13, competitionId: "playoffs", competition: "NFL Playoffs", country: "United States", conference: "AFC", status: "UPCOMING", startTime: nextWeekdayTipoff(0, 20, 20), home: "Baltimore Ravens", away: "Cincinnati Bengals", homeCode: "BAL", awayCode: "CIN", homeScore: null, awayScore: null, venue: "M&T Bank Stadium" },
   { id: 14, competitionId: "nfl", competition: "NFL", country: "United States", conference: "NFC", status: "FINAL", clock: "Final", home: "Detroit Lions", away: "Green Bay Packers", homeCode: "DET", awayCode: "GB", homeScore: 31, awayScore: 27, venue: "Ford Field" },
+  { id: 15, competitionId: "cfb", competition: "College Football", country: "United States", conference: "SEC", status: "UPCOMING", startTime: nextWeekdayTipoff(6, 19, 30), home: "Alabama Crimson Tide", away: "Georgia Bulldogs", homeCode: "ALA", awayCode: "UGA", homeScore: null, awayScore: null, venue: "Bryant-Denny Stadium" },
 ];
 
 const nflStandingsSample = [
@@ -160,6 +166,87 @@ const nflStandingsSample = [
     { team: "LA Rams", code: "LAR", p: 17, w: 10, l: 7, t: 0, pct: ".588", pf: 404, pa: 377 },
     { team: "Seattle Seahawks", code: "SEA", p: 17, w: 9, l: 8, t: 0, pct: ".529", pf: 364, pa: 402 },
     { team: "Arizona Cardinals", code: "ARI", p: 17, w: 4, l: 13, t: 0, pct: ".235", pf: 330, pa: 455 },
+  ]},
+];
+
+const ncaaMensStandingsSample = [
+  { group: "ACC", rows: [
+    { team: "Duke Blue Devils", code: "DUKE", p: 31, w: 24, l: 7, pct: ".774", gb: "—", streak: "W5" },
+    { team: "North Carolina Tar Heels", code: "UNC", p: 31, w: 22, l: 9, pct: ".710", gb: "2.0", streak: "L1" },
+    { team: "Clemson Tigers", code: "CLEM", p: 31, w: 21, l: 10, pct: ".677", gb: "3.0", streak: "W2" },
+    { team: "Virginia Cavaliers", code: "UVA", p: 31, w: 19, l: 12, pct: ".613", gb: "5.0", streak: "L2" },
+  ]},
+  { group: "Big Ten", rows: [
+    { team: "Purdue Boilermakers", code: "PUR", p: 31, w: 26, l: 5, pct: ".839", gb: "—", streak: "W7" },
+    { team: "Michigan State Spartans", code: "MSU", p: 31, w: 23, l: 8, pct: ".742", gb: "3.0", streak: "W3" },
+    { team: "Illinois Fighting Illini", code: "ILL", p: 31, w: 21, l: 10, pct: ".677", gb: "5.0", streak: "L1" },
+    { team: "Wisconsin Badgers", code: "WIS", p: 31, w: 20, l: 11, pct: ".645", gb: "6.0", streak: "W1" },
+  ]},
+  { group: "SEC", rows: [
+    { team: "Tennessee Volunteers", code: "TENN", p: 31, w: 25, l: 6, pct: ".806", gb: "—", streak: "W4" },
+    { team: "Auburn Tigers", code: "AUB", p: 31, w: 24, l: 7, pct: ".774", gb: "1.0", streak: "W2" },
+    { team: "Kentucky Wildcats", code: "UK", p: 31, w: 22, l: 9, pct: ".710", gb: "3.0", streak: "L1" },
+    { team: "Alabama Crimson Tide", code: "ALA", p: 31, w: 21, l: 10, pct: ".677", gb: "4.0", streak: "W1" },
+  ]},
+  { group: "Big 12", rows: [
+    { team: "Houston Cougars", code: "HOU", p: 31, w: 27, l: 4, pct: ".871", gb: "—", streak: "W9" },
+    { team: "Kansas Jayhawks", code: "KU", p: 31, w: 23, l: 8, pct: ".742", gb: "4.0", streak: "W2" },
+    { team: "Baylor Bears", code: "BAY", p: 31, w: 21, l: 10, pct: ".677", gb: "6.0", streak: "L2" },
+    { team: "Iowa State Cyclones", code: "ISU", p: 31, w: 20, l: 11, pct: ".645", gb: "7.0", streak: "W1" },
+  ]},
+];
+
+const ncaaWomenStandingsSample = [
+  { group: "SEC", rows: [
+    { team: "South Carolina Gamecocks", code: "SC", p: 32, w: 30, l: 2, pct: ".938", gb: "—", streak: "W12" },
+    { team: "LSU Tigers", code: "LSU", p: 32, w: 27, l: 5, pct: ".844", gb: "3.0", streak: "W4" },
+    { team: "Tennessee Lady Volunteers", code: "TENN", p: 32, w: 23, l: 9, pct: ".719", gb: "7.0", streak: "L1" },
+    { team: "Ole Miss Rebels", code: "MISS", p: 32, w: 21, l: 11, pct: ".656", gb: "9.0", streak: "W2" },
+  ]},
+  { group: "Big East", rows: [
+    { team: "UConn Huskies", code: "CONN", p: 32, w: 29, l: 3, pct: ".906", gb: "—", streak: "W15" },
+    { team: "Creighton Bluejays", code: "CREI", p: 32, w: 24, l: 8, pct: ".750", gb: "5.0", streak: "W3" },
+    { team: "Marquette Golden Eagles", code: "MARQ", p: 32, w: 21, l: 11, pct: ".656", gb: "8.0", streak: "L2" },
+    { team: "Villanova Wildcats", code: "VILL", p: 32, w: 19, l: 13, pct: ".594", gb: "10.0", streak: "W1" },
+  ]},
+  { group: "ACC", rows: [
+    { team: "Notre Dame Fighting Irish", code: "ND", p: 32, w: 26, l: 6, pct: ".813", gb: "—", streak: "W6" },
+    { team: "NC State Wolfpack", code: "NCST", p: 32, w: 24, l: 8, pct: ".750", gb: "2.0", streak: "W2" },
+    { team: "Louisville Cardinals", code: "LOU", p: 32, w: 22, l: 10, pct: ".688", gb: "4.0", streak: "L1" },
+    { team: "Florida State Seminoles", code: "FSU", p: 32, w: 20, l: 12, pct: ".625", gb: "6.0", streak: "W1" },
+  ]},
+  { group: "Big Ten", rows: [
+    { team: "UCLA Bruins", code: "UCLA", p: 32, w: 27, l: 5, pct: ".844", gb: "—", streak: "W8" },
+    { team: "Iowa Hawkeyes", code: "IOWA", p: 32, w: 25, l: 7, pct: ".781", gb: "2.0", streak: "W3" },
+    { team: "Ohio State Buckeyes", code: "OSU", p: 32, w: 22, l: 10, pct: ".688", gb: "5.0", streak: "L2" },
+    { team: "Indiana Hoosiers", code: "IND", p: 32, w: 19, l: 13, pct: ".594", gb: "8.0", streak: "W1" },
+  ]},
+];
+
+const collegeFootballStandingsSample = [
+  { group: "SEC", rows: [
+    { team: "Georgia Bulldogs", code: "UGA", p: 12, w: 11, l: 1, t: 0, pct: ".917", pf: 448, pa: 196 },
+    { team: "Alabama Crimson Tide", code: "ALA", p: 12, w: 10, l: 2, t: 0, pct: ".833", pf: 431, pa: 231 },
+    { team: "Texas Longhorns", code: "TEX", p: 12, w: 10, l: 2, t: 0, pct: ".833", pf: 402, pa: 214 },
+    { team: "Ole Miss Rebels", code: "MISS", p: 12, w: 9, l: 3, t: 0, pct: ".750", pf: 421, pa: 260 },
+  ]},
+  { group: "Big Ten", rows: [
+    { team: "Ohio State Buckeyes", code: "OSU", p: 12, w: 11, l: 1, t: 0, pct: ".917", pf: 469, pa: 158 },
+    { team: "Oregon Ducks", code: "ORE", p: 12, w: 11, l: 1, t: 0, pct: ".917", pf: 462, pa: 201 },
+    { team: "Penn State Nittany Lions", code: "PSU", p: 12, w: 10, l: 2, t: 0, pct: ".833", pf: 405, pa: 189 },
+    { team: "Michigan Wolverines", code: "MICH", p: 12, w: 8, l: 4, t: 0, pct: ".667", pf: 322, pa: 245 },
+  ]},
+  { group: "ACC", rows: [
+    { team: "Clemson Tigers", code: "CLEM", p: 12, w: 10, l: 2, t: 0, pct: ".833", pf: 398, pa: 221 },
+    { team: "Miami Hurricanes", code: "MIA", p: 12, w: 10, l: 2, t: 0, pct: ".833", pf: 412, pa: 240 },
+    { team: "SMU Mustangs", code: "SMU", p: 12, w: 9, l: 3, t: 0, pct: ".750", pf: 379, pa: 268 },
+    { team: "Louisville Cardinals", code: "LOU", p: 12, w: 8, l: 4, t: 0, pct: ".667", pf: 341, pa: 279 },
+  ]},
+  { group: "Big 12", rows: [
+    { team: "Kansas State Wildcats", code: "KSU", p: 12, w: 9, l: 3, t: 0, pct: ".750", pf: 356, pa: 244 },
+    { team: "Iowa State Cyclones", code: "ISU", p: 12, w: 9, l: 3, t: 0, pct: ".750", pf: 318, pa: 219 },
+    { team: "BYU Cougars", code: "BYU", p: 12, w: 8, l: 4, t: 0, pct: ".667", pf: 344, pa: 271 },
+    { team: "Utah Utes", code: "UTAH", p: 12, w: 7, l: 5, t: 0, pct: ".583", pf: 307, pa: 288 },
   ]},
 ];
 
@@ -217,6 +304,8 @@ const TEAM_LOGOS = {
 
 const BASKETBALL_BROADCASTS = {
   nba: "ESPN",
+  ncaam: "ESPN",
+  ncaaw: "ESPN2",
   wnba: "ESPN2",
   acb: "Movistar+",
   nbl: "ESPN",
@@ -228,7 +317,12 @@ const BASKETBALL_BROADCASTS = {
   pba: "PBA Rush",
 };
 
-const NFL_BROADCASTS = { nfl: "NFL Network", preseason: "NFL Network", playoffs: "CBS" };
+const NFL_BROADCASTS = {
+  nfl: "NFL Network",
+  preseason: "NFL Network",
+  playoffs: "CBS",
+  cfb: "ABC",
+};
 
 const COMPETITION_META = {
   nba: { short: "NBA", color: "#1d428a" },
@@ -241,6 +335,9 @@ const COMPETITION_META = {
   nbl: { short: "NBL", color: "#0b6bb3" },
   cba: { short: "CBA", color: "#d32f2f" },
   pba: { short: "PBA", color: "#1565c0" },
+  ncaam: { short: "NCAAM", color: "#0f4c9c" },
+  ncaaw: { short: "NCAAW", color: "#0e7490" },
+  cfb: { short: "CFB", color: "#7c2d12" },
   nfl: { short: "NFL", color: "#1b3a6b" },
   preseason: { short: "PRE", color: "#3b6ea5" },
   playoffs: { short: "POST", color: "#b8860b" },
@@ -289,4 +386,7 @@ export const basketballLeaders = withPlayerMeta(basketballLeadersSample);
 export const nflCompetitions = withLeagueMeta(nflCompetitionsSample);
 export const nflGames = withLogos(nflGamesSample, NFL_BROADCASTS);
 export const nflStandings = withTeamLogos(nflStandingsSample);
+export const ncaaBasketballStandings = withTeamLogos(ncaaMensStandingsSample);
+export const ncaaWomenStandings = withTeamLogos(ncaaWomenStandingsSample);
+export const collegeFootballStandings = withTeamLogos(collegeFootballStandingsSample);
 export const nflLeaders = withPlayerMeta(nflLeadersSample);

@@ -3,6 +3,9 @@ import {
   basketballGames,
   basketballLeaders,
   basketballStandings,
+  collegeFootballStandings,
+  ncaaBasketballStandings,
+  ncaaWomenStandings,
   nflGames,
   nflLeaders,
   nflStandings,
@@ -23,7 +26,7 @@ export const DETAIL_SPORTS = {
   basketball: {
     sport: "basketball",
     games: basketballGames,
-    standings: basketballStandings,
+    standings: [...basketballStandings, ...ncaaBasketballStandings, ...ncaaWomenStandings],
     leaders: basketballLeaders,
     players: rosterAndScorers(basketballLeaders, basketballScorers),
     competitionId: "nba",
@@ -36,7 +39,7 @@ export const DETAIL_SPORTS = {
   football: {
     sport: "football",
     games: nflGames,
-    standings: nflStandings,
+    standings: [...nflStandings, ...collegeFootballStandings],
     leaders: nflLeaders,
     players: rosterAndScorers(nflLeaders, nflScorers),
     competitionId: "nfl",
