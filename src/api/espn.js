@@ -18,7 +18,7 @@
  * app still works behind strict CORS setups and in the sandbox preview.
  */
 
-import { formatKickoff } from "../utils/dates";
+import { formatKickoff, shiftDateKey, toDateKey } from "../utils/dates";
 import { slugify } from "../utils/entities";
 
 const env = (typeof import.meta !== "undefined" && import.meta.env) || {};
@@ -542,7 +542,14 @@ function normalizeEvent(event, league, sport, index) {
 
   let clock;
   if (gameStatus === "LIVE") {
-    clock = [periodLabel(sport, period), displayClock].filter(Boolean).join(" · ");
+    const phase = String(type.description ?? "");
+    if (displayClock) {
+      clock = [periodLabel(sport, period), displayClock].filter(Boolean).join(" · ");
+    } else if (/halftime|half-time|half time|intermission/i.test(phase)) {
+      clock = phase; // "Halftime" reads better than a bare "Q2"
+    } else {
+      clock = periodLabel(sport, period) || phase || "Live";
+    }
   } else if (gameStatus === "FINAL") {
     clock = period > 4 ? `Final / ${period > 5 ? `${period - 4}OT` : "OT"}` : "Final";
   } else {
@@ -871,7 +878,8 @@ export function normalizeSummary(payload) {
       const team = play?.team?.abbreviation ?? entry?.team?.abbreviation ?? null;
       const away = play?.awayScore ?? entry?.awayScore;
       const home = play?.homeScore ?? entry?.homeScore;
-      const score = away !== undefined && home !== undefined ? `${away}-${home}` : null;
+      // Home–away, matching the scoreline in the hero.
+      const score = home !== undefined && away !== undefined ? `${home}-${away}` : null;
       return { clock: String(clock), team, text, score };
     })
     .filter(Boolean)
@@ -887,12 +895,13 @@ export function normalizeSummary(payload) {
     homeAway: entry?.homeAway ?? null,
   });
 
+  const statusType = competition?.status?.type ?? {};
+
   return {
     plays,
-    period:
-      competition?.status?.type?.shortDetail ??
-      competition?.status?.type?.detail ??
-      null,
+    period: statusType.shortDetail ?? statusType.detail ?? null,
+    statusText: statusType.shortDetail ?? statusType.detail ?? null,
+    state: statusType.state ?? null, // pre · in · post
     venue: competition?.venue?.fullName ?? null,
     teams: competitors.map(teamOf).filter((team) => team.name),
   };
@@ -971,13 +980,21 @@ async function mergeScoreboards(leagueKeys, options) {
   );
 
   const games = [];
+  const seen = new Set();
   const meta = {};
   let successes = 0;
 
   results.forEach((result) => {
     if (result.status !== "fulfilled") return;
     successes += 1;
-    games.push(...result.value.games);
+    // Leagues occasionally repeat an event (a shared preseason or cup fixture),
+    // and the same game must never be listed twice.
+    result.value.games.forEach((game) => {
+      const id = String(game.id);
+      if (seen.has(id)) return;
+      seen.add(id);
+      games.push(game);
+    });
     Object.assign(meta, result.value.meta);
   });
 
@@ -988,11 +1005,38 @@ async function mergeScoreboards(leagueKeys, options) {
   return { games, meta };
 }
 
+/**
+ * ESPN buckets a game under the US calendar day it started, but a viewer east of
+ * the Atlantic watches it the next morning: a 19:30 ET tip-off is 05:00 in
+ * Nairobi, and it is still live. Asking only for the viewer's "today" would hide
+ * exactly the games in progress, so the today view also asks for yesterday and
+ * keeps the ones that never finished.
+ */
+async function liveCarryOver(leagues, { date, force, seen = new Set() } = {}) {
+  if (!date || date !== toDateKey()) return [];
+  try {
+    const previous = await mergeScoreboards(leagues, {
+      date: shiftDateKey(date, -1),
+      force,
+    });
+    return previous.games
+      .filter((game) => game.status === "LIVE" && !seen.has(String(game.id)))
+      .slice(0, 12);
+  } catch {
+    return []; // the current day's board still renders on its own
+  }
+}
+
 export async function fetchBasketballSnapshot({ date, force = false, season, competition } = {}) {
-  const { games, meta } = await mergeScoreboards(liveLeaguesFor("basketball", competition), {
+  const leagues = liveLeaguesFor("basketball", competition);
+  const { games, meta } = await mergeScoreboards(leagues, { date, force });
+
+  const carryOver = await liveCarryOver(leagues, {
     date,
     force,
+    seen: new Set(games.map((game) => String(game.id))),
   });
+  const allGames = [...carryOver, ...games];
 
   let standings = null;
   // NCAA conference tables come from the bundled demo data; ESPN's college
@@ -1007,7 +1051,7 @@ export async function fetchBasketballSnapshot({ date, force = false, season, com
     }
   }
 
-  return { games, standings, meta };
+  return { games: allGames, standings, meta };
 }
 
 export async function fetchFootballSnapshot({ week, seasonType, force = false, competition } = {}) {

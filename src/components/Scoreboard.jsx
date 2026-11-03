@@ -3,6 +3,7 @@ import heroBasketball from "../assets/hero-basketball.jpg";
 import heroFootball from "../assets/hero-football.jpg";
 import { IconCalendar, IconCamera, IconChart, IconChevronDown, IconClock, IconSearch } from "./Icons";
 import { gameClockLabel, viewerTimeZone, viewerTimeZoneLabel } from "../utils/dates";
+import { matchPath } from "../utils/dashboard";
 import { EmptyState, MaybeLink, Panel, PanelHead, RefreshButton, SourceChip, TeamLogo } from "./ui";
 
 const STATUS_COPY = { LIVE: "Live", FINAL: "Final", UPCOMING: "Upcoming" };
@@ -179,7 +180,7 @@ export function MatchCard({ game, matchBasePath }) {
   return (
     <MaybeLink
       className="sh-match-link"
-      to={`${matchBasePath}/match/${game.id}`}
+      to={matchPath(matchBasePath, game)}
       aria-label={`Match commentary: ${game.home} v ${game.away}`}
     >
       {card}

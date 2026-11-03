@@ -1,8 +1,13 @@
-import React, { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import React, { useEffect, useMemo, useState } from "react";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import { detailSport } from "../data/detailConfig";
 import { demoCommentary } from "../data/commentaryData";
-import { isEspnDisabled, loadMatchSummary } from "../api/espn";
+import {
+  ESPN_LEAGUES,
+  isEspnDisabled,
+  leagueKeyForCompetition,
+  loadMatchSummary,
+} from "../api/espn";
 import { gameClockLabel } from "../utils/dates";
 import { EmptyState, Panel, PanelHead, TeamLogo } from "../components/ui";
 import { IconClock, IconPlay } from "../components/Icons";
@@ -11,51 +16,111 @@ function findDemoGame(games, matchId) {
   return games.find((game) => String(game.id) === String(matchId)) ?? null;
 }
 
+const STATUS_KIND = { LIVE: "is-live", FINAL: "is-final", UPCOMING: "is-soon" };
+
 export default function MatchPage({ sport = "basketball" }) {
   const config = detailSport(sport);
   const { matchId } = useParams();
+  const [params] = useSearchParams();
   const demoGame = findDemoGame(config.games, matchId);
+
+  // The card that links here carries its competition, so a college or EuroLeague
+  // fixture asks the right ESPN board instead of the flagship one.
+  const competitionId = demoGame?.competitionId ?? params.get("competition");
+  const leagueKey = leagueKeyForCompetition(competitionId) ?? config.leagueKey;
+  const competitionName =
+    demoGame?.competition ?? ESPN_LEAGUES[leagueKey]?.competition ?? config.label;
+
   const [summary, setSummary] = useState(null);
+  const [loading, setLoading] = useState(!isEspnDisabled());
 
   useEffect(() => {
     setSummary(null);
-    if (isEspnDisabled()) return undefined;
+    if (isEspnDisabled()) {
+      setLoading(false);
+      return undefined;
+    }
     let active = true;
-    loadMatchSummary(config.leagueKey, matchId)
+    setLoading(true);
+    loadMatchSummary(leagueKey, matchId)
       .then((payload) => {
-        if (active && payload.plays.length) setSummary(payload);
+        // A game with a scoreline but no plays yet still has a page.
+        if (active && (payload.teams.length || payload.plays.length)) setSummary(payload);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => {
+        if (active) setLoading(false);
+      });
     return () => {
       active = false;
     };
-  }, [config.leagueKey, matchId]);
+  }, [leagueKey, matchId]);
 
-  const home =
+  const summaryHome =
     summary?.teams?.find((team) => team.homeAway === "home") ?? summary?.teams?.[0] ?? null;
-  const away =
+  const summaryAway =
     summary?.teams?.find((team) => team.homeAway === "away") ?? summary?.teams?.[1] ?? null;
 
   const teams = {
     home: demoGame
-      ? { name: demoGame.home, code: demoGame.homeCode, logo: demoGame.homeLogo, score: demoGame.homeScore }
-      : home,
+      ? {
+          name: demoGame.home,
+          code: demoGame.homeCode,
+          logo: demoGame.homeLogo,
+          score: demoGame.homeScore,
+        }
+      : summaryHome,
     away: demoGame
-      ? { name: demoGame.away, code: demoGame.awayCode, logo: demoGame.awayLogo, score: demoGame.awayScore }
-      : away,
+      ? {
+          name: demoGame.away,
+          code: demoGame.awayCode,
+          logo: demoGame.awayLogo,
+          score: demoGame.awayScore,
+        }
+      : summaryAway,
   };
 
-  const status = demoGame
+  const state = demoGame?.status ?? (summary?.state === "in" ? "LIVE" : summary?.state === "post" ? "FINAL" : "UPCOMING");
+
+  const statusText = demoGame
     ? demoGame.status === "FINAL"
       ? "Final"
       : demoGame.clock || gameClockLabel(demoGame)
-    : summary?.period ?? null;
+    : summary?.statusText ?? (state === "UPCOMING" ? "Scheduled" : null);
 
-  const plays = summary?.plays?.length
-    ? summary.plays
-    : demoCommentary[String(matchId)]?.plays ?? [];
+  const plays = useMemo(
+    () => (summary?.plays?.length ? summary.plays : demoCommentary[String(matchId)]?.plays ?? []),
+    [summary, matchId]
+  );
+
+  const backLink = (
+    <Link className="sh-detail-back" to={config.hub}>
+      Back to {config.hubLabel}
+    </Link>
+  );
 
   if (!demoGame && !summary) {
+    if (loading) {
+      return (
+        <main className="sh-detail">
+          <nav className="sh-crumbs" aria-label="Breadcrumb">
+            <Link to={config.hub}>{config.hubLabel}</Link>
+            <span aria-hidden="true">/</span>
+            <span>{competitionName}</span>
+            <span aria-hidden="true">/</span>
+            <span aria-current="page">Match commentary</span>
+          </nav>
+          <Panel className="sh-detail-panel">
+            <PanelHead icon={<IconPlay size={15} />} title="Commentary" note="ESPN play-by-play" />
+            <p className="sh-detail-note" role="status">
+              Loading the play-by-play from ESPN…
+            </p>
+          </Panel>
+          {backLink}
+        </main>
+      );
+    }
+
     return (
       <main className="sh-detail">
         <nav className="sh-crumbs" aria-label="Breadcrumb">
@@ -67,9 +132,7 @@ export default function MatchPage({ sport = "basketball" }) {
           title="We couldn't find that match"
           hint="Open a game from the live score rail so its commentary can load."
         />
-        <Link className="sh-detail-back" to={config.hub}>
-          Back to {config.hubLabel}
-        </Link>
+        {backLink}
       </main>
     );
   }
@@ -79,7 +142,7 @@ export default function MatchPage({ sport = "basketball" }) {
       <nav className="sh-crumbs" aria-label="Breadcrumb">
         <Link to={config.hub}>{config.hubLabel}</Link>
         <span aria-hidden="true">/</span>
-        <span>{config.label}</span>
+        <span>{competitionName}</span>
         <span aria-hidden="true">/</span>
         <span aria-current="page">Match commentary</span>
       </nav>
@@ -95,8 +158,8 @@ export default function MatchPage({ sport = "basketball" }) {
         </div>
 
         <div className="sh-match-mid">
-          <span className={`sh-detail-chip ${demoGame?.status === "LIVE" ? "is-live" : "is-soon"}`}>
-            {status ?? "Scheduled"}
+          <span className={`sh-detail-chip ${STATUS_KIND[state] ?? "is-soon"}`}>
+            {statusText ?? "Scheduled"}
           </span>
           <span className="sh-match-venue">{demoGame?.venue ?? summary?.venue ?? ""}</span>
         </div>
@@ -115,8 +178,15 @@ export default function MatchPage({ sport = "basketball" }) {
         <PanelHead
           icon={<IconPlay size={15} />}
           title="Commentary"
-          note={summary?.plays?.length ? "ESPN play-by-play" : plays.length ? "Sample play-by-play" : undefined}
+          note={
+            plays.length
+              ? summary?.plays?.length
+                ? "ESPN play-by-play"
+                : "Sample play-by-play"
+              : undefined
+          }
         />
+
         {plays.length ? (
           <ol className="sh-commentary">
             {plays.map((play, index) => (
@@ -135,10 +205,16 @@ export default function MatchPage({ sport = "basketball" }) {
           </ol>
         ) : (
           <p className="sh-detail-note">
-            Play-by-play appears once ESPN publishes the commentary feed for this game.
+            {state === "UPCOMING"
+              ? `Commentary starts at ${statusText ?? "tip-off"} — come back when the game is live.`
+              : loading
+                ? "Loading the play-by-play from ESPN…"
+                : "ESPN has not published play-by-play for this game yet."}
           </p>
         )}
       </Panel>
+
+      {backLink}
     </main>
   );
 }
