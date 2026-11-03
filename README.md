@@ -43,6 +43,7 @@ Every team name in a standings table and every card in the Player Details rail l
 - Keys are readable slugs (`/basketball/team/boston-celtics`, `/basketball/player/luka-doncic`); codes and ESPN ids resolve too, so `bos` and ESPN's numeric id land on the same page.
 - Everything renders from the bundled demo data first — records come from the standings table, fixtures from the games feed, profiles from the leaders rail — then ESPN enriches them when it answers: team info + `teams/{id}/schedule` + `teams/{id}/roster` for teams, `athletes/{id}` for players.
 - The standings table and player cards render plain markup when no router is present, so the components stay usable standalone (see `MaybeLink` in `src/components/ui.jsx`).
+- A player page always shows a portrait: the ESPN headshot when the feed answers, the bundled portrait art from `src/assets/players/` otherwise, and initials only if both images fail.
 
 ## Multipage screens
 

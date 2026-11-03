@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { cleanup, render } from "@testing-library/react";
+import { cleanup, fireEvent, render } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import BasketballPage from "./BasketballPage";
 import TeamPage from "./TeamPage";
@@ -76,6 +76,46 @@ describe("player page", () => {
     const { container } = renderAt("/basketball/player/nikola-jokic");
     expect(container.textContent).toContain("Leaders board");
     expect(container.querySelectorAll(".sh-detail-squad li").length).toBeGreaterThan(0);
+  });
+
+  it("always shows a portrait, even without an ESPN headshot", () => {
+    const { container } = renderAt("/basketball/player/luka-doncic");
+    const image = container.querySelector("img.sh-detail-portrait");
+    expect(image).toBeTruthy();
+    expect(image.getAttribute("src")).toBeTruthy();
+    expect(image.getAttribute("alt")).toBe("Luka Dončić");
+    expect(container.querySelector(".sh-detail-portrait.is-mono")).toBeNull();
+  });
+
+  it("keeps a different portrait per player and one per name", () => {
+    const luka = renderAt("/basketball/player/luka-doncic").container.querySelector(
+      "img.sh-detail-portrait"
+    );
+    const lukaSrc = luka.getAttribute("src");
+    cleanup();
+
+    const again = renderAt("/basketball/player/luka-doncic").container.querySelector(
+      "img.sh-detail-portrait"
+    );
+    expect(again.getAttribute("src")).toBe(lukaSrc);
+    cleanup();
+
+    const jokic = renderAt("/basketball/player/nikola-jokic").container.querySelector(
+      "img.sh-detail-portrait"
+    );
+    expect(jokic.getAttribute("src")).toBeTruthy();
+  });
+
+  it("falls back to initials only when the portrait art itself fails", () => {
+    const { container } = renderAt("/nfl/player/lamar-jackson");
+    const image = container.querySelector("img.sh-detail-portrait");
+    expect(image).toBeTruthy();
+
+    fireEvent.error(image);
+
+    expect(container.querySelector("img.sh-detail-portrait")).toBeNull();
+    expect(container.querySelector(".sh-detail-portrait.is-mono")).toBeTruthy();
+    expect(container.textContent).toContain("Lamar Jackson");
   });
 
   it("falls back to an empty state for an unknown player", () => {
