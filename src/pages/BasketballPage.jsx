@@ -301,12 +301,15 @@ export default function BasketballPage({
           sourceLabel={isControlled ? "CUSTOM DATA" : feed.badge}
           onRefresh={isControlled ? undefined : feed.refresh}
           refreshing={feed.refreshing}
+          matchBasePath="/basketball"
           emptyHint={`No games on ${formatDateKeyLabel(date)} for these filters.`}
         />
 
         <div id="section-standings">
-          <StandingsPanel            groups={activeStandings}
+          <StandingsPanel
+            groups={activeStandings}
             note={`${seasonLabel(seasonStart)} · ${source === "espn" ? "ESPN standings" : "sample table"}`}
+            teamBasePath="/basketball"
           />
         </div>
         <p className="sh-updated">Updated: {updated}</p>
@@ -314,6 +317,8 @@ export default function BasketballPage({
 
       <aside className="sh-right" id="section-players">
         <PlayerDetails
+          linkBase="/basketball"
+          viewAllHref="/basketball/top-scorers"
           leaders={playerCards}
           note={source === "espn" ? "ESPN leaders" : "Demo leaders"}
         />

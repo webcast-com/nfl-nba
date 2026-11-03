@@ -3,6 +3,7 @@ import {
   clearEspnCache,
   formatKickoff,
   isEspnDisabled,
+  normalizeLeaderboard,
   normalizeLeaders,
   normalizeScoreboard,
   normalizeStandings,
@@ -242,6 +243,37 @@ describe("ESPN leaders normalisation", () => {
 
   it("returns an empty list for unexpected shapes", () => {
     expect(normalizeLeaders({ nonsense: true })).toEqual([]);
+  });
+});
+
+describe("ESPN leaderboard normalisation", () => {
+  const payload = {
+    categories: [
+      {
+        name: "Points Per Game",
+        leaders: [
+          {
+            displayValue: "33.9",
+            athlete: {
+              id: "3945274",
+              displayName: "Luka Dončić",
+              team: { displayName: "Dallas Mavericks", abbreviation: "DAL" },
+            },
+          },
+        ],
+      },
+    ],
+  };
+
+  it("carries a headshot so the top scorers screen can show the player", () => {
+    const boards = normalizeLeaderboard(payload);
+    expect(boards[0].metric).toBe("Points Per Game");
+    expect(boards[0].entries[0].headshot).toContain("/i/headshots/nba/players/full/3945274.png");
+  });
+
+  it("uses the NFL headshot path for football", () => {
+    const boards = normalizeLeaderboard(payload, { sport: "football" });
+    expect(boards[0].entries[0].headshot).toContain("/i/headshots/nfl/players/full/3945274.png");
   });
 });
 

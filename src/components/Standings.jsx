@@ -1,8 +1,9 @@
 import React from "react";
+import { slugify } from "../utils/entities";
 import { IconTrophy } from "./Icons";
-import { Panel, PanelHead, TeamLogo } from "./ui";
+import { MaybeLink, Panel, PanelHead, TeamLogo } from "./ui";
 
-export function StandingsPanel({ groups = [], nfl = false, note = "Sample table" }) {
+export function StandingsPanel({ groups = [], nfl = false, note = "Sample table", teamBasePath }) {
   return (
     <Panel className="sh-standings-panel">
       <PanelHead
@@ -45,7 +46,17 @@ export function StandingsPanel({ groups = [], nfl = false, note = "Sample table"
                         <span className="sh-team-cell">
                           <span className="sh-rank">{index + 1}</span>
                           <TeamLogo src={row.logo} code={row.code} size="xs" />
-                          <span className="sh-team-name-cell" title={row.team}>{row.team}</span>
+                          {teamBasePath ? (
+                            <MaybeLink
+                              className="sh-team-name-cell sh-team-link"
+                              to={`${teamBasePath}/team/${slugify(row.team)}`}
+                              title={row.team}
+                            >
+                              {row.team}
+                            </MaybeLink>
+                          ) : (
+                            <span className="sh-team-name-cell" title={row.team}>{row.team}</span>
+                          )}
                         </span>
                       </td>
                       <td>{row.p}</td>

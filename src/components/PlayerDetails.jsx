@@ -1,6 +1,7 @@
 import React, { useState } from "react";
+import { slugify } from "../utils/entities";
 import { IconArrowUpRight } from "./Icons";
-import { Panel, PanelHead, metricShort } from "./ui";
+import { MaybeLink, Panel, PanelHead, metricShort } from "./ui";
 
 const teamHue = (value = "") => {
   let hash = 0;
@@ -10,12 +11,12 @@ const teamHue = (value = "") => {
   return hash;
 };
 
-function PlayerCard({ player, rank }) {
+function PlayerCard({ player, rank, linkBase }) {
   const [photoBroken, setPhotoBroken] = useState(false);
   const hue = teamHue(player.team || player.name);
   const showPhoto = Boolean(player.headshot) && !photoBroken;
 
-  return (
+  const card = (
     <article className="sh-player">
       <div className="sh-player-art" style={{ "--player-hue": hue }}>
         {player.teamLogo ? (
@@ -70,9 +71,21 @@ function PlayerCard({ player, rank }) {
       </div>
     </article>
   );
+
+  if (!linkBase) return card;
+
+  return (
+    <MaybeLink
+      className="sh-player-link"
+      to={`${linkBase}/player/${player.key ?? slugify(player.name)}`}
+      aria-label={`Player profile: ${player.name}`}
+    >
+      {card}
+    </MaybeLink>
+  );
 }
 
-export function PlayerDetails({ leaders = [], title = "Player Details", note }) {
+export function PlayerDetails({ leaders = [], title = "Player Details", note, linkBase, viewAllHref }) {
   if (!leaders.length) return null;
 
   return (
@@ -81,15 +94,20 @@ export function PlayerDetails({ leaders = [], title = "Player Details", note }) 
         title={title}
         note={note}
         actions={
-          <span className="sh-viewall">
+          <MaybeLink className="sh-viewall" to={viewAllHref ?? "#"} aria-label="View all player leaders">
             View all
             <IconArrowUpRight size={12} />
-          </span>
+          </MaybeLink>
         }
       />
       <div className="sh-players">
         {leaders.map((player, index) => (
-          <PlayerCard key={`${player.name}-${index}`} player={player} rank={index + 1} />
+          <PlayerCard
+            key={`${player.name}-${index}`}
+            player={player}
+            rank={index + 1}
+            linkBase={linkBase}
+          />
         ))}
       </div>
     </Panel>
