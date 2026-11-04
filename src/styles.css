@@ -386,6 +386,10 @@ html[data-theme='light'] .sh-topbar { background: rgba(255, 255, 255, 0.85); }
   overflow: hidden;
 }
 
+.sh-sportsrc-panel {
+  margin-top: 18px;
+}
+
 .sh-panel-head {
   display: flex;
   align-items: center;

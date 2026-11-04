@@ -57,15 +57,20 @@ export function SourceChip({ status = "demo", label }) {
   );
 }
 
-export function RefreshButton({ onClick, refreshing = false }) {
+export function RefreshButton({
+  onClick,
+  refreshing = false,
+  ariaLabel = "Refresh ESPN data",
+  title = "Refresh ESPN data",
+}) {
   return (
     <button
       type="button"
       className="sh-icon-btn"
       onClick={onClick}
       disabled={refreshing}
-      aria-label="Refresh ESPN data"
-      title="Refresh ESPN data"
+      aria-label={ariaLabel}
+      title={title}
     >
       <IconRefresh size={16} className={refreshing ? "is-spinning" : undefined} />
     </button>

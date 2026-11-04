@@ -6,10 +6,13 @@ import {
 } from "../data/sportsData";
 import { LeagueSidebar } from "../components/LeagueSidebar";
 import { MobileSectionTabs } from "../components/Shell";
+import SportsrcPanel from "../components/SportsrcPanel";
 import { DateRail, FeaturedGame, ScoreboardPanel } from "../components/Scoreboard";
 import { PlayerDetails } from "../components/PlayerDetails";
 import { StandingsPanel, StatTiles } from "../components/Standings";
 import { useEspnFeed } from "../hooks/useEspnFeed";
+import { useSportsrcFeed } from "../hooks/useSportsrcFeed";
+import { hasSportsrcKey, isSportsrcDisabled } from "../api/sportsrc";
 import {
   buildDateRail,
   buildSeasonOptions,
@@ -118,6 +121,12 @@ export default function BasketballPage({
     season: seasonStart + 1, // ESPN indexes basketball seasons by their end year
     competition: activeCompetition,
   });
+
+  // Global basketball fixtures from Sportsrc — a supplementary panel below the
+  // ESPN scoreboard, hidden while the page is controlled by custom props or
+  // the integration is not configured.
+  const sportsrcConfigured = !isSportsrcDisabled() && hasSportsrcKey();
+  const sportsrc = useSportsrcFeed({ enabled: live && !isControlled && sportsrcConfigured });
 
   // Explicit props always win, so the page stays usable as a pure component.
   const activeGames = games ?? feed.games;
@@ -320,6 +329,7 @@ export default function BasketballPage({
           emptyHint={`No games on ${formatDateKeyLabel(date)} for these filters.`}
         />
 
+        {sportsrcConfigured ? <SportsrcPanel feed={sportsrc} /> : null}
         <div id="section-standings">
           <StandingsPanel
             groups={activeStandings}

@@ -1,6 +1,6 @@
 # ScoreHub · Basketball + NFL live dashboard
 
-Dark, broadcast-style sports dashboard built with React + Vite. Scores, standings and player leaders come from ESPN's public (keyless) endpoints, with bundled demo data as an automatic offline fallback.
+Dark, broadcast-style sports dashboard built with React + Vite. Scores, standings and player leaders come from ESPN's public (keyless) endpoints, global basketball fixtures from the keyed Sportsrc API (opt-in), with bundled demo data as an automatic offline fallback.
 
 ## Interface
 
@@ -23,9 +23,11 @@ Sports without a feed yet (Cricket, Badminton, Hockey) render a placeholder page
 - `src/pages/TeamPage.jsx` / `src/pages/PlayerPage.jsx` — team and player detail pages reached from the standings table, the player rail and the squad list.
 - `src/pages/NewsPage.jsx` / `TopScorersPage.jsx` / `UpcomingPage.jsx` / `MatchPage.jsx` — the news, leaderboard, schedule and match-commentary screens, plus `src/components/SubNav.jsx`, the pill bar that switches between them.
 - `src/pages/ComingSoonPage.jsx` — placeholder for sports that don't have a feed yet.
-- `src/components/` — shell (rail/top bar), league sidebar, hero, score panel, match cards, player cards, standings, UI primitives, icon set.
+- `src/components/` — shell (rail/top bar), league sidebar, hero, score panel, match cards, player cards, standings, UI primitives, icon set, plus the `SportsrcPanel` global-fixtures panel.
 - `src/api/espn.js` — ESPN client and normalisers.
+- `src/api/sportsrc.js` — Sportsrc client (keyed global basketball fixtures) and normalisers.
 - `src/hooks/useEspnFeed.js` — polling hook that swaps demo data for live data.
+- `src/hooks/useSportsrcFeed.js` — polling hook for the Sportsrc fixtures panel.
 - `src/data/sportsData.js` — demo data (scores, standings, leaders, team logos, broadcasters) used for the first paint and offline mode.
 - `src/data/newsData.js` / `scorersData.js` / `commentaryData.js` — offline newsroom stories, per-category leader boards and sample play-by-play.
 - `src/assets/news/` and `src/assets/players/` — card photography and portrait art bundled with the app so both screens stay illustrated offline.
@@ -182,6 +184,32 @@ VITE_ESPN_DISABLE=1                                  # demo data only
 ```
 
 When deploying the static build without a proxy, keep the default ESPN origins (browser-direct requests). If you prefer routing ESPN traffic through your own server, set `VITE_ESPN_SITE_BASE_URL=/espn` and mirror the `vite.config.js` proxy in your host config.
+
+## Sportsrc integration
+
+The basketball hub carries a supplementary **Global basketball · Sportsrc** panel below the ESPN scoreboard, feeding global basketball fixtures from the keyed Sportsrc JSON API (dozens of leagues, live/upcoming/finished scores with team badges). It is opt-in: without `VITE_SPORTSRC_API_KEY` the panel hides and the app is exactly the ESPN-only experience.
+
+| What | Endpoint |
+| --- | --- |
+| Global basketball fixtures (league-grouped) | `api.sportsrc.org/v3/?type=matches&sport=basketball` |
+
+How it behaves:
+
+- **Keyed requests.** The license key (`VITE_SPORTSRC_API_KEY`) is sent as the `X-API-KEY` header; each request tries the direct origin first, then the same-origin `/sportsrc` proxy (`vite.config.js`). Query-parameter (`api_key=…`) variants are added as extra candidates so the feed still works when a proxy strips custom headers.
+- **Statuses map onto the existing tabs.** Sportsrc's `inprogress`/`live` → `LIVE`, `finished`/`post` → `FINAL`, `upcoming`/`scheduled` → `UPCOMING`. Upcoming games render kick-offs in the viewer's time zone from their `timestamp`, exactly like the ESPN feed.
+- **Unlinked cards.** Sportsrc match ids have no ESPN commentary behind them, so the fixtures render as plain cards instead of opening a match page.
+- **Independent of ESPN.** The panel polls every 60s, caches responses for 60s and shares nothing with the ESPN feed — ESPN stays the source of standings, leaders and match pages.
+- **Graceful degradation.** No key or `VITE_SPORTSRC_DISABLE=1` hides the panel; a failed request shows an offline note instead of breaking the hub.
+
+### Configuration
+
+All optional, see `.env.example`:
+
+```bash
+VITE_SPORTSRC_API_KEY=your-license-key          # required for the panel
+VITE_SPORTSRC_BASE_URL=https://api.sportsrc.org/v3   # or /sportsrc to force the proxy
+VITE_SPORTSRC_DISABLE=1                         # hide the panel
+```
 
 ### Deployment
 
