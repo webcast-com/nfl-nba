@@ -390,6 +390,120 @@ html[data-theme='light'] .sh-topbar { background: rgba(255, 255, 255, 0.85); }
   margin-top: 18px;
 }
 
+/* Watch button on Sportsrc fixture cards */
+.sh-watch-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid var(--accent-line);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+
+.sh-watch-btn:hover { background: rgba(139, 124, 246, 0.28); transform: translateY(-1px); }
+
+/* Livestream overlay */
+.sh-stream-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(3, 5, 12, 0.82);
+  backdrop-filter: blur(6px);
+}
+
+.sh-stream-modal {
+  width: min(960px, 100%);
+  background: var(--panel-2);
+  border: 1px solid var(--line-strong);
+  border-radius: 14px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.sh-stream-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.sh-stream-titles { min-width: 0; }
+
+.sh-stream-titles h3 {
+  margin: 6px 0 4px;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.sh-stream-titles h3 em { color: var(--muted-2); font-style: normal; padding: 0 4px; }
+
+.sh-stream-close {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--line-strong);
+  background: var(--panel-3);
+  color: var(--muted);
+  font-size: 14px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.sh-stream-close:hover { color: #fff; border-color: rgba(255, 255, 255, 0.25); }
+
+.sh-stream-body { padding: 14px 16px 16px; }
+
+.sh-stream-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.sh-stream-tab {
+  border: 1px solid var(--line-strong);
+  background: var(--panel-3);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sh-stream-tab.is-active {
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+  color: var(--accent-text);
+}
+
+/* Third-party stream players must run their own scripts and anti-bot checks,
+   so the iframe is intentionally not sandboxed (per the Sportsrc docs). */
+.sh-stream-frame {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #000;
+  display: block;
+}
+
 .sh-panel-head {
   display: flex;
   align-items: center;

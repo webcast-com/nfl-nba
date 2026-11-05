@@ -192,12 +192,14 @@ The basketball hub carries a supplementary **Global basketball · Sportsrc** pan
 | What | Endpoint |
 | --- | --- |
 | Global basketball fixtures (league-grouped) | `api.sportsrc.org/v3/?type=matches&sport=basketball` |
+| Match detail with streaming sources | `api.sportsrc.org/v3/?type=detail&id={match_id}` |
 
 How it behaves:
 
 - **Keyed requests.** The license key (`VITE_SPORTSRC_API_KEY`) is sent as the `X-API-KEY` header; each request tries the direct origin first, then the same-origin `/sportsrc` proxy (`vite.config.js`). Query-parameter (`api_key=…`) variants are added as extra candidates so the feed still works when a proxy strips custom headers.
 - **Statuses map onto the existing tabs.** Sportsrc's `inprogress`/`live` → `LIVE`, `finished`/`post` → `FINAL`, `upcoming`/`scheduled` → `UPCOMING`. Upcoming games render kick-offs in the viewer's time zone from their `timestamp`, exactly like the ESPN feed.
 - **Unlinked cards.** Sportsrc match ids have no ESPN commentary behind them, so the fixtures render as plain cards instead of opening a match page.
+- **Livestreams.** Every fixture card carries a Watch button — the matches feed only returns games that have a stream. Opening one fetches `?type=detail&id=…` and renders the returned `sources[].embedUrl` in an iframe modal (multiple sources become switchable tabs). Per the Sportsrc docs the player needs standard permissions and must not be sandboxed; streams include ads from the third-party provider.
 - **Independent of ESPN.** The panel polls every 60s, caches responses for 60s and shares nothing with the ESPN feed — ESPN stays the source of standings, leaders and match pages.
 - **Graceful degradation.** No key or `VITE_SPORTSRC_DISABLE=1` hides the panel; a failed request shows an offline note instead of breaking the hub.
 

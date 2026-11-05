@@ -1,6 +1,12 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render } from "@testing-library/react";
 import SportsrcPanel from "./SportsrcPanel";
+
+vi.mock("../api/sportsrc", () => ({
+  loadMatchDetail: vi.fn(),
+}));
+
+import { loadMatchDetail } from "../api/sportsrc";
 
 afterEach(cleanup);
 
@@ -49,6 +55,36 @@ const feed = {
   label: "Sportsrc live",
 };
 
+const detailPayload = {
+  id: "a",
+  competition: "EuroLeague",
+  country: "Europe",
+  status: "FINAL",
+  statusDetail: "Ended",
+  home: "Real Madrid",
+  away: "Olympiacos",
+  homeCode: "RMA",
+  awayCode: "OLY",
+  homeScore: 92,
+  awayScore: 88,
+  venue: "WiZink Center",
+  referee: "Mateu Lahoz",
+  sources: [
+    {
+      id: "stream-1",
+      source: "lola",
+      embedUrl: "https://football77.org/embed/?id=a&source=lola",
+      hd: true,
+    },
+    {
+      id: "stream-2",
+      source: "STV",
+      embedUrl: "https://football77.org/embed/?id=a&source=STV",
+      hd: true,
+    },
+  ],
+};
+
 describe("SportsrcPanel", () => {
   it("renders the fixtures and the source chip", () => {
     const { getByText, queryByText } = render(<SportsrcPanel feed={feed} />);
@@ -77,5 +113,72 @@ describe("SportsrcPanel", () => {
 
     expect(getByText("No fixtures from Sportsrc")).toBeTruthy();
     expect(getByText("Sportsrc 500")).toBeTruthy();
+  });
+});
+
+describe("SportsrcPanel livestream", () => {
+  beforeEach(() => {
+    loadMatchDetail.mockReset();
+  });
+
+  it("shows a Watch button on every fixture", () => {
+    const { getAllByRole } = render(<SportsrcPanel feed={feed} />);
+    expect(getAllByRole("button", { name: /watch/i })).toHaveLength(2);
+  });
+
+  it("opens the livestream dialog and renders the embed iframe", async () => {
+    loadMatchDetail.mockResolvedValue(detailPayload);
+    const { getByRole, findByRole, getByTitle } = render(<SportsrcPanel feed={feed} />);
+
+    fireEvent.click(getByRole("button", { name: /watch real madrid v olympiacos livestream/i }));
+    const dialog = await findByRole("dialog");
+    expect(dialog).toBeTruthy();
+
+    const frame = getByTitle("Real Madrid v Olympiacos livestream");
+    expect(frame.getAttribute("src")).toBe("https://football77.org/embed/?id=a&source=lola");
+    expect(frame.getAttribute("allow")).toContain("fullscreen");
+    expect(frame.getAttribute("allowfullscreen")).not.toBeNull();
+  });
+
+  it("switches between the available stream sources", async () => {
+    loadMatchDetail.mockResolvedValue(detailPayload);
+    const { getByRole, findByRole, getByTitle } = render(<SportsrcPanel feed={feed} />);
+
+    fireEvent.click(getByRole("button", { name: /watch real madrid v olympiacos livestream/i }));
+    await findByRole("dialog");
+
+    fireEvent.click(getByRole("tab", { name: /STV/ }));
+    expect(getByTitle("Real Madrid v Olympiacos livestream").getAttribute("src")).toBe(
+      "https://football77.org/embed/?id=a&source=STV"
+    );
+  });
+
+  it("closes the livestream again", async () => {
+    loadMatchDetail.mockResolvedValue(detailPayload);
+    const { getByRole, findByRole, queryByRole } = render(<SportsrcPanel feed={feed} />);
+
+    fireEvent.click(getByRole("button", { name: /watch real madrid v olympiacos livestream/i }));
+    await findByRole("dialog");
+
+    fireEvent.click(getByRole("button", { name: "Close livestream" }));
+    expect(queryByRole("dialog")).toBeNull();
+  });
+
+  it("surfaces an error when the stream detail cannot be fetched", async () => {
+    loadMatchDetail.mockRejectedValue(new Error("Sportsrc 502"));
+    const { getByRole, findByRole, findByText } = render(<SportsrcPanel feed={feed} />);
+
+    fireEvent.click(getByRole("button", { name: /watch real madrid v olympiacos livestream/i }));
+    await findByRole("dialog");
+    expect(await findByText("Sportsrc 502")).toBeTruthy();
+  });
+
+  it("shows a note when the match has no stream sources", async () => {
+    loadMatchDetail.mockResolvedValue({ ...detailPayload, sources: [] });
+    const { getByRole, findByRole, findByText } = render(<SportsrcPanel feed={feed} />);
+
+    fireEvent.click(getByRole("button", { name: /watch real madrid v olympiacos livestream/i }));
+    await findByRole("dialog");
+    expect(await findByText("No stream sources available for this match right now.")).toBeTruthy();
   });
 });

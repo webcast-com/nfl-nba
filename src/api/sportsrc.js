@@ -16,7 +16,9 @@
  * same pattern `src/api/espn.js` uses for ESPN.
  *
  * Endpoints used:
- *   - matches: /v3/?type=matches&sport={sport}&status={status}&date={date}
+ *   - matches:  /v3/?type=matches&sport={sport}&status={status}&date={date}
+ *   - detail:   /v3/?type=detail&id={match_id} (venue, referee, streaming
+ *               sources — the `sources[].embedUrl` is rendered in an iframe)
  */
 
 import { formatKickoff } from "../utils/dates";
@@ -32,6 +34,7 @@ export const SPORTSRC_BASE = trimTrailingSlash(
 export const SPORTSRC_PROXY = "/sportsrc";
 
 const MATCHES_TTL = 60 * 1000;
+const DETAIL_TTL = 60 * 1000;
 const REQUEST_TIMEOUT = 12 * 1000;
 
 /** License key from the build environment. Never hard-code it in source. */
@@ -195,6 +198,25 @@ export function matchesUrls({
   return unique(urls);
 }
 
+/**
+ * Candidate URLs for `?type=detail&id={id}`, in the same priority order as
+ * `matchesUrls`: direct, same-origin proxy, key as `api_key` query parameter,
+ * and the proxy again with the key. The `detail` endpoint is what carries the
+ * streaming sources (`sources[].embedUrl`) the panel renders in an iframe.
+ */
+export function detailUrls({ id, apiKey = getSportsrcKey() } = {}) {
+  if (!id) return [];
+  const params = { type: "detail", id };
+  const query = buildQuery(params); // already prefixed with "?"
+  const direct = `${SPORTSRC_BASE}${query}`;
+  const urls = [direct, `${SPORTSRC_PROXY}${query}`];
+  if (apiKey) {
+    const withKey = `${query}&api_key=${encodeURIComponent(apiKey)}`;
+    urls.push(`${SPORTSRC_BASE}${withKey}`, `${SPORTSRC_PROXY}${withKey}`);
+  }
+  return unique(urls);
+}
+
 // ---------------------------------------------------------------------------
 // Payload normalisation → the game shape `MatchCard` / `FeaturedGame` render
 // ---------------------------------------------------------------------------
@@ -293,6 +315,70 @@ export function normalizeMatches(payload) {
 }
 
 // ---------------------------------------------------------------------------
+// Match detail normalisation (venue, referee, streaming sources)
+// ---------------------------------------------------------------------------
+
+/**
+ * Sportsrc `?type=detail` payload → the full match record, including the
+ * `sources` array whose `embedUrl` values are meant to be rendered inside an
+ * `<iframe>` (see the API docs: no `sandbox` attribute, standard permissions).
+ */
+export function normalizeDetail(payload) {
+  const data = payload?.data;
+  if (!isPlainObject(data)) return null;
+  const match = isPlainObject(data.match_info) ? data.match_info : data;
+  const teams = isPlainObject(match.teams) ? match.teams : {};
+  const home = isPlainObject(teams.home) ? teams.home : {};
+  const away = isPlainObject(teams.away) ? teams.away : {};
+  const score = isPlainObject(match.score) ? match.score : {};
+  const current = isPlainObject(score.current) ? score.current : {};
+  const league = isPlainObject(match.league) ? match.league : {};
+  const info = isPlainObject(data.info) ? data.info : {};
+  const venue = isPlainObject(info.venue) ? info.venue : {};
+  const referee = isPlainObject(info.referee) ? info.referee : {};
+
+  const sources = asArray(data.sources)
+    .map((source) => {
+      if (!isPlainObject(source)) return null;
+      const embedUrl = source.embedUrl ?? source.embed_url ?? source.url ?? null;
+      if (!embedUrl) return null;
+      return {
+        id: source.id ?? null,
+        source: source.source ?? source.source_name ?? null,
+        embedUrl,
+        hd: Boolean(source.hd),
+        language: source.language ?? null,
+      };
+    })
+    .filter(Boolean);
+
+  const timestamp = toNumber(match.timestamp, null);
+  const startTime = timestamp !== null ? new Date(timestamp).toISOString() : null;
+  const status = normalizeStatus(match.status);
+  const statusDetail = String(match.status_detail ?? "").trim();
+
+  return {
+    id: match.id ?? null,
+    competition: league.name ?? null,
+    country: league.country ?? null,
+    status,
+    statusDetail: statusDetail && !/^(live|inprogress)$/i.test(statusDetail) ? statusDetail : null,
+    home: home.name ?? "TBD",
+    away: away.name ?? "TBD",
+    homeCode: home.code ?? "—",
+    awayCode: away.code ?? "—",
+    homeLogo: home.badge ?? null,
+    awayLogo: away.badge ?? null,
+    homeScore: toNumber(current.home, null),
+    awayScore: toNumber(current.away, null),
+    venue: venue.stadium ?? null,
+    referee: referee.name ?? null,
+    startTime,
+    sources,
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Loaders
 // ---------------------------------------------------------------------------
 
@@ -310,4 +396,20 @@ export async function loadMatches({
     apiKey,
   });
   return normalizeMatches(data);
+}
+
+/**
+ * Full match record for one fixture, including the streaming sources used to
+ * render the livestream embed. Throws when the id or key is missing.
+ */
+export async function loadMatchDetail({ id, force = false } = {}) {
+  if (!id) throw new SportsrcRequestError("Missing Sportsrc match id");
+  const apiKey = getSportsrcKey();
+  if (!apiKey) throw new SportsrcRequestError("Missing Sportsrc API key");
+  const data = await requestSportsrc(detailUrls({ id, apiKey }), {
+    ttl: DETAIL_TTL,
+    force,
+    apiKey,
+  });
+  return normalizeDetail(data);
 }

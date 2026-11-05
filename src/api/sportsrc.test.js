@@ -1,9 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   clearSportsrcCache,
+  detailUrls,
   isSportsrcDisabled,
+  loadMatchDetail,
   loadMatches,
   matchesUrls,
+  normalizeDetail,
   normalizeMatches,
   requestSportsrc,
 } from "./sportsrc";
@@ -213,5 +216,124 @@ describe("Sportsrc loader", () => {
 
   it("is disabled inside the test environment", () => {
     expect(isSportsrcDisabled()).toBe(true);
+  });
+});
+
+describe("Sportsrc match detail (streaming)", () => {
+  const originalFetch = global.fetch;
+
+  const sportsrcDetail = {
+    success: true,
+    data: {
+      match_info: {
+        id: "botafogo-atletico-mg-Zjox",
+        title: "Botafogo vs Atletico-MG",
+        timestamp: 1793838600000,
+        status: "inprogress",
+        status_detail: "1st half",
+        teams: {
+          home: { name: "Botafogo", code: "BOT" },
+          away: { name: "Atletico-MG", code: "ATL" },
+        },
+        score: { current: { home: 0, away: 0 } },
+        league: { name: "Serie A", country: "Brazil" },
+      },
+      sources: [
+        {
+          id: "stream-1",
+          streamNo: 1,
+          embedUrl: "https://football77.org/embed/?id=1&source=lola",
+          source: "lola",
+          hd: true,
+          language: "Unknown",
+        },
+        {
+          id: "stream-2",
+          streamNo: 2,
+          embedUrl: "https://football77.org/embed/?id=1&source=STV",
+          source: "STV",
+          hd: true,
+        },
+      ],
+      info: {
+        venue: { stadium: "Estadio Olimpico Nilton Santos" },
+        referee: { name: "Lucas Casagrande" },
+      },
+    },
+  };
+
+  beforeEach(() => {
+    clearSportsrcCache();
+  });
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+    vi.restoreAllMocks();
+    vi.unstubAllEnvs();
+  });
+
+  it("builds direct + proxy candidate URLs with the match id", () => {
+    const withKey = detailUrls({ id: "match-1", apiKey: "SECRET" });
+    expect(withKey[0]).toContain("https://api.sportsrc.org/v3?type=detail");
+    expect(withKey[0]).toContain("id=match-1");
+    expect(withKey.some((url) => url.startsWith("/sportsrc?type=detail"))).toBe(true);
+    expect(withKey.some((url) => url.includes("api_key=SECRET"))).toBe(true);
+
+    expect(detailUrls({ id: "match-1", apiKey: "" })).toHaveLength(2);
+    expect(detailUrls({ id: "" })).toEqual([]);
+  });
+
+  it("normalises the match record and its streaming sources", () => {
+    const detail = normalizeDetail(sportsrcDetail);
+    expect(detail).toMatchObject({
+      id: "botafogo-atletico-mg-Zjox",
+      competition: "Serie A",
+      country: "Brazil",
+      status: "LIVE",
+      statusDetail: "1st half",
+      home: "Botafogo",
+      away: "Atletico-MG",
+      homeCode: "BOT",
+      awayCode: "ATL",
+      homeScore: 0,
+      awayScore: 0,
+      venue: "Estadio Olimpico Nilton Santos",
+      referee: "Lucas Casagrande",
+      startTime: new Date(1793838600000).toISOString(),
+    });
+    expect(detail.sources).toHaveLength(2);
+    expect(detail.sources[0]).toMatchObject({
+      id: "stream-1",
+      source: "lola",
+      embedUrl: "https://football77.org/embed/?id=1&source=lola",
+      hd: true,
+      language: "Unknown",
+    });
+    expect(detail.sources[1].source).toBe("STV");
+  });
+
+  it("tolerates payloads without sources and malformed payloads", () => {
+    expect(
+      normalizeDetail({ success: true, data: { match_info: { id: "x" } } }).sources
+    ).toEqual([]);
+    expect(normalizeDetail(null)).toBeNull();
+    expect(normalizeDetail({ success: false, message: "gone" })).toBeNull();
+  });
+
+  it("loads a match detail for the keyed fetch", async () => {
+    vi.stubEnv("VITE_SPORTSRC_API_KEY", "test-key");
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => sportsrcDetail });
+
+    const detail = await loadMatchDetail({ id: "botafogo-atletico-mg-Zjox" });
+    expect(detail.id).toBe("botafogo-atletico-mg-Zjox");
+    expect(detail.sources).toHaveLength(2);
+  });
+
+  it("refuses to load detail without an id or a key", async () => {
+    vi.stubEnv("VITE_SPORTSRC_API_KEY", "test-key");
+    await expect(loadMatchDetail()).rejects.toThrow("Missing Sportsrc match id");
+
+    vi.stubEnv("VITE_SPORTSRC_API_KEY", "");
+    await expect(loadMatchDetail({ id: "x" })).rejects.toThrow("Missing Sportsrc API key");
   });
 });
