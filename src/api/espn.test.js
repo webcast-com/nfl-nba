@@ -328,14 +328,38 @@ describe("ESPN request layer", () => {
 });
 
 describe("NCAA league routing", () => {
-  it("keeps the flagship boards on the default view", () => {
-    expect(liveLeaguesFor("basketball")).toEqual(["nba", "wnba", "nbl", "euroleague"]);
+  it("merges the flagship boards and NCAA into the default view", () => {
+    expect(liveLeaguesFor("basketball")).toEqual([
+      "nba",
+      "wnba",
+      "nbl",
+      "euroleague",
+      "mens-college-basketball",
+      "womens-college-basketball",
+    ]);
     expect(liveLeaguesFor("football", "all")).toEqual(["nfl"]);
   });
 
-  it("fetches a single college board once that competition is selected", () => {
-    expect(liveLeaguesFor("basketball", "ncaam")).toEqual(["mens-college-basketball"]);
-    expect(liveLeaguesFor("basketball", "ncaaw")).toEqual(["womens-college-basketball"]);
+  it("narrow the board to boards the default view does not already cover", () => {
+    // NCAA basketball is merged into the default board, so selecting it needs no
+    // extra fetch — the board filter focuses the view instead.
+    expect(liveLeaguesFor("basketball", "ncaam")).toEqual([
+      "nba",
+      "wnba",
+      "nbl",
+      "euroleague",
+      "mens-college-basketball",
+      "womens-college-basketball",
+    ]);
+    expect(liveLeaguesFor("basketball", "ncaaw")).toEqual([
+      "nba",
+      "wnba",
+      "nbl",
+      "euroleague",
+      "mens-college-basketball",
+      "womens-college-basketball",
+    ]);
+    // College football is not in the default football board, so it is fetched on demand.
     expect(liveLeaguesFor("football", "cfb")).toEqual(["college-football"]);
   });
 

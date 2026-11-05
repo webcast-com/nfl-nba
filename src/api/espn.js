@@ -110,15 +110,22 @@ export const ESPN_LEAGUES = {
 };
 
 /** Leagues merged into the basketball scoreboard, in display order. */
-export const BASKETBALL_LIVE_LEAGUES = ["nba", "wnba", "nbl", "euroleague"];
+export const BASKETBALL_LIVE_LEAGUES = [
+  "nba",
+  "wnba",
+  "nbl",
+  "euroleague",
+  "mens-college-basketball",
+  "womens-college-basketball",
+];
 
 /** Leagues merged into the NFL scoreboard. */
 export const FOOTBALL_LIVE_LEAGUES = ["nfl"];
 
 /**
- * Competitions the hub can load on demand. The default "All competitions" view
- * keeps the four flagship basketball leagues; NCAA boards are only fetched once
- * that competition is selected, so the dashboard never floods with 100+ games.
+ * Competitions the hub can load on demand. NCAA boards are merged into the
+ * default "All competitions" view alongside the flagship leagues; selecting a
+ * single NCAA competition narrows the board to just that feed.
  */
 export const LEAGUE_BY_COMPETITION = {
   nba: "nba",
