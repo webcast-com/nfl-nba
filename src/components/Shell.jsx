@@ -43,6 +43,7 @@ const RAIL_ITEMS = [
 
 export const SECTION_TABS = [
   { id: "section-live", label: "Live", icon: IconPlay },
+  { id: "section-sportsrc", label: "Global games", icon: IconBall },
   { id: "section-standings", label: "Standings", icon: IconChart },
   { id: "section-filters", label: "Filters", icon: IconGrid },
   { id: "section-players", label: "Players", icon: IconUsers },
@@ -56,11 +57,16 @@ export const SECTION_TABS = [
  */
 export function MobileSectionTabs() {
   const [active, setActive] = useState(SECTION_TABS[0].id);
+  const [tabs, setTabs] = useState(SECTION_TABS);
 
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
-    const nodes = SECTION_TABS.map((tab) => document.getElementById(tab.id)).filter(Boolean);
-    if (!nodes.length) return undefined;
+    // Only offer tabs whose section is on this page — the Sportsrc panel is
+    // opt-in, so its tab hides when the integration is not configured.
+    const available = SECTION_TABS.filter((tab) => document.getElementById(tab.id));
+    setTabs(available);
+    if (!available.length) return undefined;
+    const nodes = available.map((tab) => document.getElementById(tab.id)).filter(Boolean);
     // No layout (jsdom, SSR) means there is nothing to track — keep the first tab.
     if (!nodes.some((node) => node.getBoundingClientRect().height > 0)) return undefined;
 
@@ -95,7 +101,7 @@ export function MobileSectionTabs() {
 
   return (
     <nav className="sh-site-tabs" aria-label="Page sections">
-      {SECTION_TABS.map((tab) => {
+      {tabs.map((tab) => {
         const Icon = tab.icon;
         return (
           <button

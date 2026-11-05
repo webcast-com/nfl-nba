@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import heroBasketball from "../assets/hero-basketball.jpg";
 import heroFootball from "../assets/hero-football.jpg";
-import { IconCalendar, IconCamera, IconChart, IconChevronDown, IconClock, IconSearch } from "./Icons";
+import { IconCalendar, IconCamera, IconChart, IconChevronDown, IconClock, IconPlay, IconSearch } from "./Icons";
 import { gameClockLabel, viewerTimeZone, viewerTimeZoneLabel } from "../utils/dates";
 import { matchPath } from "../utils/dashboard";
 import { EmptyState, MaybeLink, Panel, PanelHead, RefreshButton, SourceChip, TeamLogo } from "./ui";
@@ -72,6 +72,19 @@ export function FeaturedGame({ game, sport = "basketball" }) {
           <IconClock size={13} />
           {isLive ? `${clock} · in progress` : game.status === "FINAL" ? "Full time" : clock}
         </span>
+        {game.watchUrl ? (
+          <a
+            className="sh-watch-btn sh-watch-btn-lg"
+            href={game.watchUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`Watch ${game.home} v ${game.away} on ESPN`}
+            title={game.streamNetwork ? `Watch on ${game.streamNetwork}` : "Watch on ESPN"}
+          >
+            <IconPlay size={14} />
+            <span>Watch</span>
+          </a>
+        ) : null}
       </div>
     </section>
   );
@@ -131,7 +144,7 @@ export function StatusTabs({ value = "ALL", onChange }) {
   );
 }
 
-export function MatchCard({ game, matchBasePath }) {
+export function MatchCard({ game, matchBasePath, onWatch }) {
   const isLive = game.status === "LIVE";
   const clockClass = isLive ? "is-live" : game.status === "FINAL" ? "is-final" : "is-soon";
   const clock = gameClockLabel(game);
@@ -168,6 +181,30 @@ export function MatchCard({ game, matchBasePath }) {
 
       <div className="sh-match-foot">
         <span className="sh-broadcast">{game.broadcast && game.broadcast !== "—" ? game.broadcast : "TV TBD"}</span>
+        {game.watchUrl ? (
+          <a
+            className="sh-watch-btn"
+            href={game.watchUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`Watch ${game.home} v ${game.away} on ESPN`}
+            title={game.streamNetwork ? `Watch on ${game.streamNetwork}` : "Watch on ESPN"}
+          >
+            <IconPlay size={13} />
+            <span>Watch</span>
+          </a>
+        ) : onWatch ? (
+          <button
+            type="button"
+            className="sh-watch-btn"
+            onClick={() => onWatch(game)}
+            aria-label={`Watch ${game.home} v ${game.away} livestream`}
+            title="Watch livestream"
+          >
+            <IconPlay size={13} />
+            <span>Watch</span>
+          </button>
+        ) : null}
         <span className="sh-chart-chip" aria-hidden="true">
           <IconChart size={14} />
         </span>

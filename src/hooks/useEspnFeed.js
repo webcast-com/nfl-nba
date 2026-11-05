@@ -56,6 +56,17 @@ function deriveBasketballStats(games) {
   ];
 }
 
+function deriveFootballStats(games) {
+  const counts = summarizeGames(games);
+
+  return [
+    { label: "Games this week", value: pad2(counts.total), foot: "On the current board" },
+    { label: "Live games", value: pad2(counts.live), foot: "In progress right now" },
+    { label: "Upcoming", value: pad2(counts.upcoming), foot: "Scheduled this week" },
+    { label: "Final", value: pad2(counts.final), foot: "Completed this week" },
+  ];
+}
+
 function statusBadge(status) {
   switch (status) {
     case "live":
@@ -191,8 +202,11 @@ export function useEspnFeed({
   const standings = snapshot.standings ?? demo.standings;
   const leaders = liveLeaders ?? demo.leaders;
   const stats = useMemo(
-    () => (sport === "basketball" ? deriveBasketballStats(games) : demo.stats),
-    [sport, games, demo.stats]
+    () =>
+      sport === "basketball"
+        ? deriveBasketballStats(games)
+        : deriveFootballStats(games),
+    [sport, games]
   );
 
   const refresh = useCallback(() => setNonce((value) => value + 1), []);

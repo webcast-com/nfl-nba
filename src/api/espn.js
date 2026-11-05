@@ -110,15 +110,22 @@ export const ESPN_LEAGUES = {
 };
 
 /** Leagues merged into the basketball scoreboard, in display order. */
-export const BASKETBALL_LIVE_LEAGUES = ["nba", "wnba", "nbl", "euroleague"];
+export const BASKETBALL_LIVE_LEAGUES = [
+  "nba",
+  "wnba",
+  "nbl",
+  "euroleague",
+  "mens-college-basketball",
+  "womens-college-basketball",
+];
 
 /** Leagues merged into the NFL scoreboard. */
 export const FOOTBALL_LIVE_LEAGUES = ["nfl"];
 
 /**
- * Competitions the hub can load on demand. The default "All competitions" view
- * keeps the four flagship basketball leagues; NCAA boards are only fetched once
- * that competition is selected, so the dashboard never floods with 100+ games.
+ * Competitions the hub can load on demand. NCAA boards are merged into the
+ * default "All competitions" view alongside the flagship leagues; selecting a
+ * single NCAA competition narrows the board to just that feed.
  */
 export const LEAGUE_BY_COMPETITION = {
   nba: "nba",
@@ -521,6 +528,30 @@ function broadcastName(competition) {
   return asArray(media?.shortName)[0] ?? media?.shortName ?? null;
 }
 
+// ESPN marks streaming broadcasts with type id "4" / shortName "Streaming"
+// (linear TV broadcasts use id "1" / "TV"). A game with a streaming broadcast
+// can be watched through ESPN's own game watch experience.
+function isStreamingBroadcast(geoBroadcast) {
+  const type = geoBroadcast?.type ?? {};
+  return type.id === "4" || String(type.shortName ?? "").toLowerCase() === "streaming";
+}
+
+function streamingBroadcasts(competition) {
+  return asArray(competition?.geoBroadcasts).filter(isStreamingBroadcast);
+}
+
+// The ESPN per-game watch page: https://www.espn.com/watch/{sport}/{league}/game/_/gameId/{id}
+export function espnWatchUrl(leagueKey, gameId) {
+  const path = ESPN_LEAGUES[leagueKey]?.path;
+  if (!path || !gameId) return null;
+  return `https://www.espn.com/watch/${path}/game/_/gameId/${gameId}`;
+}
+
+function watchUrl(event, league, streams) {
+  if (!streams.length) return null;
+  return espnWatchUrl(league.key, event.id);
+}
+
 function normalizeEvent(event, league, sport, index) {
   const competition = asArray(event?.competitions)[0] ?? {};
   const competitors = asArray(competition.competitors);
@@ -567,6 +598,10 @@ function normalizeEvent(event, league, sport, index) {
   const competitionInfo = competitionFor(event, league, sport);
   const venue = competition.venue ?? {};
 
+  const streams = streamingBroadcasts(competition);
+  const streaming = streams.length > 0;
+  const streamNetwork = streams[0]?.media?.shortName ?? null;
+
   return {
     id: event.id ?? `${league.key}-${index}`,
     competitionId: competitionInfo.id,
@@ -584,6 +619,9 @@ function normalizeEvent(event, league, sport, index) {
     homeScore: scoreOf(home),
     awayScore: scoreOf(away),
     broadcast: broadcastName(competition),
+    streaming,
+    streamNetwork,
+    watchUrl: watchUrl(event, league, streams),
     venue: venue.fullName ?? "Venue TBD",
     startTime: event.date ?? null,
     league: league.key,
@@ -861,6 +899,201 @@ export function normalizeLeaderboard(payload, { limit = 5, sport = "basketball" 
   return boards.slice(0, 6);
 }
 
+// ---------------------------------------------------------------------------
+// Match summary extras: boxscore stats, lineups, game info, records, the
+// head-to-head season series and the league standings embedded in the summary.
+// ---------------------------------------------------------------------------
+
+function normalizeBoxscoreTeams(boxscore) {
+  return asArray(boxscore?.teams)
+    .map((entry) => ({
+      id: entry?.team?.id ?? null,
+      name: entry?.team?.displayName ?? entry?.team?.name ?? null,
+      code: entry?.team?.abbreviation ?? null,
+      logo: teamLogo(entry?.team),
+      homeAway: entry?.homeAway ?? null,
+      stats: asArray(entry?.statistics).map((stat) => ({
+        label: stat?.label ?? stat?.displayName ?? stat?.name ?? "",
+        abbr: stat?.abbreviation ?? stat?.name ?? "",
+        value: stat?.displayValue ?? stat?.value ?? null,
+      })),
+    }))
+    .filter((team) => team.name);
+}
+
+function normalizeBoxscorePlayers(boxscore) {
+  return asArray(boxscore?.players)
+    .map((entry) => {
+      // Merge an athlete's rows across every statistics group: NBA ships one
+      // stat group per team, while the NFL splits passing / rushing / receiving /
+      // defense per team and the same athlete shows up in several of them.
+      const byId = new Map();
+      asArray(entry?.statistics).forEach((group) => {
+        const labels = asArray(group?.labels);
+        asArray(group?.athletes).forEach((athlete) => {
+          const row = {
+            id: athlete?.athlete?.id ?? null,
+            name: athlete?.athlete?.displayName ?? athlete?.athlete?.shortName ?? null,
+            shortName: athlete?.athlete?.shortName ?? null,
+            headshot: athlete?.athlete?.headshot?.href ?? null,
+            jersey: athlete?.athlete?.jersey ?? null,
+            position:
+              athlete?.athlete?.position?.abbreviation ??
+              athlete?.athlete?.position?.displayName ??
+              null,
+            starter: athlete?.starter === true,
+            didNotPlay: athlete?.didNotPlay === true,
+            reason: athlete?.reason ?? null,
+            group: group?.name ?? null,
+            stats: asArray(athlete?.stats)
+              .map((value, i) => ({ label: labels[i] ?? "", value: String(value ?? "") }))
+              .filter(
+                (stat) => stat.value && stat.value !== "undefined" && stat.value !== "null"
+              ),
+          };
+          const key = row.id ?? row.name;
+          const existing = byId.get(key);
+          if (existing) {
+            existing.groups.push({ group: row.group, stats: row.stats });
+            existing.starter = existing.starter || row.starter;
+            existing.didNotPlay = existing.didNotPlay || row.didNotPlay;
+            existing.reason = existing.reason ?? row.reason;
+          } else {
+            byId.set(key, { ...row, groups: [{ group: row.group, stats: row.stats }] });
+          }
+        });
+      });
+      return {
+        team: entry?.team?.displayName ?? entry?.team?.name ?? null,
+        code: entry?.team?.abbreviation ?? null,
+        athletes: [...byId.values()],
+      };
+    })
+    .filter((team) => team.team);
+}
+
+function normalizeGameInfo(gameInfo, competition) {
+  const venue = gameInfo?.venue?.fullName ?? competition?.venue?.fullName ?? null;
+  const city = gameInfo?.venue?.address?.city ?? null;
+  const attendance = gameInfo?.attendance ?? competition?.attendance ?? null;
+  const officials = asArray(gameInfo?.officials)
+    .map((official) => official?.displayName ?? official?.fullName ?? null)
+    .filter(Boolean);
+  if (!venue && !city && attendance == null && !officials.length) return null;
+  return { venue, city, attendance, officials };
+}
+
+function recordOf(entry) {
+  const record =
+    asArray(entry?.record).find((row) => row?.type === "total") ?? asArray(entry?.record)[0];
+  return record?.displayValue ?? record?.summary ?? null;
+}
+
+function normalizeRecords(competitors) {
+  const pick = (homeAway) => competitors.find((entry) => entry?.homeAway === homeAway);
+  return { home: recordOf(pick("home")), away: recordOf(pick("away")) };
+}
+
+function normalizeLinescores(competitors) {
+  const pick = (homeAway) => competitors.find((entry) => entry?.homeAway === homeAway);
+  const line = (entry) => ({
+    code: entry?.team?.abbreviation ?? null,
+    periods: asArray(entry?.linescores)
+      .map((period) => period?.displayValue ?? period ?? null)
+      .filter((period) => period !== null && period !== ""),
+  });
+  return { home: line(pick("home")), away: line(pick("away")) };
+}
+
+function normalizeSeasonSeries(seasonseries) {
+  return asArray(seasonseries).map((series) => ({
+    type: series?.type ?? null,
+    title: series?.title ?? null,
+    summary: series?.summary ?? null,
+    seriesScore: series?.seriesScore ?? null,
+    completed: series?.completed === true,
+    totalCompetitions: series?.totalCompetitions ?? null,
+    events: asArray(series?.events).map((event) => {
+      const competitors = asArray(event?.competitors);
+      const pick = (homeAway) => {
+        const entry = competitors.find((comp) => comp?.homeAway === homeAway);
+        return {
+          name: entry?.team?.displayName ?? entry?.team?.name ?? null,
+          code: entry?.team?.abbreviation ?? null,
+          logo: teamLogo(entry?.team),
+          score: entry?.score ?? null,
+          winner: entry?.winner === true,
+        };
+      };
+      return {
+        id: event?.id ?? null,
+        date: event?.date ?? null,
+        state: event?.status?.state ?? event?.statusType?.state ?? null,
+        completed: event?.status?.completed ?? event?.statusType?.completed ?? false,
+        home: pick("home"),
+        away: pick("away"),
+      };
+    }),
+  }));
+}
+
+function normalizeSummaryStandings(standings) {
+  if (!standings) return null;
+  return {
+    header: standings?.header ?? null,
+    fullViewLink: standings?.fullViewLink?.href ?? standings?.fullViewLink ?? null,
+    groups: asArray(standings?.groups).map((group) => ({
+      header: group?.header ?? null,
+      conferenceHeader: group?.conferenceHeader ?? null,
+      divisionHeader: group?.divisionHeader ?? null,
+      href: group?.href ?? null,
+      entries: asArray(group?.standings?.entries).map((entry) => {
+        // The entry's team is just the city ("New York"); the ESPN link carries
+        // the full name ("new-york-knicks") used for the internal team pages.
+        const link = entry?.link ?? null;
+        const fullName = link?.match(/\/name\/[^/]+\/([^/]+)/)?.[1] ?? null;
+        return {
+          name: fullName
+            ? fullName.replace(/-/g, " ").replace(/\b\w/g, (char) => char.toUpperCase())
+            : entry?.team ?? null,
+          slug: fullName,
+          code: link?.match(/\/name\/([^/]+)/)?.[1] ?? null,
+          logo: asArray(entry?.logo)[0]?.href ?? null,
+          stats: Object.fromEntries(
+            asArray(entry?.stats)
+              .filter((stat) => stat?.name)
+              .map((stat) => [stat.name, stat.displayValue ?? stat.value ?? null])
+          ),
+        };
+      }),
+    })),
+  };
+}
+
+function normalizeBroadcasts(competition) {
+  return asArray(competition?.broadcasts)
+    .map((broadcast) => ({
+      type: broadcast?.type?.shortName ?? broadcast?.type?.name ?? "TV",
+      market: broadcast?.market?.id === "1" ? "National" : broadcast?.market?.name ?? null,
+      station: broadcast?.media?.shortName ?? broadcast?.station ?? null,
+      isNational: broadcast?.isNational === true || broadcast?.market?.id === "1",
+    }))
+    .filter((broadcast) => broadcast.type || broadcast.station);
+}
+
+function ticketLink(payload, competition) {
+  const tickets = asArray(competition?.tickets);
+  // The seat situation links this game's tickets; otherwise take the first
+  // advertised fixture's link.
+  return (
+    payload?.seatSituation?.eventLink ??
+    tickets[0]?.ticketLink ??
+    tickets[0]?.$ref ??
+    tickets[0]?.href ??
+    null
+  );
+}
+
 export function normalizeSummary(payload) {
   const wrapped = [
     ...asArray(payload?.commentary),
@@ -897,13 +1130,34 @@ export function normalizeSummary(payload) {
 
   const statusType = competition?.status?.type ?? {};
 
+  // A summary also carries the broadcast lineup; streaming games advertise a
+  // "Streaming" broadcast type, matching the scoreboard's geoBroadcasts.
+  const summaryStreams = asArray(competition?.broadcasts).filter(isStreamingBroadcast);
+
+  const gameInfo = normalizeGameInfo(payload?.gameInfo, competition);
+  const boxscore = payload?.boxscore
+    ? { teams: normalizeBoxscoreTeams(payload.boxscore), players: normalizeBoxscorePlayers(payload.boxscore) }
+    : null;
+
   return {
     plays,
     period: statusType.shortDetail ?? statusType.detail ?? null,
     statusText: statusType.shortDetail ?? statusType.detail ?? null,
     state: statusType.state ?? null, // pre · in · post
-    venue: competition?.venue?.fullName ?? null,
+    venue: gameInfo?.venue ?? competition?.venue?.fullName ?? null,
+    streaming: summaryStreams.length > 0,
+    streamNetwork:
+      summaryStreams[0]?.media?.shortName ?? summaryStreams[0]?.station ?? null,
     teams: competitors.map(teamOf).filter((team) => team.name),
+    boxscore,
+    gameInfo,
+    records: normalizeRecords(competitors),
+    linescores: normalizeLinescores(competitors),
+    seasonseries: normalizeSeasonSeries(payload?.seasonseries),
+    standings: normalizeSummaryStandings(payload?.standings),
+    broadcasts: normalizeBroadcasts(competition),
+    tickets: ticketLink(payload, competition),
+    gameDate: competition?.date ?? null,
   };
 }
 
