@@ -129,6 +129,24 @@ describe("NFLPage", () => {
     fireEvent.click(getByRole("button", { name: "Conference: NFC" }));
     expect(gameCards(container)).toHaveLength(2);
   });
+
+  it("shows the week snapshot with the live count", () => {
+    const { container } = render(
+      <MemoryRouter>
+        <NFLPage />
+      </MemoryRouter>
+    );
+    const stats = Object.fromEntries(
+      [...container.querySelectorAll(".sh-stat")].map((node) => [
+        node.querySelector(".sh-stat-label").textContent,
+        node.querySelector(".sh-stat-value").textContent,
+      ])
+    );
+    expect(stats["Games this week"]).toBe("05");
+    expect(stats["Live games"]).toBe("02");
+    expect(stats["Upcoming"]).toBe("02");
+    expect(stats["Final"]).toBe("01");
+  });
 });
 
 describe("NCAA coverage", () => {

@@ -121,6 +121,35 @@ describe("useEspnFeed", () => {
     expect(result.current.games).toHaveLength(basketballGames.length);
   });
 
+  it("derives the week snapshot for football from the games", async () => {
+    const liveNfl = { ...liveGame, id: "501", competitionId: "nfl", competition: "NFL" };
+    const upcomingNfl = {
+      ...liveGame,
+      id: "502",
+      competitionId: "nfl",
+      competition: "NFL",
+      status: "UPCOMING",
+      clock: "",
+      homeScore: null,
+      awayScore: null,
+    };
+    footballFetch.mockResolvedValue({
+      games: [liveNfl, upcomingNfl],
+      standings: null,
+      meta: { week: 9 },
+    });
+
+    const { result } = renderHook(() => useEspnFeed({ sport: "football" }));
+
+    await waitFor(() => expect(result.current.status).toBe("live"));
+
+    const stat = (label) => result.current.stats.find((entry) => entry.label === label)?.value;
+    expect(stat("Games this week")).toBe("02");
+    expect(stat("Live games")).toBe("01");
+    expect(stat("Upcoming")).toBe("01");
+    expect(stat("Final")).toBe("00");
+  });
+
   it("exposes a 45 second refresh interval", () => {
     expect(REFRESH_INTERVAL).toBe(45000);
   });

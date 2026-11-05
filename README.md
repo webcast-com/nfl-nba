@@ -11,6 +11,7 @@ Dark, broadcast-style sports dashboard built with React + Vite. Scores, standing
 - **Featured game hero** with the live matchup, venue, broadcast and clock.
 - **Live Score panel**: season pill, viewer time-zone chip, day/week rail, status tabs (ALL / LIVE / UPCOMING / FINAL), search, match cards with real team logos, live clocks, scores and broadcasters.
 - **Streaming Watch buttons**: ESPN matches with a streaming broadcast (ESPN+, YouTube, type "Streaming") carry a Watch button on the card, the featured hero and the commentary page, linking to ESPN's per-game watch page; TV-only games show no button.
+- **Week snapshot (football)**: the right rail derives live counts from the week's games — games this week, live, upcoming and final — instead of static tiles.
 - **Player Details rail** with photo (or team-coloured monogram) cards and a stats strip.
 - **Standings** grouped into conference/division cards, plus competition snapshot tiles.
 - Responsive down to phones: the rail hides, the header wraps onto two rows so all five sport tabs stay reachable, columns stack, and a phone-only section tab bar (Live / Standings / Filters / Players) jumps straight to the panels that would otherwise be buried below the scores.

@@ -215,7 +215,7 @@ export default function NFLPage({
           leaders={playerCards}
           note={source === "espn" ? "ESPN leaders" : "Demo leaders"}
         />
-        <StatTiles stats={activeStats} title="League format" note="NFL structure" />
+        <StatTiles stats={activeStats} title="Week snapshot" note="Live games on the board" />
       </aside>
 
       <MobileSectionTabs />
