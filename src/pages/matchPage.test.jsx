@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import MatchPage from "./MatchPage";
 import { loadMatchSummary } from "../api/espn";
@@ -180,5 +180,295 @@ describe("commentary page", () => {
   it("still reports a genuinely unknown match once ESPN has answered", async () => {
     renderAt("/basketball/match/999999");
     await screen.findByText("We couldn't find that match");
+  });
+});
+
+describe("match section chips", () => {
+  const fullSummary = () => ({
+    plays: [],
+    state: "post",
+    statusText: "Final",
+    venue: "Little Caesars Arena",
+    teams: [
+      { name: "Detroit Pistons", abbreviation: "DET", homeAway: "home", score: "120", logo: null },
+      { name: "Philadelphia 76ers", abbreviation: "PHI", homeAway: "away", score: "115", logo: null },
+    ],
+    gameInfo: {
+      venue: "Little Caesars Arena",
+      city: "Detroit",
+      attendance: 20432,
+      officials: ["Marc Davis", "Natalie Sago"],
+    },
+    records: { home: "6-1", away: "7-1" },
+    linescores: {
+      home: { code: "DET", periods: ["28", "32", "30", "30"] },
+      away: { code: "PHI", periods: ["29", "27", "30", "29"] },
+    },
+    broadcasts: [{ type: "TV", market: "National", station: "ESPN", isNational: true }],
+    seasonseries: [
+      {
+        type: "season",
+        title: "Regular Season Series",
+        summary: "DET leads series 1-0",
+        events: [
+          {
+            id: "401909866",
+            date: "2026-10-25T23:30Z",
+            state: "post",
+            completed: true,
+            home: { name: "Detroit Pistons", code: "DET", logo: null, score: "110", winner: true },
+            away: { name: "Philadelphia 76ers", code: "PHI", logo: null, score: "105", winner: false },
+          },
+        ],
+      },
+    ],
+    standings: {
+      header: "2026-27 Standings",
+      groups: [
+        {
+          header: "2026-27 Central Standings",
+          conferenceHeader: "Eastern Conference",
+          entries: [
+            {
+              name: "Detroit Pistons",
+              slug: "detroit-pistons",
+              code: "det",
+              logo: null,
+              stats: { wins: "6", losses: "1", winPercent: ".857", gamesBehind: "-", streak: "W3" },
+            },
+            {
+              name: "Cleveland Cavaliers",
+              slug: "cleveland-cavaliers",
+              code: "cle",
+              logo: null,
+              stats: { wins: "4", losses: "3", winPercent: ".571", gamesBehind: "2", streak: "L1" },
+            },
+          ],
+        },
+      ],
+    },
+    boxscore: {
+      teams: [
+        {
+          name: "Detroit Pistons",
+          code: "DET",
+          logo: null,
+          homeAway: "home",
+          stats: [
+            { label: "FG", abbr: "FG", value: "38-81" },
+            { label: "REB", abbr: "REB", value: "48" },
+          ],
+        },
+        {
+          name: "Philadelphia 76ers",
+          code: "PHI",
+          logo: null,
+          homeAway: "away",
+          stats: [
+            { label: "FG", abbr: "FG", value: "35-78" },
+            { label: "REB", abbr: "REB", value: "44" },
+          ],
+        },
+      ],
+      players: [
+        {
+          team: "Detroit Pistons",
+          code: "DET",
+          athletes: [
+            {
+              id: "1",
+              name: "Cade Cunningham",
+              shortName: "C. Cunningham",
+              headshot: null,
+              jersey: "2",
+              position: "G",
+              starter: true,
+              didNotPlay: false,
+              reason: null,
+              groups: [{ group: null, stats: [{ label: "PTS", value: "20" }, { label: "REB", value: "6" }] }],
+            },
+            {
+              id: "2",
+              name: "Ausar Thompson",
+              shortName: "A. Thompson",
+              headshot: null,
+              jersey: "9",
+              position: "G",
+              starter: false,
+              didNotPlay: true,
+              reason: "COACH'S DECISION",
+              groups: [{ group: null, stats: [] }],
+            },
+          ],
+        },
+        {
+          team: "Philadelphia 76ers",
+          code: "PHI",
+          athletes: [
+            {
+              id: "3",
+              name: "Paul George",
+              shortName: "P. George",
+              headshot: null,
+              jersey: "1",
+              position: "F",
+              starter: true,
+              didNotPlay: false,
+              reason: null,
+              groups: [{ group: null, stats: [{ label: "PTS", value: "24" }] }],
+            },
+          ],
+        },
+      ],
+    },
+  });
+
+  const openAt = async (container, label) => {
+    await waitFor(() => expect(heroText(container)).toContain("Detroit Pistons"));
+    fireEvent.click(screen.getByRole("tab", { name: label }));
+  };
+
+  it("renders the six section chips under the hero", async () => {
+    loadMatchSummary.mockResolvedValue(fullSummary());
+    const { container } = renderAt("/basketball/match/401909922");
+    await openAt(container, /Commentary/);
+    const chips = container.querySelectorAll(".sh-match-chip");
+    expect([...chips].map((chip) => chip.textContent)).toEqual([
+      "Commentary",
+      "Match Details",
+      "Stats",
+      "Lineups",
+      "Head to Head",
+      "League Table",
+    ]);
+  });
+
+  it("switches to the match details panel with venue, records and linescore", async () => {
+    loadMatchSummary.mockResolvedValue(fullSummary());
+    const { container } = renderAt("/basketball/match/401909922");
+    await openAt(container, /Match Details/);
+    expect(container.textContent).toContain("Little Caesars Arena, Detroit");
+    expect(container.textContent).toContain("20,432");
+    expect(container.textContent).toContain("Marc Davis");
+    expect(container.textContent).toContain("DET leads series 1-0");
+    expect(container.textContent).toContain("ESPN · National");
+    const linescore = container.querySelector(".sh-linescore");
+    expect(linescore).toBeTruthy();
+    expect(linescore.textContent).toContain("DET");
+    expect(linescore.textContent).toContain("120");
+    expect(container.querySelector(".sh-commentary")).toBeNull();
+  });
+
+  it("switches to the stats panel and lists both teams' numbers", async () => {
+    loadMatchSummary.mockResolvedValue(fullSummary());
+    const { container } = renderAt("/basketball/match/401909922");
+    await openAt(container, /^Stats/);
+    expect(container.textContent).toContain("Team Statistics");
+    expect(container.textContent).toContain("38-81");
+    expect(container.textContent).toContain("35-78");
+    expect(container.textContent).toContain("48");
+    expect(container.textContent).toContain("44");
+  });
+
+  it("switches to the lineups panel and marks starters and DNP players", async () => {
+    loadMatchSummary.mockResolvedValue(fullSummary());
+    const { container } = renderAt("/basketball/match/401909922");
+    await openAt(container, /Lineups/);
+    expect(container.textContent).toContain("Cade Cunningham");
+    expect(container.textContent).toContain("Starter");
+    expect(container.textContent).toContain("Ausar Thompson");
+    expect(container.textContent).toContain("DNP");
+    expect(container.textContent).toContain("COACH'S DECISION");
+    expect(container.textContent).toContain("Paul George");
+    // Starters are listed before bench players.
+    const names = [...container.querySelectorAll(".sh-lineup-meta b")].map((node) => node.textContent);
+    expect(names).toEqual(["Cade Cunningham", "Ausar Thompson", "Paul George"]);
+  });
+
+  it("switches to the head-to-head panel and lists past meetings", async () => {
+    loadMatchSummary.mockResolvedValue(fullSummary());
+    const { container } = renderAt("/basketball/match/401909922");
+    await openAt(container, /Head to Head/);
+    expect(container.textContent).toContain("Regular Season Series");
+    expect(container.textContent).toContain("DET leads series 1-0");
+    const events = container.querySelectorAll(".sh-h2h-events li");
+    expect(events).toHaveLength(1);
+    expect(events[0].textContent).toContain("Detroit Pistons");
+    expect(events[0].textContent).toContain("110");
+    expect(events[0].textContent).toContain("105");
+    expect(events[0].textContent).toContain("Final");
+  });
+
+  it("switches to the league table panel and links teams to their pages", async () => {
+    loadMatchSummary.mockResolvedValue(fullSummary());
+    const { container } = renderAt("/basketball/match/401909922");
+    await openAt(container, /League Table/);
+    expect(container.textContent).toContain("2026-27 Central Standings");
+    expect(container.textContent).toContain("Eastern Conference");
+    expect(container.textContent).toContain(".857");
+    expect(container.textContent).toContain("W3");
+    const link = container.querySelector(".sh-team-link");
+    expect(link.getAttribute("href")).toBe("/basketball/team/detroit-pistons");
+    expect(link.textContent).toBe("Detroit Pistons");
+  });
+
+  it("returns to commentary from any chip", async () => {
+    loadMatchSummary.mockResolvedValue(fullSummary());
+    const { container } = renderAt("/basketball/match/401909922");
+    await openAt(container, /^Stats/);
+    expect(container.querySelector(".sh-commentary")).toBeNull();
+    fireEvent.click(screen.getByRole("tab", { name: /^Commentary/ }));
+    expect(container.textContent).toContain("Commentary");
+  });
+
+  it("shows empty states for sections without ESPN data on a demo game", async () => {
+    const { container } = renderAt("/basketball/match/1");
+    fireEvent.click(screen.getByRole("tab", { name: /Lineups/ }));
+    expect(container.textContent).toContain("Lineups aren't posted yet");
+    fireEvent.click(screen.getByRole("tab", { name: /League Table/ }));
+    expect(container.textContent).toContain("League table isn't available yet");
+  });
+
+  it("adapts the league table columns to the NFL board", async () => {
+    loadMatchSummary.mockResolvedValue({
+      ...fullSummary(),
+      standings: {
+        header: "2026 Standings",
+        groups: [
+          {
+            header: "2026 AFC South Standings",
+            conferenceHeader: "American Football Conference",
+            entries: [
+              {
+                name: "Jacksonville Jaguars",
+                slug: "jacksonville-jaguars",
+                code: "jax",
+                logo: null,
+                stats: {
+                  overall: "5-2",
+                  wins: "5",
+                  losses: "2",
+                  winPercent: ".714",
+                  pointsFor: "196",
+                  pointsAgainst: "111",
+                },
+              },
+            ],
+          },
+        ],
+      },
+    });
+    const { container } = renderAt("/nfl/match/401873037", "football");
+    await openAt(container, /League Table/);
+    const table = container.querySelector(".sh-league-table");
+    expect([...table.querySelectorAll("thead th")].map((th) => th.textContent)).toEqual([
+      "Team",
+      "W-L",
+      "PCT",
+      "PF",
+      "PA",
+    ]);
+    expect(table.textContent).toContain("5-2");
+    expect(table.textContent).toContain("196");
   });
 });

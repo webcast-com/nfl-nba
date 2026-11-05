@@ -341,6 +341,300 @@ describe("ESPN streaming broadcasts", () => {
   });
 });
 
+describe("ESPN summary extras", () => {
+  it("surfaces the boxscore team statistics and player lineups", () => {
+    const summary = normalizeSummary({
+      boxscore: {
+        teams: [
+          {
+            team: { id: "8", displayName: "Detroit Pistons", abbreviation: "DET", logo: "det.png" },
+            homeAway: "home",
+            statistics: [
+              { name: "fieldGoals", displayValue: "38-81", abbreviation: "FG", label: "FG" },
+            ],
+          },
+          {
+            team: {
+              id: "20",
+              displayName: "Philadelphia 76ers",
+              abbreviation: "PHI",
+              logos: [{ href: "phi.png" }],
+            },
+            homeAway: "away",
+            statistics: [
+              { name: "fieldGoals", displayValue: "35-78", abbreviation: "FG", label: "FG" },
+            ],
+          },
+        ],
+        players: [
+          {
+            team: { displayName: "Detroit Pistons", abbreviation: "DET" },
+            statistics: [
+              {
+                names: ["MIN", "PTS"],
+                labels: ["MIN", "PTS"],
+                athletes: [
+                  {
+                    athlete: {
+                      id: "1",
+                      displayName: "Cade Cunningham",
+                      shortName: "C. Cunningham",
+                      headshot: { href: "cade.png" },
+                      jersey: "2",
+                      position: { abbreviation: "G" },
+                    },
+                    starter: true,
+                    stats: ["24", "20"],
+                  },
+                  {
+                    athlete: {
+                      id: "2",
+                      displayName: "Ausar Thompson",
+                      shortName: "A. Thompson",
+                      jersey: "9",
+                      position: { abbreviation: "G" },
+                    },
+                    didNotPlay: true,
+                    reason: "COACH'S DECISION",
+                    stats: ["", ""],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    expect(summary.boxscore.teams).toHaveLength(2);
+    expect(summary.boxscore.teams[0].name).toBe("Detroit Pistons");
+    expect(summary.boxscore.teams[0].stats[0]).toEqual({ label: "FG", abbr: "FG", value: "38-81" });
+    expect(summary.boxscore.teams[1].logo).toBe("phi.png");
+
+    const athletes = summary.boxscore.players[0].athletes;
+    expect(athletes).toHaveLength(2);
+    expect(athletes[0]).toMatchObject({
+      name: "Cade Cunningham",
+      starter: true,
+      position: "G",
+      groups: [{ group: null, stats: [{ label: "MIN", value: "24" }, { label: "PTS", value: "20" }] }],
+    });
+    expect(athletes[1]).toMatchObject({
+      didNotPlay: true,
+      reason: "COACH'S DECISION",
+      groups: [{ stats: [] }],
+    });
+  });
+
+  it("merges NFL athletes across the per-category stat groups", () => {
+    const summary = normalizeSummary({
+      boxscore: {
+        players: [
+          {
+            team: { displayName: "Chicago Bears", abbreviation: "CHI" },
+            statistics: [
+              {
+                name: "passing",
+                labels: ["C/ATT", "YDS", "TD"],
+                athletes: [
+                  {
+                    athlete: { id: "1", displayName: "Caleb Williams", jersey: "18" },
+                    stats: ["24/34", "247", "1"],
+                  },
+                ],
+              },
+              {
+                name: "rushing",
+                labels: ["CAR", "YDS", "TD"],
+                athletes: [
+                  {
+                    athlete: { id: "1", displayName: "Caleb Williams", jersey: "18" },
+                    stats: ["4", "12", "0"],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    const athletes = summary.boxscore.players[0].athletes;
+    expect(athletes).toHaveLength(1);
+    expect(athletes[0].groups).toEqual([
+      {
+        group: "passing",
+        stats: [{ label: "C/ATT", value: "24/34" }, { label: "YDS", value: "247" }, { label: "TD", value: "1" }],
+      },
+      {
+        group: "rushing",
+        stats: [{ label: "CAR", value: "4" }, { label: "YDS", value: "12" }, { label: "TD", value: "0" }],
+      },
+    ]);
+  });
+
+  it("surfaces the game info, records, linescores and broadcasts from the header", () => {
+    const summary = normalizeSummary({
+      gameInfo: {
+        venue: { fullName: "Little Caesars Arena", address: { city: "Detroit", state: "MI" } },
+        attendance: 20432,
+        officials: [{ displayName: "Marc Davis" }, { displayName: "Natalie Sago" }],
+      },
+      header: {
+        competitions: [
+          {
+            date: "2026-11-05T00:00Z",
+            broadcasts: [
+              {
+                market: { id: "1", type: "National" },
+                type: { shortName: "TV" },
+                media: { shortName: "ESPN" },
+              },
+            ],
+            competitors: [
+              {
+                homeAway: "home",
+                team: { abbreviation: "DET" },
+                score: "120",
+                record: [{ type: "total", summary: "6-1", displayValue: "6-1" }],
+                linescores: [{ displayValue: "28" }, { displayValue: "32" }],
+              },
+              {
+                homeAway: "away",
+                team: { abbreviation: "PHI" },
+                score: "115",
+                record: [{ type: "total", summary: "7-1", displayValue: "7-1" }],
+                linescores: [{ displayValue: "29" }, { displayValue: "27" }],
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    expect(summary.venue).toBe("Little Caesars Arena");
+    expect(summary.gameInfo).toEqual({
+      venue: "Little Caesars Arena",
+      city: "Detroit",
+      attendance: 20432,
+      officials: ["Marc Davis", "Natalie Sago"],
+    });
+    expect(summary.records).toEqual({ home: "6-1", away: "7-1" });
+    expect(summary.linescores).toEqual({
+      home: { code: "DET", periods: ["28", "32"] },
+      away: { code: "PHI", periods: ["29", "27"] },
+    });
+    expect(summary.broadcasts).toEqual([
+      { type: "TV", market: "National", station: "ESPN", isNational: true },
+    ]);
+    expect(summary.gameDate).toBe("2026-11-05T00:00Z");
+  });
+
+  it("surfaces the season series and league standings", () => {
+    const summary = normalizeSummary({
+      seasonseries: [
+        {
+          type: "season",
+          title: "Regular Season Series",
+          summary: "DET leads series 1-0",
+          completed: false,
+          totalCompetitions: 3,
+          events: [
+            {
+              id: "401909866",
+              date: "2026-10-25T23:30Z",
+              status: { state: "post", completed: true },
+              competitors: [
+                {
+                  homeAway: "home",
+                  winner: true,
+                  team: { abbreviation: "DET", displayName: "Detroit Pistons", logo: "det.png" },
+                  score: "110",
+                },
+                {
+                  homeAway: "away",
+                  winner: false,
+                  team: { abbreviation: "PHI", displayName: "Philadelphia 76ers", logo: "phi.png" },
+                  score: "105",
+                },
+              ],
+            },
+          ],
+        },
+      ],
+      standings: {
+        header: "2026-27 Standings",
+        fullViewLink: "https://www.espn.com/nba/standings",
+        groups: [
+          {
+            header: "2026-27 Central Standings",
+            conferenceHeader: "Eastern Conference",
+            divisionHeader: "Central",
+            href: "https://www.espn.com/nba/standings/_/group/2",
+            standings: {
+              entries: [
+                {
+                  team: "Detroit",
+                  link: "https://www.espn.com/nba/team/_/name/det/detroit-pistons",
+                  logo: [{ href: "det.png" }],
+                  stats: [
+                    { name: "gamesBehind", displayValue: "-" },
+                    { name: "losses", displayValue: "1" },
+                    { name: "streak", displayValue: "W3" },
+                    { name: "winPercent", displayValue: ".857" },
+                    { name: "wins", displayValue: "6" },
+                  ],
+                },
+              ],
+            },
+          },
+        ],
+      },
+    });
+
+    const series = summary.seasonseries[0];
+    expect(series.summary).toBe("DET leads series 1-0");
+    expect(series.events[0].home).toMatchObject({
+      name: "Detroit Pistons",
+      score: "110",
+      winner: true,
+    });
+    expect(series.events[0].away.code).toBe("PHI");
+
+    expect(summary.standings.header).toBe("2026-27 Standings");
+    const group = summary.standings.groups[0];
+    expect(group.header).toBe("2026-27 Central Standings");
+    expect(group.entries[0]).toMatchObject({
+      name: "Detroit Pistons",
+      slug: "detroit-pistons",
+      code: "det",
+      logo: "det.png",
+    });
+    expect(group.entries[0].stats).toEqual({
+      gamesBehind: "-",
+      losses: "1",
+      streak: "W3",
+      winPercent: ".857",
+      wins: "6",
+    });
+  });
+
+  it("leaves summary extras empty when the payload carries none", () => {
+    const summary = normalizeSummary({});
+    expect(summary.boxscore).toBeNull();
+    expect(summary.gameInfo).toBeNull();
+    expect(summary.records).toEqual({ home: null, away: null });
+    expect(summary.linescores).toEqual({
+      home: { code: null, periods: [] },
+      away: { code: null, periods: [] },
+    });
+    expect(summary.seasonseries).toEqual([]);
+    expect(summary.standings).toBeNull();
+    expect(summary.broadcasts).toEqual([]);
+    expect(summary.tickets).toBeNull();
+  });
+});
+
 describe("ESPN request layer", () => {
   const originalFetch = global.fetch;
 
