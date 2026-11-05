@@ -402,9 +402,15 @@ html[data-theme='light'] .sh-topbar { background: rgba(255, 255, 255, 0.85); }
   padding: 3px 10px;
   font-size: 10px;
   font-weight: 700;
+  text-decoration: none;
   letter-spacing: 0.6px;
   cursor: pointer;
   transition: transform 0.12s ease, background 0.12s ease;
+}
+
+.sh-watch-btn-lg {
+  padding: 6px 14px;
+  font-size: 12px;
 }
 
 .sh-watch-btn:hover { background: rgba(139, 124, 246, 0.28); transform: translateY(-1px); }

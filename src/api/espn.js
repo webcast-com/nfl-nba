@@ -528,6 +528,30 @@ function broadcastName(competition) {
   return asArray(media?.shortName)[0] ?? media?.shortName ?? null;
 }
 
+// ESPN marks streaming broadcasts with type id "4" / shortName "Streaming"
+// (linear TV broadcasts use id "1" / "TV"). A game with a streaming broadcast
+// can be watched through ESPN's own game watch experience.
+function isStreamingBroadcast(geoBroadcast) {
+  const type = geoBroadcast?.type ?? {};
+  return type.id === "4" || String(type.shortName ?? "").toLowerCase() === "streaming";
+}
+
+function streamingBroadcasts(competition) {
+  return asArray(competition?.geoBroadcasts).filter(isStreamingBroadcast);
+}
+
+// The ESPN per-game watch page: https://www.espn.com/watch/{sport}/{league}/game/_/gameId/{id}
+export function espnWatchUrl(leagueKey, gameId) {
+  const path = ESPN_LEAGUES[leagueKey]?.path;
+  if (!path || !gameId) return null;
+  return `https://www.espn.com/watch/${path}/game/_/gameId/${gameId}`;
+}
+
+function watchUrl(event, league, streams) {
+  if (!streams.length) return null;
+  return espnWatchUrl(league.key, event.id);
+}
+
 function normalizeEvent(event, league, sport, index) {
   const competition = asArray(event?.competitions)[0] ?? {};
   const competitors = asArray(competition.competitors);
@@ -574,6 +598,10 @@ function normalizeEvent(event, league, sport, index) {
   const competitionInfo = competitionFor(event, league, sport);
   const venue = competition.venue ?? {};
 
+  const streams = streamingBroadcasts(competition);
+  const streaming = streams.length > 0;
+  const streamNetwork = streams[0]?.media?.shortName ?? null;
+
   return {
     id: event.id ?? `${league.key}-${index}`,
     competitionId: competitionInfo.id,
@@ -591,6 +619,9 @@ function normalizeEvent(event, league, sport, index) {
     homeScore: scoreOf(home),
     awayScore: scoreOf(away),
     broadcast: broadcastName(competition),
+    streaming,
+    streamNetwork,
+    watchUrl: watchUrl(event, league, streams),
     venue: venue.fullName ?? "Venue TBD",
     startTime: event.date ?? null,
     league: league.key,
@@ -904,12 +935,19 @@ export function normalizeSummary(payload) {
 
   const statusType = competition?.status?.type ?? {};
 
+  // A summary also carries the broadcast lineup; streaming games advertise a
+  // "Streaming" broadcast type, matching the scoreboard's geoBroadcasts.
+  const summaryStreams = asArray(competition?.broadcasts).filter(isStreamingBroadcast);
+
   return {
     plays,
     period: statusType.shortDetail ?? statusType.detail ?? null,
     statusText: statusType.shortDetail ?? statusType.detail ?? null,
     state: statusType.state ?? null, // pre · in · post
     venue: competition?.venue?.fullName ?? null,
+    streaming: summaryStreams.length > 0,
+    streamNetwork:
+      summaryStreams[0]?.media?.shortName ?? summaryStreams[0]?.station ?? null,
     teams: competitors.map(teamOf).filter((team) => team.name),
   };
 }

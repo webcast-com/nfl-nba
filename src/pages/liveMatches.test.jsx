@@ -147,6 +147,89 @@ describe("live matches rendered from the ESPN shape", () => {
     expect(games[0].clock).toBe("Halftime");
   });
 
+  const streamingPayload = {
+    events: [
+      {
+        id: "405",
+        date: "2026-11-04T00:30:00Z",
+        competitions: [
+          {
+            competitors: [
+              { homeAway: "home", score: "38", team: { displayName: "Duke Blue Devils", abbreviation: "DUKE" } },
+              { homeAway: "away", score: "35", team: { displayName: "North Carolina Tar Heels", abbreviation: "UNC" } },
+            ],
+            venue: { fullName: "Cameron Indoor Stadium" },
+            status: { period: 2, displayClock: "0:00", type: { state: "in", description: "Halftime" } },
+            geoBroadcasts: [
+              { type: { id: "4", shortName: "Streaming" }, media: { shortName: "ESPN+" } },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+
+  const tvOnlyPayload = {
+    events: [
+      {
+        id: "406",
+        date: "2026-11-04T00:30:00Z",
+        competitions: [
+          {
+            competitors: [
+              { homeAway: "home", score: "0", team: { displayName: "Boston Celtics", abbreviation: "BOS" } },
+              { homeAway: "away", score: "0", team: { displayName: "New York Knicks", abbreviation: "NYK" } },
+            ],
+            status: { period: 1, displayClock: "12:00", type: { state: "pre" } },
+            geoBroadcasts: [
+              { type: { id: "1", shortName: "TV" }, media: { shortName: "ESPN" } },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+
+  it("marks streaming broadcasts and builds the ESPN watch URL", () => {
+    const games = normalizeScoreboard(streamingPayload, { league: "nba" });
+    expect(games[0]).toMatchObject({
+      streaming: true,
+      streamNetwork: "ESPN+",
+      watchUrl: "https://www.espn.com/watch/basketball/nba/game/_/gameId/405",
+    });
+  });
+
+  it("leaves TV-only games without a watch link", () => {
+    const games = normalizeScoreboard(tvOnlyPayload, { league: "nba" });
+    expect(games[0].streaming).toBe(false);
+    expect(games[0].watchUrl).toBeNull();
+  });
+
+  it("renders a Watch link on cards with a streaming broadcast", () => {
+    const games = normalizeScoreboard(streamingPayload, { league: "nba" });
+    const { container } = render(<BasketballPage games={games} />);
+
+    const watch = container.querySelector(".sh-watch-btn");
+    expect(watch).not.toBeNull();
+    expect(watch.getAttribute("href")).toBe(
+      "https://www.espn.com/watch/basketball/nba/game/_/gameId/405"
+    );
+    expect(watch.target).toBe("_blank");
+    expect(watch.textContent).toContain("Watch");
+  });
+
+  it("renders a Watch link on the featured hero when the game streams", () => {
+    const games = normalizeScoreboard(streamingPayload, { league: "nba" });
+    const { container } = render(<BasketballPage games={games} />);
+
+    const hero = container.querySelector(".sh-feature");
+    const watch = hero.querySelector(".sh-watch-btn");
+    expect(watch).not.toBeNull();
+    expect(watch.getAttribute("href")).toBe(
+      "https://www.espn.com/watch/basketball/nba/game/_/gameId/405"
+    );
+  });
+
   it("renders a live NFL game with the football clock", () => {
     const games = normalizeScoreboard(footballPayload, { league: "nfl" });
     expect(games[0].clock).toBe("3rd · 8:41");

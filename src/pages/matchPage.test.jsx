@@ -91,6 +91,55 @@ describe("commentary page", () => {
     expect(container.textContent).not.toContain("We couldn't find that match");
   });
 
+  it("renders a Watch link when the ESPN summary reports a streaming broadcast", async () => {
+    loadMatchSummary.mockResolvedValue({
+      plays: [],
+      state: "in",
+      statusText: "2nd · 4:11",
+      venue: "Cameron Indoor Stadium",
+      streaming: true,
+      streamNetwork: "ESPN+",
+      teams: [
+        { name: "Duke Blue Devils", abbreviation: "DUKE", homeAway: "home", score: "68", logo: null },
+        {
+          name: "North Carolina Tar Heels",
+          abbreviation: "UNC",
+          homeAway: "away",
+          score: "65",
+          logo: null,
+        },
+      ],
+    });
+
+    renderAt("/basketball/match/401777999");
+
+    const watch = await screen.findByText("Watch");
+    const link = watch.closest("a");
+    expect(link.getAttribute("href")).toBe(
+      "https://www.espn.com/watch/basketball/nba/game/_/gameId/401777999"
+    );
+    expect(link.getAttribute("title")).toBe("Watch on ESPN+");
+  });
+
+  it("omits the Watch link for TV-only summaries", async () => {
+    loadMatchSummary.mockResolvedValue({
+      plays: [],
+      state: "pre",
+      statusText: "7:30 PM",
+      venue: "Madison Square Garden",
+      streaming: false,
+      teams: [
+        { name: "Boston Celtics", abbreviation: "BOS", homeAway: "home", score: null, logo: null },
+        { name: "New York Knicks", abbreviation: "NYK", homeAway: "away", score: null, logo: null },
+      ],
+    });
+
+    const { container } = renderAt("/basketball/match/401888889");
+
+    await waitFor(() => expect(heroText(container)).toContain("Madison Square Garden"));
+    expect(container.querySelector(".sh-watch-btn")).toBeNull();
+  });
+
   it("renders ESPN plays with their clock, team and score", async () => {
     loadMatchSummary.mockResolvedValue({
       plays: [

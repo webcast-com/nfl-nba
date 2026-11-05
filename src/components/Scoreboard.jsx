@@ -72,6 +72,19 @@ export function FeaturedGame({ game, sport = "basketball" }) {
           <IconClock size={13} />
           {isLive ? `${clock} · in progress` : game.status === "FINAL" ? "Full time" : clock}
         </span>
+        {game.watchUrl ? (
+          <a
+            className="sh-watch-btn sh-watch-btn-lg"
+            href={game.watchUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`Watch ${game.home} v ${game.away} on ESPN`}
+            title={game.streamNetwork ? `Watch on ${game.streamNetwork}` : "Watch on ESPN"}
+          >
+            <IconPlay size={14} />
+            <span>Watch</span>
+          </a>
+        ) : null}
       </div>
     </section>
   );
@@ -168,7 +181,19 @@ export function MatchCard({ game, matchBasePath, onWatch }) {
 
       <div className="sh-match-foot">
         <span className="sh-broadcast">{game.broadcast && game.broadcast !== "—" ? game.broadcast : "TV TBD"}</span>
-        {onWatch ? (
+        {game.watchUrl ? (
+          <a
+            className="sh-watch-btn"
+            href={game.watchUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`Watch ${game.home} v ${game.away} on ESPN`}
+            title={game.streamNetwork ? `Watch on ${game.streamNetwork}` : "Watch on ESPN"}
+          >
+            <IconPlay size={13} />
+            <span>Watch</span>
+          </a>
+        ) : onWatch ? (
           <button
             type="button"
             className="sh-watch-btn"

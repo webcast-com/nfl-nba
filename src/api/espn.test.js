@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   clearEspnCache,
+  espnWatchUrl,
   formatKickoff,
   fetchBasketballSnapshot,
   isEspnDisabled,
@@ -10,6 +11,7 @@ import {
   normalizeLeaders,
   normalizeScoreboard,
   normalizeStandings,
+  normalizeSummary,
   requestEspn,
   scoreboardUrls,
   standingsUrls,
@@ -278,6 +280,64 @@ describe("ESPN leaderboard normalisation", () => {
   it("uses the NFL headshot path for football", () => {
     const boards = normalizeLeaderboard(payload, { sport: "football" });
     expect(boards[0].entries[0].headshot).toContain("/i/headshots/nfl/players/full/3945274.png");
+  });
+});
+
+describe("ESPN streaming broadcasts", () => {
+  it("detects streaming broadcasts and the network from the summary header", () => {
+    const summary = normalizeSummary({
+      header: {
+        competitions: [
+          {
+            broadcasts: [
+              {
+                market: "national",
+                names: ["ESPN+"],
+                type: { id: "4", shortName: "Streaming", slug: "streaming" },
+                station: "ESPN+",
+                media: { shortName: "ESPN+" },
+              },
+            ],
+            status: { type: { state: "in", shortDetail: "Halftime" } },
+          },
+        ],
+      },
+    });
+    expect(summary.streaming).toBe(true);
+    expect(summary.streamNetwork).toBe("ESPN+");
+  });
+
+  it("leaves TV-only summaries without streaming info", () => {
+    const summary = normalizeSummary({
+      header: {
+        competitions: [
+          {
+            broadcasts: [
+              {
+                market: "national",
+                names: ["ESPN"],
+                type: { id: "1", shortName: "TV", slug: "tv" },
+                station: "ESPN",
+                media: { shortName: "ESPN" },
+              },
+            ],
+            status: { type: { state: "pre" } },
+          },
+        ],
+      },
+    });
+    expect(summary.streaming).toBe(false);
+    expect(summary.streamNetwork).toBeNull();
+  });
+
+  it("builds the per-game watch URL for a league and game id", () => {
+    expect(espnWatchUrl("nba", "401909922")).toBe(
+      "https://www.espn.com/watch/basketball/nba/game/_/gameId/401909922"
+    );
+    expect(espnWatchUrl("nfl", "401873037")).toBe(
+      "https://www.espn.com/watch/football/nfl/game/_/gameId/401873037"
+    );
+    expect(espnWatchUrl("nonsense", "1")).toBeNull();
   });
 });
 
