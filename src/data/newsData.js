@@ -17,6 +17,7 @@ import nflPreSnap from "../assets/news/nfl-pre-snap.jpg";
 export const demoNewsImages = {
   basketball: [bballCourtAction, bballGame1, bballGame2, bballGame3, bballGame4, bballCourt2],
   football: [nflTackle1, nflTackle2, nflTackle3, nflTackle4, nflPlayerRed, nflPreSnap],
+  soccer: [nflTackle1, nflTackle2, nflTackle3, nflTackle4, nflPlayerRed, nflPreSnap],
 };
 
 export const basketballNews = [
@@ -165,6 +166,45 @@ export const nflNews = [
     author: "Nina Patel",
     published: "1d ago",
     readTime: "7 min read",
+    image: nflPreSnap,
+  },
+];
+
+export const soccerNews = [
+  {
+    id: "ucl-giants",
+    tag: "Champions League",
+    accent: "#0d1e6e",
+    title: "Real Madrid and Barcelona set up a blockbuster Champions League week",
+    summary:
+      "A stoppage-time winner in the Spanish capital leaves the two giants level on points heading into matchday five.",
+    author: "ScoreHub Desk",
+    published: "3h ago",
+    readTime: "5 min read",
+    image: nflPlayerRed,
+  },
+  {
+    id: "pl-title-race",
+    tag: "Premier League",
+    accent: "#3d195b",
+    title: "Arsenal extend their Premier League lead at the Emirates",
+    summary:
+      "A second-half header from the bench kept the Gunners two clear at the top with a trip to Manchester City next.",
+    author: "ScoreHub Desk",
+    published: "6h ago",
+    readTime: "4 min read",
+    image: nflTackle1,
+  },
+  {
+    id: "bundesliga-duel",
+    tag: "Bundesliga",
+    accent: "#d20515",
+    title: "Bayern and Dortmund meet again in the Bundesliga's marquee fixture",
+    summary:
+      "The two giants of German football clash this weekend with a top-of-the-table undertone for the winter.",
+    author: "ScoreHub Desk",
+    published: "9h ago",
+    readTime: "6 min read",
     image: nflPreSnap,
   },
 ];

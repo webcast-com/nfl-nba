@@ -117,3 +117,28 @@ export const nflScorers = [
     ],
   },
 ];
+
+export const soccerScorers = [
+  {
+    metric: "Goals per game",
+    short: "GPG",
+    entries: [
+      { name: "Erling Haaland", team: "Manchester City", teamAbbr: "MNC", value: "1.3", initials: "EH" },
+      { name: "Kylian Mbappé", team: "Real Madrid", teamAbbr: "RMA", value: "1.2", initials: "KM" },
+      { name: "Robert Lewandowski", team: "Barcelona", teamAbbr: "BAR", value: "1.1", initials: "RL" },
+      { name: "Harry Kane", team: "Bayern Munich", teamAbbr: "BAY", value: "1.0", initials: "HK" },
+      { name: "Antoine Griezmann", team: "Atlético Madrid", teamAbbr: "ATM", value: "0.9", initials: "AG" },
+    ],
+  },
+  {
+    metric: "Assists per game",
+    short: "APG",
+    entries: [
+      { name: "Kylian Mbappé", team: "Real Madrid", teamAbbr: "RMA", value: "0.8", initials: "KM" },
+      { name: "Lamine Yamal", team: "Barcelona", teamAbbr: "BAR", value: "0.7", initials: "LY" },
+      { name: "Kevin De Bruyne", team: "Manchester City", teamAbbr: "MNC", value: "0.6", initials: "KD" },
+      { name: "Yannick Carrasco", team: "Atlético Madrid", teamAbbr: "ATM", value: "0.5", initials: "YC" },
+      { name: "Harry Kane", team: "Bayern Munich", teamAbbr: "BAY", value: "0.5", initials: "HK" },
+    ],
+  },
+];

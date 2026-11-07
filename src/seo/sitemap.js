@@ -18,6 +18,10 @@ const STATIC_PAGES = [
   { path: "/nfl/upcoming", priority: "0.9", changefreq: "daily" },
   { path: "/nfl/top-scorers", priority: "0.9", changefreq: "weekly" },
   { path: "/nfl/news", priority: "0.9", changefreq: "daily" },
+  { path: "/soccer", priority: "1.0", changefreq: "daily" },
+  { path: "/soccer/upcoming", priority: "0.9", changefreq: "daily" },
+  { path: "/soccer/top-scorers", priority: "0.9", changefreq: "weekly" },
+  { path: "/soccer/news", priority: "0.9", changefreq: "daily" },
   { path: "/cricket", priority: "0.6", changefreq: "monthly" },
   { path: "/badminton", priority: "0.6", changefreq: "monthly" },
   { path: "/hockey", priority: "0.6", changefreq: "monthly" },
@@ -61,7 +65,9 @@ export function collectUrls({ origin = DEFAULT_ORIGIN, data, now = new Date() } 
   for (const page of STATIC_PAGES) add(page.path, page.priority, page.changefreq);
 
   for (const config of data ?? []) {
-    const hub = config.sport === "football" ? "/nfl" : "/basketball";
+    const hub =
+      config.hub ??
+      (config.sport === "football" ? "/nfl" : config.sport === "soccer" ? "/soccer" : "/basketball");
     const teams = new Set();
 
     for (const game of config.games ?? []) {

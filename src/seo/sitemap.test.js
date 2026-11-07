@@ -38,6 +38,10 @@ describe("sitemap generation", () => {
       "/nfl/upcoming",
       "/nfl/top-scorers",
       "/nfl/news",
+      "/soccer",
+      "/soccer/upcoming",
+      "/soccer/top-scorers",
+      "/soccer/news",
       "/cricket",
       "/badminton",
       "/hockey",
@@ -65,7 +69,7 @@ describe("sitemap generation", () => {
       origin: ORIGIN,
       data: [{ sport: "basketball", games: [{ id: null }], standings: [], leaders: [{}] }],
     });
-    expect(sparse).toHaveLength(11); // just the static pages
+    expect(sparse).toHaveLength(15); // just the static pages
   });
 
   it("sets lastmod, changefreq and priority on every entry", () => {

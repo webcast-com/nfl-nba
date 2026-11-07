@@ -18,6 +18,9 @@ import {
   nflGames,
   nflLeaders,
   nflStandings,
+  soccerGames,
+  soccerLeaders,
+  soccerStandings,
 } from "../src/data/sportsData.js";
 import {
   DEFAULT_ORIGIN,
@@ -33,15 +36,24 @@ const origin = process.env.SITE_ORIGIN || DEFAULT_ORIGIN;
 const data = [
   {
     sport: "basketball",
+    hub: "/basketball",
     games: basketballGames,
     standings: [...basketballStandings, ...ncaaBasketballStandings, ...ncaaWomenStandings],
     leaders: basketballLeaders,
   },
   {
     sport: "football",
+    hub: "/nfl",
     games: nflGames,
     standings: [...nflStandings, ...collegeFootballStandings],
     leaders: nflLeaders,
+  },
+  {
+    sport: "soccer",
+    hub: "/soccer",
+    games: soccerGames,
+    standings: soccerStandings,
+    leaders: soccerLeaders,
   },
 ];
 

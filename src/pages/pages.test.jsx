@@ -3,6 +3,7 @@ import { cleanup, render, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import BasketballPage from "./BasketballPage";
 import NFLPage from "./NFLPage";
+import SoccerPage from "./SoccerPage";
 import { seasonStartForDate, toDateKey } from "../utils/dates";
 
 afterEach(cleanup);
@@ -192,5 +193,55 @@ describe("NCAA coverage", () => {
     expect(container.textContent).toContain("Georgia Bulldogs");
     expect(container.textContent).toContain("Big Ten");
     expect(container.textContent).toContain("Ohio State Buckeyes");
+  });
+});
+
+describe("SoccerPage", () => {
+  it("renders the football (soccer) demo board with standings and leaders", () => {
+    const { container, getByText } = render(<SoccerPage />);
+    expect(getByText("Football (Soccer) Center")).toBeTruthy();
+    expect(gameCards(container)).toHaveLength(6);
+    expect(container.querySelectorAll(".sh-standings-card")).toHaveLength(2); // EPL + La Liga
+    expect(container.querySelectorAll(".sh-player")).toHaveLength(4);
+    expect(container.querySelector(".sh-feature")).toBeTruthy();
+    expect(document.title).toContain("Football (soccer)");
+  });
+
+  it("renders the soccer league table with the points column", () => {
+    const { container } = render(<SoccerPage />);
+    const table = container.querySelector(".sh-standings-card .sh-table");
+    const headers = [...table.querySelectorAll("th")].map((th) => th.textContent);
+    expect(headers).toContain("PTS");
+    expect(headers).toContain("D");
+    // Arsenal top the Premier League on points.
+    expect(table.querySelector("tbody tr").textContent).toContain("Arsenal");
+  });
+
+  it("narrows the board to a single league", () => {
+    const { container, getByRole } = render(<SoccerPage />);
+    fireEvent.click(getByRole("button", { name: "Competition: La Liga" }));
+    expect(gameCards(container)).toHaveLength(2); // Málaga v Racing + Real Madrid v Barça
+    expect(container.textContent).toContain("La Liga");
+  });
+
+  it("filters by country and by match status", () => {
+    const { container, getByRole } = render(<SoccerPage />);
+    fireEvent.click(getByRole("tab", { name: "LIVE" }));
+    expect(gameCards(container)).toHaveLength(1);
+    expect(container.textContent).toContain("Arsenal");
+
+    fireEvent.click(getByRole("button", { name: "Country: Spain" }));
+    expect(gameCards(container)).toHaveLength(0); // no Spanish match is live
+
+    fireEvent.click(getByRole("tab", { name: "FINAL" }));
+    expect(gameCards(container)).toHaveLength(1); // Málaga v Racing Santander
+  });
+
+  it("keeps the seeded board when filters match nothing", () => {
+    const { container, getByRole } = render(<SoccerPage />);
+    fireEvent.click(getByRole("button", { name: "Country: Italy" }));
+    expect(gameCards(container)).toHaveLength(1); // Cagliari v Frosinone
+    fireEvent.click(getByRole("tab", { name: "FINAL" }));
+    expect(gameCards(container)).toHaveLength(1);
   });
 });

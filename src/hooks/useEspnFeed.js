@@ -15,6 +15,10 @@ import {
   nflStandings,
   nflLeaders,
   nflStats,
+  soccerGames,
+  soccerStandings,
+  soccerLeaders,
+  soccerStats,
 } from "../data/sportsData";
 
 const DEMO = {
@@ -29,6 +33,12 @@ const DEMO = {
     standings: nflStandings,
     leaders: nflLeaders,
     stats: nflStats,
+  },
+  soccer: {
+    games: soccerGames,
+    standings: soccerStandings,
+    leaders: soccerLeaders,
+    stats: soccerStats,
   },
 };
 
@@ -64,6 +74,17 @@ function deriveFootballStats(games) {
     { label: "Live games", value: pad2(counts.live), foot: "In progress right now" },
     { label: "Upcoming", value: pad2(counts.upcoming), foot: "Scheduled this week" },
     { label: "Final", value: pad2(counts.final), foot: "Completed this week" },
+  ];
+}
+
+function deriveSoccerStats(games) {
+  const counts = summarizeGames(games);
+
+  return [
+    { label: "Matches today", value: pad2(counts.total), foot: "On the current board" },
+    { label: "Live matches", value: pad2(counts.live), foot: "In progress right now" },
+    { label: "Kicking off", value: pad2(counts.upcoming), foot: "Scheduled today" },
+    { label: "Full time", value: pad2(counts.final), foot: "Completed today" },
   ];
 }
 
@@ -182,9 +203,11 @@ export function useEspnFeed({
 
   useEffect(() => {
     if (!canFetch) return undefined;
-    let cancelled = false;
-    const leagueKey = sport === "football" ? "nfl" : "nba";
+    // Football (soccer) has no ESPN leaders feed; the bundled top scorers stay.
+    const leagueKey = sport === "basketball" ? "nba" : sport === "football" ? "nfl" : null;
+    if (!leagueKey) return undefined;
 
+    let cancelled = false;
     loadLeaders(leagueKey)
       .then((leaders) => {
         if (!cancelled && leaders.length) setLiveLeaders(leaders);
@@ -205,7 +228,9 @@ export function useEspnFeed({
     () =>
       sport === "basketball"
         ? deriveBasketballStats(games)
-        : deriveFootballStats(games),
+        : sport === "soccer"
+          ? deriveSoccerStats(games)
+          : deriveFootballStats(games),
     [sport, games]
   );
 

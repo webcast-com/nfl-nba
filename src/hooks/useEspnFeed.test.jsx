@@ -3,6 +3,7 @@ import { renderHook, waitFor, act } from "@testing-library/react";
 
 const basketballFetch = vi.fn();
 const footballFetch = vi.fn();
+const soccerFetch = vi.fn();
 const loadLeaders = vi.fn();
 
 vi.mock("../api/espn", async () => {
@@ -14,12 +15,13 @@ vi.mock("../api/espn", async () => {
     SNAPSHOT_FETCHERS: {
       basketball: (...args) => basketballFetch(...args),
       football: (...args) => footballFetch(...args),
+      soccer: (...args) => soccerFetch(...args),
     },
   };
 });
 
 const { useEspnFeed, REFRESH_INTERVAL } = await import("./useEspnFeed");
-const { basketballGames } = await import("../data/sportsData");
+const { basketballGames, soccerGames } = await import("../data/sportsData");
 
 const liveGame = {
   id: "401",
@@ -47,6 +49,7 @@ const liveStandings = [
 beforeEach(() => {
   basketballFetch.mockReset();
   footballFetch.mockReset();
+  soccerFetch.mockReset();
   loadLeaders.mockReset();
   loadLeaders.mockResolvedValue([]);
 });
@@ -148,6 +151,41 @@ describe("useEspnFeed", () => {
     expect(stat("Live games")).toBe("01");
     expect(stat("Upcoming")).toBe("01");
     expect(stat("Final")).toBe("00");
+  });
+
+  it("serves the football (soccer) board from the soccer feed", async () => {
+    const liveSoccer = {
+      ...liveGame,
+      id: "401878758",
+      competitionId: "eng.1",
+      competition: "Premier League",
+      country: "United Kingdom",
+      home: "Leeds United",
+      away: "Tottenham Hotspur",
+      homeCode: "LEE",
+      awayCode: "TOT",
+    };
+    soccerFetch.mockResolvedValue({
+      games: [liveSoccer],
+      standings: [
+        {
+          group: "2026-27 English Premier League",
+          rows: [{ team: "Arsenal", code: "ARS", p: 10, w: 9, l: 0, t: 1, pct: "2.70", pts: 27 }],
+        },
+      ],
+      meta: { seasonYear: 2026 },
+    });
+
+    const { result } = renderHook(() => useEspnFeed({ sport: "soccer", date: "20261107" }));
+
+    expect(result.current.games).toHaveLength(soccerGames.length); // soccer demo board
+    await waitFor(() => expect(result.current.status).toBe("live"));
+
+    expect(result.current.games).toEqual([liveSoccer]);
+    expect(result.current.standings[0].rows[0].pts).toBe(27);
+    expect(result.current.stats.find((stat) => stat.label === "Matches today").value).toBe("01");
+    // Soccer has no ESPN leaders feed — the bundled top scorers stay.
+    expect(loadLeaders).not.toHaveBeenCalled();
   });
 
   it("exposes a 45 second refresh interval", () => {

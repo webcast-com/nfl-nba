@@ -107,6 +107,48 @@ export const ESPN_LEAGUES = {
     competition: "College Football",
     country: "United States",
   },
+  // Football (soccer): ESPN indexes European competitions by their slug
+  // (eng.1 = Premier League, esp.1 = La Liga, …) on the soccer sport path.
+  "eng.1": {
+    key: "eng.1",
+    sport: "soccer",
+    path: "soccer/eng.1",
+    competitionId: "eng.1",
+    competition: "Premier League",
+    country: "United Kingdom",
+  },
+  "esp.1": {
+    key: "esp.1",
+    sport: "soccer",
+    path: "soccer/esp.1",
+    competitionId: "esp.1",
+    competition: "La Liga",
+    country: "Spain",
+  },
+  "ita.1": {
+    key: "ita.1",
+    sport: "soccer",
+    path: "soccer/ita.1",
+    competitionId: "ita.1",
+    competition: "Serie A",
+    country: "Italy",
+  },
+  "ger.1": {
+    key: "ger.1",
+    sport: "soccer",
+    path: "soccer/ger.1",
+    competitionId: "ger.1",
+    competition: "Bundesliga",
+    country: "Germany",
+  },
+  "uefa.champions": {
+    key: "uefa.champions",
+    sport: "soccer",
+    path: "soccer/uefa.champions",
+    competitionId: "uefa.champions",
+    competition: "Champions League",
+    country: "Europe",
+  },
 };
 
 /** Leagues merged into the basketball scoreboard, in display order. */
@@ -122,6 +164,9 @@ export const BASKETBALL_LIVE_LEAGUES = [
 /** Leagues merged into the NFL scoreboard. */
 export const FOOTBALL_LIVE_LEAGUES = ["nfl"];
 
+/** Leagues merged into the football (soccer) board. */
+export const SOCCER_LIVE_LEAGUES = ["eng.1", "esp.1", "ita.1", "ger.1", "uefa.champions"];
+
 /**
  * Competitions the hub can load on demand. NCAA boards are merged into the
  * default "All competitions" view alongside the flagship leagues; selecting a
@@ -136,11 +181,21 @@ export const LEAGUE_BY_COMPETITION = {
   ncaaw: "womens-college-basketball",
   nfl: "nfl",
   cfb: "college-football",
+  "eng.1": "eng.1",
+  "esp.1": "esp.1",
+  "ita.1": "ita.1",
+  "ger.1": "ger.1",
+  "uefa.champions": "uefa.champions",
 };
 
 /** Which ESPN leagues feed a sport, optionally narrowed to one competition. */
 export function liveLeaguesFor(sport, competition) {
-  const base = sport === "football" ? FOOTBALL_LIVE_LEAGUES : BASKETBALL_LIVE_LEAGUES;
+  const base =
+    sport === "football"
+      ? FOOTBALL_LIVE_LEAGUES
+      : sport === "soccer"
+        ? SOCCER_LIVE_LEAGUES
+        : BASKETBALL_LIVE_LEAGUES;
   const league = competition && competition !== "all" ? LEAGUE_BY_COMPETITION[competition] : null;
   if (!league || base.includes(league)) return base;
   return [league];
@@ -176,6 +231,10 @@ const NFL_CONFERENCES = {
 const asArray = (value) => (Array.isArray(value) ? value : []);
 const isPlainObject = (value) =>
   Boolean(value) && typeof value === "object" && !Array.isArray(value);
+
+/** ESPN CDN folder holding player headshots per sport slug. */
+const headshotPath = (sport) =>
+  sport === "soccer" ? "soccer" : sport === "football" ? "nfl" : "nba";
 
 const toNumber = (value, fallback = null) => {
   if (value === null || value === undefined || value === "") return fallback;
@@ -370,7 +429,7 @@ export function normalizeTeamInfo(payload) {
 
 export function normalizeRoster(payload, { sport = "basketball" } = {}) {
   const entries = asArray(payload?.athletes ?? payload?.team?.athletes);
-  const sportPath = sport === "football" ? "nfl" : "nba";
+  const sportPath = headshotPath(sport);
 
   return entries
     .map((athlete) => {
@@ -397,7 +456,7 @@ export function normalizeRoster(payload, { sport = "basketball" } = {}) {
 export function normalizeAthlete(payload, { sport = "basketball" } = {}) {
   const athlete = payload?.athlete ?? payload;
   if (!athlete || typeof athlete !== "object") return null;
-  const sportPath = sport === "football" ? "nfl" : "nba";
+  const sportPath = headshotPath(sport);
   const id = athlete.id ?? null;
 
   const categories = asArray(
@@ -484,6 +543,11 @@ const ordinal = (value) => {
 
 function periodLabel(sport, period) {
   if (!Number.isFinite(period) || period <= 0) return "";
+  if (sport === "soccer") {
+    // Two halves, then extra time: period 3/4 mark the knockout extra period.
+    if (period > 4) return "ET";
+    return ["1st Half", "2nd Half"][period - 1] ?? "";
+  }
   if (sport === "football") return period > 4 ? "OT" : ordinal(period);
   return period > 4 ? "OT" : `Q${period}`;
 }
@@ -496,6 +560,9 @@ const COUNTRY_LABELS = {
   "United States": "United States",
   GBR: "United Kingdom",
   ENG: "United Kingdom",
+  England: "United Kingdom",
+  Scotland: "United Kingdom",
+  Wales: "United Kingdom",
   "United Kingdom": "United Kingdom",
 };
 
@@ -657,6 +724,13 @@ function formatGamesBehind(value) {
   return raw;
 }
 
+/** Points per game for football (soccer) tables (max 3.00). */
+function formatSoccerPct(value) {
+  const numeric = typeof value === "string" ? Number(value) : value;
+  if (!Number.isFinite(numeric)) return "—";
+  return numeric.toFixed(2);
+}
+
 const STAT_ALIASES = {
   p: ["gamesPlayed"],
   w: ["wins"],
@@ -693,7 +767,7 @@ function statDisplay(stats, names) {
   return null;
 }
 
-function normalizeStandingRow(entry) {
+function normalizeStandingRow(entry, { sport } = {}) {
   const team = entry?.team ?? entry;
   const stats = new Map(
     asArray(entry?.stats).map((stat) => [stat.name ?? stat.abbreviation, stat])
@@ -706,9 +780,16 @@ function normalizeStandingRow(entry) {
     statValue(stats, STAT_ALIASES.p) ??
     (wins !== null && losses !== null ? wins + losses + (ties ?? 0) : null);
 
-  const pctValue =
-    toNumber(statValue(stats, STAT_ALIASES.pct), null) ??
-    (wins !== null && gamesPlayed ? wins / gamesPlayed : null);
+  // Football (soccer) tables rank by points: PCT is points per game and PTS
+  // is the win/draw/loss total the league sorts on.
+  const points = statValue(stats, ["points"]);
+  const isSoccer = sport === "soccer";
+  const pctValue = isSoccer
+    ? points !== null && gamesPlayed
+      ? points / gamesPlayed
+      : null
+    : (toNumber(statValue(stats, STAT_ALIASES.pct), null) ??
+      (wins !== null && gamesPlayed ? wins / gamesPlayed : null));
 
   return {
     team: team.displayName ?? team.name ?? "TBD",
@@ -719,20 +800,25 @@ function normalizeStandingRow(entry) {
     w: wins ?? "—",
     l: losses ?? "—",
     t: ties ?? 0,
-    pct: formatPct(pctValue ?? statDisplay(stats, STAT_ALIASES.pct)),
+    pts: points ?? "—",
+    pct: isSoccer
+      ? formatSoccerPct(pctValue ?? statDisplay(stats, STAT_ALIASES.pct))
+      : formatPct(pctValue ?? statDisplay(stats, STAT_ALIASES.pct)),
     gb: formatGamesBehind(statDisplay(stats, STAT_ALIASES.gb)),
     streak: statDisplay(stats, STAT_ALIASES.streak) ?? "—",
     pf: statValue(stats, STAT_ALIASES.pf) ?? "—",
     pa: statValue(stats, STAT_ALIASES.pa) ?? "—",
-    _pct: pctValue ?? -1,
+    // Soccer sorts on points first, PPG only breaks equal-points cases.
+    _pct: isSoccer && points !== null ? points : pctValue ?? -1,
   };
 }
 
 /**
  * ESPN standings payload → the `{ group, rows }` groups the table renders.
- * Handles both flat roots and conference → division nesting.
+ * Handles both flat roots and conference → division nesting. `sport` switches
+ * football (soccer) tables to points-per-game ranking.
  */
-export function normalizeStandings(payload, { prefix = "" } = {}) {
+export function normalizeStandings(payload, { sport, prefix = "" } = {}) {
   const groups = [];
 
   const visit = (node) => {
@@ -745,7 +831,7 @@ export function normalizeStandings(payload, { prefix = "" } = {}) {
       groups.push({
         group: label || node.abbreviation || "Standings",
         rows: entries
-          .map(normalizeStandingRow)
+          .map((entry) => normalizeStandingRow(entry, { sport }))
           .filter((row) => row.team !== "TBD")
           .sort((a, b) => b._pct - a._pct)
           .map((row) => {
@@ -799,7 +885,7 @@ function findLeaderLists(node, out = [], depth = 0) {
 
 export function normalizeLeaders(payload, { sport = "basketball" } = {}) {
   const lists = findLeaderLists(payload);
-  const sportPath = sport === "football" ? "nfl" : "nba";
+  const sportPath = headshotPath(sport);
   const leaders = [];
   const seenMetrics = new Set();
 
@@ -1328,9 +1414,44 @@ export async function fetchFootballSnapshot({ week, seasonType, force = false, c
   return { games, standings, meta };
 }
 
+/**
+ * Football (soccer) boards run on the calendar day: ESPN answers with today's
+ * fixtures, and the matches from the previous evening that are still in
+ * progress get carried over — a 19:45 UTC kickoff is still live at lunchtime
+ * the next day. Standings come back for the selected league, or for every
+ * tracked league while the board shows "All competitions".
+ */
+export async function fetchSoccerSnapshot({ date, force = false, season, competition } = {}) {
+  const leagues = liveLeaguesFor("soccer", competition);
+  const { games, meta } = await mergeScoreboards(leagues, { date, force });
+
+  const carryOver = await liveCarryOver(leagues, {
+    date,
+    force,
+    seen: new Set(games.map((game) => String(game.id))),
+  });
+  const allGames = [...carryOver, ...games];
+
+  const standingsLeagues = competition && competition !== "all" ? [competition] : leagues;
+  const groups = await Promise.all(
+    standingsLeagues.map(async (key) => {
+      try {
+        // ESPN indexes soccer seasons by their start year (2026 → 2026-27).
+        return await loadStandings(key, { season: season ?? meta?.seasonYear, force });
+      } catch {
+        return []; // cup boards with no table keep the demo tables
+      }
+    })
+  );
+  const standings = groups.flat();
+
+  return { games: allGames, standings, meta };
+}
+
 export const SNAPSHOT_FETCHERS = {
   basketball: fetchBasketballSnapshot,
   football: fetchFootballSnapshot,
+  soccer: fetchSoccerSnapshot,
 };
 
 /** ESPN integration is skipped in unit tests and when explicitly disabled. */

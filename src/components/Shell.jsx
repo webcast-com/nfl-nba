@@ -6,9 +6,9 @@ import {
   IconBell,
   IconChart,
   IconCalendar,
-  IconCricket,
   IconFile,
   IconFootball,
+  IconGoal,
   IconGrid,
   IconMoon,
   IconPuck,
@@ -25,7 +25,7 @@ import {
 export const SPORT_TABS = [
   { to: "/basketball", label: "Basketball", icon: IconBall },
   { to: "/nfl", label: "Football", icon: IconFootball },
-  { to: "/cricket", label: "Cricket", icon: IconCricket },
+  { to: "/soccer", label: "Soccer", icon: IconGoal },
   { to: "/badminton", label: "Badminton", icon: IconShuttle },
   { to: "/hockey", label: "Hockey", icon: IconPuck },
 ];
