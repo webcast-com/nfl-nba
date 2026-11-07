@@ -6,6 +6,10 @@ import {
   summarizeGames,
   pad2,
 } from "../api/espn";
+import { fetchSoccerSnapshot } from "../api/soccer";
+
+// The soccer board keeps its own endpoint module (src/api/soccer.js).
+const FETCHERS = { ...SNAPSHOT_FETCHERS, soccer: fetchSoccerSnapshot };
 import {
   basketballGames,
   basketballStandings,
@@ -159,7 +163,7 @@ export function useEspnFeed({
     if (!canFetch) return undefined;
 
     let cancelled = false;
-    const fetcher = SNAPSHOT_FETCHERS[sport] ?? SNAPSHOT_FETCHERS.basketball;
+    const fetcher = FETCHERS[sport] ?? FETCHERS.basketball;
 
     const load = async (force) => {
       try {

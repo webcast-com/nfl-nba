@@ -1,5 +1,8 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
+// Register the soccer ESPN leagues before any route renders — soccer pages
+// call the shared espn.js loaders with keys like "eng.1".
+import "./api/soccer";
 import BasketballPage from "./pages/BasketballPage";
 import NFLPage from "./pages/NFLPage";
 import SoccerPage from "./pages/SoccerPage";

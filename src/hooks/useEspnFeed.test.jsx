@@ -15,10 +15,13 @@ vi.mock("../api/espn", async () => {
     SNAPSHOT_FETCHERS: {
       basketball: (...args) => basketballFetch(...args),
       football: (...args) => footballFetch(...args),
-      soccer: (...args) => soccerFetch(...args),
     },
   };
 });
+
+vi.mock("../api/soccer", () => ({
+  fetchSoccerSnapshot: (...args) => soccerFetch(...args),
+}));
 
 const { useEspnFeed, REFRESH_INTERVAL } = await import("./useEspnFeed");
 const { basketballGames, soccerGames } = await import("../data/sportsData");

@@ -107,48 +107,6 @@ export const ESPN_LEAGUES = {
     competition: "College Football",
     country: "United States",
   },
-  // Football (soccer): ESPN indexes European competitions by their slug
-  // (eng.1 = Premier League, esp.1 = La Liga, …) on the soccer sport path.
-  "eng.1": {
-    key: "eng.1",
-    sport: "soccer",
-    path: "soccer/eng.1",
-    competitionId: "eng.1",
-    competition: "Premier League",
-    country: "United Kingdom",
-  },
-  "esp.1": {
-    key: "esp.1",
-    sport: "soccer",
-    path: "soccer/esp.1",
-    competitionId: "esp.1",
-    competition: "La Liga",
-    country: "Spain",
-  },
-  "ita.1": {
-    key: "ita.1",
-    sport: "soccer",
-    path: "soccer/ita.1",
-    competitionId: "ita.1",
-    competition: "Serie A",
-    country: "Italy",
-  },
-  "ger.1": {
-    key: "ger.1",
-    sport: "soccer",
-    path: "soccer/ger.1",
-    competitionId: "ger.1",
-    competition: "Bundesliga",
-    country: "Germany",
-  },
-  "uefa.champions": {
-    key: "uefa.champions",
-    sport: "soccer",
-    path: "soccer/uefa.champions",
-    competitionId: "uefa.champions",
-    competition: "Champions League",
-    country: "Europe",
-  },
 };
 
 /** Leagues merged into the basketball scoreboard, in display order. */
@@ -164,9 +122,6 @@ export const BASKETBALL_LIVE_LEAGUES = [
 /** Leagues merged into the NFL scoreboard. */
 export const FOOTBALL_LIVE_LEAGUES = ["nfl"];
 
-/** Leagues merged into the football (soccer) board. */
-export const SOCCER_LIVE_LEAGUES = ["eng.1", "esp.1", "ita.1", "ger.1", "uefa.champions"];
-
 /**
  * Competitions the hub can load on demand. NCAA boards are merged into the
  * default "All competitions" view alongside the flagship leagues; selecting a
@@ -181,21 +136,27 @@ export const LEAGUE_BY_COMPETITION = {
   ncaaw: "womens-college-basketball",
   nfl: "nfl",
   cfb: "college-football",
-  "eng.1": "eng.1",
-  "esp.1": "esp.1",
-  "ita.1": "ita.1",
-  "ger.1": "ger.1",
-  "uefa.champions": "uefa.champions",
 };
+
+/**
+ * League registry extensions. Other sport modules (e.g. src/api/soccer.js)
+ * call registerLeagues() with their ESPN league definitions so the shared URL
+ * builders, loaders and watch links can resolve their keys too — basketball and
+ * football leagues stay declared in ESPN_LEAGUES above.
+ */
+const EXTERNAL_LEAGUES = {};
+
+export function registerLeagues(leagues = {}) {
+  Object.assign(EXTERNAL_LEAGUES, leagues);
+}
+
+function resolveLeague(leagueKey) {
+  return ESPN_LEAGUES[leagueKey] ?? EXTERNAL_LEAGUES[leagueKey];
+}
 
 /** Which ESPN leagues feed a sport, optionally narrowed to one competition. */
 export function liveLeaguesFor(sport, competition) {
-  const base =
-    sport === "football"
-      ? FOOTBALL_LIVE_LEAGUES
-      : sport === "soccer"
-        ? SOCCER_LIVE_LEAGUES
-        : BASKETBALL_LIVE_LEAGUES;
+  const base = sport === "football" ? FOOTBALL_LIVE_LEAGUES : BASKETBALL_LIVE_LEAGUES;
   const league = competition && competition !== "all" ? LEAGUE_BY_COMPETITION[competition] : null;
   if (!league || base.includes(league)) return base;
   return [league];
@@ -358,7 +319,7 @@ export function clearEspnCache() {
 // ---------------------------------------------------------------------------
 
 function requireLeague(leagueKey) {
-  const league = ESPN_LEAGUES[leagueKey];
+  const league = resolveLeague(leagueKey);
   if (!league) throw new EspnRequestError(`Unknown ESPN league: ${leagueKey}`);
   return league;
 }
@@ -609,7 +570,7 @@ function streamingBroadcasts(competition) {
 
 // The ESPN per-game watch page: https://www.espn.com/watch/{sport}/{league}/game/_/gameId/{id}
 export function espnWatchUrl(leagueKey, gameId) {
-  const path = ESPN_LEAGUES[leagueKey]?.path;
+  const path = resolveLeague(leagueKey)?.path;
   if (!path || !gameId) return null;
   return `https://www.espn.com/watch/${path}/game/_/gameId/${gameId}`;
 }
@@ -1314,7 +1275,7 @@ export async function loadMatchSummary(leagueKey, eventId, { force = false } = {
   return normalizeSummary(data);
 }
 
-async function mergeScoreboards(leagueKeys, options) {
+export async function mergeScoreboards(leagueKeys, options) {
   const results = await Promise.allSettled(
     leagueKeys.map((key) => loadScoreboard(key, options))
   );
@@ -1352,7 +1313,7 @@ async function mergeScoreboards(leagueKeys, options) {
  * exactly the games in progress, so the today view also asks for yesterday and
  * keeps the ones that never finished.
  */
-async function liveCarryOver(leagues, { date, force, seen = new Set() } = {}) {
+export async function liveCarryOver(leagues, { date, force, seen = new Set() } = {}) {
   if (!date || date !== toDateKey()) return [];
   try {
     const previous = await mergeScoreboards(leagues, {
@@ -1414,44 +1375,9 @@ export async function fetchFootballSnapshot({ week, seasonType, force = false, c
   return { games, standings, meta };
 }
 
-/**
- * Football (soccer) boards run on the calendar day: ESPN answers with today's
- * fixtures, and the matches from the previous evening that are still in
- * progress get carried over — a 19:45 UTC kickoff is still live at lunchtime
- * the next day. Standings come back for the selected league, or for every
- * tracked league while the board shows "All competitions".
- */
-export async function fetchSoccerSnapshot({ date, force = false, season, competition } = {}) {
-  const leagues = liveLeaguesFor("soccer", competition);
-  const { games, meta } = await mergeScoreboards(leagues, { date, force });
-
-  const carryOver = await liveCarryOver(leagues, {
-    date,
-    force,
-    seen: new Set(games.map((game) => String(game.id))),
-  });
-  const allGames = [...carryOver, ...games];
-
-  const standingsLeagues = competition && competition !== "all" ? [competition] : leagues;
-  const groups = await Promise.all(
-    standingsLeagues.map(async (key) => {
-      try {
-        // ESPN indexes soccer seasons by their start year (2026 → 2026-27).
-        return await loadStandings(key, { season: season ?? meta?.seasonYear, force });
-      } catch {
-        return []; // cup boards with no table keep the demo tables
-      }
-    })
-  );
-  const standings = groups.flat();
-
-  return { games: allGames, standings, meta };
-}
-
 export const SNAPSHOT_FETCHERS = {
   basketball: fetchBasketballSnapshot,
   football: fetchFootballSnapshot,
-  soccer: fetchSoccerSnapshot,
 };
 
 /** ESPN integration is skipped in unit tests and when explicitly disabled. */
