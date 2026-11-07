@@ -5,7 +5,7 @@ import {
 } from "../data/sportsData";
 import { LeagueSidebar } from "../components/LeagueSidebar";
 import { MobileSectionTabs } from "../components/Shell";
-import { FeaturedGame, ScoreboardPanel } from "../components/Scoreboard";
+import { HeroTicker, ScoreboardPanel } from "../components/Scoreboard";
 import { PlayerDetails } from "../components/PlayerDetails";
 import { StandingsPanel, StatTiles } from "../components/Standings";
 import { usePageMeta } from "../hooks/usePageMeta";
@@ -14,7 +14,6 @@ import { toDateKey } from "../utils/dates";
 import {
   buildTeamLogoMap,
   competitionColors,
-  featuredGame,
   seasonLabelFor,
   sortByStatus,
 } from "../utils/dashboard";
@@ -59,8 +58,12 @@ export default function SoccerPage({
   const updated = lastUpdated ?? (isControlled ? "custom dataset" : feed.label);
 
   const leagueColors = useMemo(() => competitionColors(competitions), [competitions]);
+  const competitionMap = useMemo(
+    () => new Map(competitions.map((entry) => [entry.id, entry])),
+    [competitions]
+  );
 
-  const filtered = useMemo(
+  const boardGames = useMemo(
     () =>
       sortByStatus(
         activeGames
@@ -71,17 +74,26 @@ export default function SoccerPage({
                 (country === "International games"
                   ? !HUB_COUNTRIES.includes(game.country)
                   : game.country === country)) &&
-              (status === "ALL" || game.status === status) &&
               `${game.home} ${game.away} ${game.competition}`
                 .toLowerCase()
                 .includes(search.toLowerCase())
           )
           .map((game) => ({ ...game, leagueColor: leagueColors[game.competitionId] }))
       ),
-    [activeGames, competition, country, status, search, leagueColors]
+    [activeGames, competition, country, search, leagueColors]
   );
 
-  const hero = useMemo(() => featuredGame(filtered), [filtered]);
+  // The hero ticker carries every live and upcoming match on the board —
+  // the status tabs below only filter the list, never the hero.
+  const heroGames = useMemo(
+    () => boardGames.filter((game) => game.status === "LIVE" || game.status === "UPCOMING"),
+    [boardGames]
+  );
+
+  const filtered = useMemo(
+    () => (status === "ALL" ? boardGames : boardGames.filter((game) => game.status === status)),
+    [boardGames, status]
+  );
   const logoMap = useMemo(
     () => buildTeamLogoMap(activeGames, activeStandings),
     [activeGames, activeStandings]
@@ -134,7 +146,15 @@ export default function SoccerPage({
 
       <div className="sh-center">
         <div id="section-live">
-          <FeaturedGame game={hero} sport="football" />
+          <HeroTicker
+            games={heroGames}
+            sport="football"
+            showContinents={country === "All countries"}
+            continentOf={(game) => {
+              const meta = competitionMap.get(game.competitionId);
+              return meta?.continent ?? meta?.region ?? null;
+            }}
+          />
         </div>
 
         <ScoreboardPanel

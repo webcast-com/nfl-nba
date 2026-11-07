@@ -1,12 +1,16 @@
 import { afterEach, describe, it, expect, vi } from "vitest";
-import { cleanup, render, fireEvent } from "@testing-library/react";
+import { cleanup, render, fireEvent, act } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import BasketballPage from "./BasketballPage";
 import NFLPage from "./NFLPage";
 import SoccerPage from "./SoccerPage";
+import { HERO_TICKER_MS } from "../components/Scoreboard";
 import { seasonStartForDate, toDateKey } from "../utils/dates";
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.useRealTimers();
+});
 
 const gameCards = (container) => container.querySelectorAll(".sh-game");
 
@@ -53,6 +57,33 @@ describe("BasketballPage", () => {
     const { container, getByRole } = render(<BasketballPage />);
     fireEvent.click(getByRole("tab", { name: "LIVE" }));
     expect(gameCards(container)).toHaveLength(3); // NBA, EuroLeague + NCAA men
+  });
+
+  it("rotates the hero ticker through every live and upcoming match", () => {
+    vi.useFakeTimers();
+    const { container } = render(<BasketballPage />);
+
+    const hero = container.querySelector(".sh-feature");
+    const dots = hero.querySelectorAll(".sh-ticker-dot");
+    expect(dots.length).toBe(6); // 3 live (NBA, EuroLeague, NCAA) + 3 upcoming
+    expect(hero.querySelector(".sh-live-pill").textContent).toBe("Live");
+    expect(hero.querySelector(".sh-feature-comp").textContent).toContain("NBA");
+
+    act(() => {
+      vi.advanceTimersByTime(HERO_TICKER_MS);
+    });
+    expect(hero.querySelector(".sh-feature-comp").textContent).toContain("EuroLeague");
+    expect(hero.querySelector(".sh-ticker-count").textContent).toBe("2 / 6");
+  });
+
+  it("labels hero matches with continents until the board is filtered", () => {
+    const { container, getByRole } = render(<BasketballPage />);
+    const hero = container.querySelector(".sh-feature");
+    expect(hero.querySelector(".sh-feature-comp").textContent).toContain("· NBA");
+
+    fireEvent.click(getByRole("button", { name: "Continent: Europe" }));
+    expect(hero.querySelector(".sh-feature-comp").textContent).toContain("EuroLeague");
+    expect(hero.querySelector(".sh-feature-comp").textContent).not.toContain("·");
   });
 
   it("filters by competition from the league sidebar", () => {
@@ -119,6 +150,20 @@ describe("NFLPage", () => {
     expect(gameCards(container)).toHaveLength(5); // NFL + College Football
     expect(container.querySelectorAll(".sh-table")).toHaveLength(4);
     expect(getAllByRole("tab", { name: "LIVE" }).length).toBe(1);
+  });
+
+  it("rotates the NFL hero through the live and upcoming games", () => {
+    vi.useFakeTimers();
+    const { container } = render(
+      <MemoryRouter>
+        <NFLPage />
+      </MemoryRouter>
+    );
+
+    const hero = container.querySelector(".sh-feature");
+    expect(hero.querySelectorAll(".sh-ticker-dot")).toHaveLength(4); // 2 live + 2 upcoming
+    expect(hero.querySelector(".sh-live-pill").textContent).toBe("Live");
+    expect(hero.querySelector(".sh-feature-comp").textContent).toContain("North America · NFL");
   });
 
   it("filters by conference from the sidebar", () => {
@@ -205,6 +250,31 @@ describe("SoccerPage", () => {
     expect(container.querySelectorAll(".sh-player")).toHaveLength(4);
     expect(container.querySelector(".sh-feature")).toBeTruthy();
     expect(document.title).toContain("Football (soccer)");
+  });
+
+  it("rotates the soccer hero through every live and upcoming match", () => {
+    vi.useFakeTimers();
+    const { container } = render(<SoccerPage />);
+
+    const hero = container.querySelector(".sh-feature");
+    expect(hero.querySelectorAll(".sh-ticker-dot")).toHaveLength(3); // Arsenal live + 2 upcoming
+    expect(hero.querySelector(".sh-live-pill").textContent).toBe("Live");
+    expect(hero.querySelector(".sh-feature-comp").textContent).toContain("Europe · Premier League");
+
+    act(() => {
+      vi.advanceTimersByTime(HERO_TICKER_MS);
+    });
+    expect(hero.querySelector(".sh-feature-team").textContent).toContain("Real Madrid");
+    expect(hero.querySelector(".sh-feature-comp").textContent).toContain("Europe · La Liga");
+  });
+
+  it("narrows the soccer hero with the country filter", () => {
+    const { container, getByRole } = render(<SoccerPage />);
+    fireEvent.click(getByRole("button", { name: "Country: Spain" }));
+
+    const hero = container.querySelector(".sh-feature");
+    expect(hero.querySelector(".sh-feature-team").textContent).toBe("Real Madrid");
+    expect(hero.querySelector(".sh-feature-comp").textContent).toBe("La Liga");
   });
 
   it("renders the soccer league table with the points column", () => {

@@ -7,7 +7,7 @@ import {
 import { LeagueSidebar } from "../components/LeagueSidebar";
 import { MobileSectionTabs } from "../components/Shell";
 import SportsrcPanel from "../components/SportsrcPanel";
-import { DateRail, FeaturedGame, ScoreboardPanel } from "../components/Scoreboard";
+import { DateRail, HeroTicker, ScoreboardPanel } from "../components/Scoreboard";
 import { PlayerDetails } from "../components/PlayerDetails";
 import { StandingsPanel, StatTiles } from "../components/Standings";
 import { usePageMeta } from "../hooks/usePageMeta";
@@ -26,7 +26,6 @@ import {
 import {
   buildTeamLogoMap,
   competitionColors,
-  featuredGame,
   sortByStatus,
 } from "../utils/dashboard";
 
@@ -166,7 +165,7 @@ export default function BasketballPage({
 
   const activeCountry = countryOptions.includes(country) ? country : "All countries";
 
-  const filtered = useMemo(
+  const boardGames = useMemo(
     () =>
       sortByStatus(
         activeGames
@@ -180,7 +179,6 @@ export default function BasketballPage({
                 gameCountry === activeCountry ||
                 meta?.country === activeCountry) &&
               (gender === "All genders" || meta?.gender === gender) &&
-              (status === "ALL" || game.status === status) &&
               `${game.home} ${game.away} ${game.competition}`
                 .toLowerCase()
                 .includes(search.toLowerCase())
@@ -195,13 +193,22 @@ export default function BasketballPage({
       continent,
       activeCountry,
       gender,
-      status,
       search,
       leagueColors,
     ]
   );
 
-  const hero = useMemo(() => featuredGame(filtered), [filtered]);
+  // The hero ticker carries every live and upcoming match on the board —
+  // the status tabs below only filter the list, never the hero.
+  const heroGames = useMemo(
+    () => boardGames.filter((game) => game.status === "LIVE" || game.status === "UPCOMING"),
+    [boardGames]
+  );
+
+  const filtered = useMemo(
+    () => (status === "ALL" ? boardGames : boardGames.filter((game) => game.status === status)),
+    [boardGames, status]
+  );
   const logoMap = useMemo(
     () => buildTeamLogoMap(activeGames, activeStandings),
     [activeGames, activeStandings]
@@ -310,7 +317,12 @@ export default function BasketballPage({
 
       <div className="sh-center">
         <div id="section-live">
-          <FeaturedGame game={hero} sport="basketball" />
+          <HeroTicker
+            games={heroGames}
+            sport="basketball"
+            showContinents={continent === "All continents" && activeCountry === "All countries"}
+            continentOf={(game) => competitionMap.get(game.competitionId)?.continent ?? null}
+          />
         </div>
 
         <ScoreboardPanel
