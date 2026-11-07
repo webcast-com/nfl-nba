@@ -1,7 +1,11 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
+// Register the soccer ESPN leagues before any route renders — soccer pages
+// call the shared espn.js loaders with keys like "eng.1".
+import "./api/soccer";
 import BasketballPage from "./pages/BasketballPage";
 import NFLPage from "./pages/NFLPage";
+import SoccerPage from "./pages/SoccerPage";
 import ComingSoonPage from "./pages/ComingSoonPage";
 import TeamPage from "./pages/TeamPage";
 import PlayerPage from "./pages/PlayerPage";
@@ -9,6 +13,7 @@ import NewsPage from "./pages/NewsPage";
 import TopScorersPage from "./pages/TopScorersPage";
 import UpcomingPage from "./pages/UpcomingPage";
 import MatchPage from "./pages/MatchPage";
+import StreamLivePage from "./pages/StreamLivePage";
 import { IconRail, TopBar } from "./components/Shell";
 import { SubNav } from "./components/SubNav";
 
@@ -60,7 +65,15 @@ export default function App() {
           <Route path="/nfl/news" element={<NewsPage sport="football" />} />
           <Route path="/basketball/match/:matchId" element={<MatchPage sport="basketball" />} />
           <Route path="/nfl/match/:matchId" element={<MatchPage sport="football" />} />
-          <Route path="/cricket" element={<ComingSoonPage sport="Cricket" />} />
+          <Route path="/soccer" element={<SoccerPage />} />
+          <Route path="/soccer/team/:teamKey" element={<TeamPage sport="soccer" />} />
+          <Route path="/soccer/player/:playerKey" element={<PlayerPage sport="soccer" />} />
+          <Route path="/soccer/upcoming" element={<UpcomingPage sport="soccer" />} />
+          <Route path="/soccer/top-scorers" element={<TopScorersPage sport="soccer" />} />
+          <Route path="/soccer/news" element={<NewsPage sport="soccer" />} />
+          <Route path="/soccer/match/:matchId" element={<MatchPage sport="soccer" />} />
+          <Route path="/cricket" element={<SoccerPage />} />
+          <Route path="/streamlive" element={<StreamLivePage />} />
           <Route path="/badminton" element={<ComingSoonPage sport="Badminton" />} />
           <Route path="/hockey" element={<ComingSoonPage sport="Hockey" />} />
           <Route path="*" element={<Navigate to="/basketball" replace />} />

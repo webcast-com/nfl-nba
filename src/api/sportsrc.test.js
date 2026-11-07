@@ -211,6 +211,8 @@ describe("Sportsrc loader", () => {
   });
 
   it("refuses to call the API without a key", async () => {
+    // The real .env.local may set the key — isolate this test from it.
+    vi.stubEnv("VITE_SPORTSRC_API_KEY", "");
     await expect(loadMatches()).rejects.toThrow("Missing Sportsrc API key");
   });
 

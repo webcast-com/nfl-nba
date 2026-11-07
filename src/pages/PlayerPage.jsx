@@ -14,6 +14,7 @@ import {
 } from "../utils/entities";
 import { metricShort, EmptyState, Panel, PanelHead, TeamLogo } from "../components/ui";
 import { IconArrowUpRight, IconChart, IconUsers } from "../components/Icons";
+import { usePageMeta } from "../hooks/usePageMeta";
 
 /**
  * A player page always shows a face: the ESPN headshot when there is one, the
@@ -66,6 +67,13 @@ export default function PlayerPage({ sport = "basketball" }) {
   const team = useMemo(
     () => (player?.team ? findTeam(teams, teamKeyFor(player.team)) : null),
     [player, teams]
+  );
+
+  usePageMeta(
+    player ? player.name : `${config.hubLabel} players`,
+    player
+      ? `${player.name} ${player.team ? `of the ${player.team} ` : ""}${config.hubLabel} stats, stats leaders and game log on ScoreHub.`
+      : `Browse ${config.label} player pages on ScoreHub.`
   );
 
   useEffect(() => {

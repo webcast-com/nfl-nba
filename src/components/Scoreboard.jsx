@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import heroBasketball from "../assets/hero-basketball.jpg";
 import heroFootball from "../assets/hero-football.jpg";
 import { IconCalendar, IconCamera, IconChart, IconChevronDown, IconClock, IconPlay, IconSearch } from "./Icons";
@@ -8,13 +8,49 @@ import { EmptyState, MaybeLink, Panel, PanelHead, RefreshButton, SourceChip, Tea
 
 const STATUS_COPY = { LIVE: "Live", FINAL: "Final", UPCOMING: "Upcoming" };
 
-export function FeaturedGame({ game, sport = "basketball" }) {
-  const image = sport === "football" ? heroFootball : heroBasketball;
+/** How long a single featured match stays on screen before the ticker moves on. */
+export const HERO_TICKER_MS = 7000;
 
-  if (!game) {
+/**
+ * The hero works like a ticker: it carries every live and upcoming match on
+ * the board, auto-advancing one featured game per slide with manual dots and
+ * arrows. The pointer resting on the board pauses the rotation, and the
+ * status tabs of the list below never hide it. `continentOf` labels each
+ * game with its continent while `showContinents` is on (i.e. until the user
+ * filters the board down to one continent or country).
+ */
+export function HeroTicker({
+  games = [],
+  sport = "basketball",
+  showContinents = false,
+  continentOf = () => null,
+  onWatch = null,
+}) {
+  const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
+
+  const total = games.length;
+  const current = total > 0 ? games[Math.min(index, total - 1)] : null;
+
+  // Keep the slide in range when the board changes underneath the ticker.
+  useEffect(() => {
+    setIndex((active) => Math.min(active, Math.max(total - 1, 0)));
+  }, [total]);
+
+  useEffect(() => {
+    if (total <= 1 || paused) return undefined;
+    const timer = setInterval(() => {
+      setIndex((active) => (active + 1) % total);
+    }, HERO_TICKER_MS);
+    return () => clearInterval(timer);
+  }, [total, paused]);
+
+  const go = (delta) => setIndex((active) => (active + delta + total) % total);
+
+  if (!current) {
     return (
       <section className="sh-feature sh-feature-empty">
-        <img className="sh-feature-bg" src={image} alt="" />
+        <img className="sh-feature-bg" src={sport === "football" ? heroFootball : heroBasketball} alt="" />
         <span className="sh-feature-veil" />
         <div className="sh-feature-top">
           <span className="sh-live-pill is-idle"><i />No live game</span>
@@ -27,65 +63,121 @@ export function FeaturedGame({ game, sport = "basketball" }) {
     );
   }
 
-  const isLive = game.status === "LIVE";
-  const clock = gameClockLabel(game);
+  const isLive = current.status === "LIVE";
+  const clock = gameClockLabel(current);
+  const continent = showContinents ? continentOf(current) : null;
+  const competition = continent ? `${continent} · ${current.competition}` : current.competition;
 
   return (
-    <section className="sh-feature" aria-label="Featured game">
-      <img className="sh-feature-bg" src={image} alt="" />
+    <section
+      className="sh-feature"
+      aria-label="Featured matches"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
+      <img className="sh-feature-bg" src={sport === "football" ? heroFootball : heroBasketball} alt="" />
       <span className="sh-feature-veil" />
 
-      <div className="sh-feature-top">
-        <span className={`sh-live-pill ${isLive ? "" : "is-idle"}`}>
-          <i />
-          {STATUS_COPY[game.status] ?? "Upcoming"}
-        </span>
-        <span className="sh-feature-comp">{game.competition}</span>
+      <div className="sh-feature-slide" key={current.id}>
+        <div className="sh-feature-top">
+          <span className={`sh-live-pill ${isLive ? "" : "is-idle"}`}>
+            <i />
+            {STATUS_COPY[current.status] ?? "Upcoming"}
+          </span>
+          <span className="sh-feature-comp">{competition}</span>
+        </div>
+
+        <div className="sh-feature-match sh-feature-match-anim">
+          <div className="sh-feature-side">
+            <TeamLogo src={current.homeLogo} code={current.homeCode} size="xl" />
+            <div className="sh-feature-team">{current.home}</div>
+            <div className="sh-feature-score">{current.homeScore ?? "—"}</div>
+          </div>
+
+          <div className="sh-feature-mid">
+            <span className="sh-feature-vs">V/S</span>
+            <span className={`sh-feature-clock ${isLive ? "is-live" : ""}`}>{clock}</span>
+            <span className="sh-feature-venue">{current.venue}</span>
+          </div>
+
+          <div className="sh-feature-side">
+            <TeamLogo src={current.awayLogo} code={current.awayCode} size="xl" />
+            <div className="sh-feature-team">{current.away}</div>
+            <div className="sh-feature-score">{current.awayScore ?? "—"}</div>
+          </div>
+        </div>
+
+        <div className="sh-feature-foot">
+          <span className="sh-feature-chip">
+            <i className="sh-tv-dot" />
+            {current.broadcast || "Broadcast TBD"}
+          </span>
+          <span className="sh-feature-chip sh-feature-chip-muted">
+            <IconClock size={13} />
+            {isLive ? `${clock} · in progress` : current.status === "FINAL" ? "Full time" : clock}
+          </span>
+          {onWatch ? (
+            <button
+              type="button"
+              className="sh-watch-btn sh-watch-btn-lg"
+              onClick={() => onWatch(current)}
+              aria-label={`Watch ${current.home} v ${current.away} livestream`}
+              title="Watch the livestream"
+            >
+              <IconPlay size={14} />
+              <span>Watch</span>
+            </button>
+          ) : current.watchUrl ? (
+            <a
+              className="sh-watch-btn sh-watch-btn-lg"
+              href={current.watchUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`Watch ${current.home} v ${current.away} on ESPN`}
+              title={current.streamNetwork ? `Watch on ${current.streamNetwork}` : "Watch on ESPN"}
+            >
+              <IconPlay size={14} />
+              <span>Watch</span>
+            </a>
+          ) : null}
+        </div>
       </div>
 
-      <div className="sh-feature-match">
-        <div className="sh-feature-side">
-          <TeamLogo src={game.homeLogo} code={game.homeCode} size="xl" />
-          <div className="sh-feature-team">{game.home}</div>
-          <div className="sh-feature-score">{game.homeScore ?? "—"}</div>
-        </div>
-
-        <div className="sh-feature-mid">
-          <span className="sh-feature-vs">V/S</span>
-          <span className={`sh-feature-clock ${isLive ? "is-live" : ""}`}>{clock}</span>
-          <span className="sh-feature-venue">{game.venue}</span>
-        </div>
-
-        <div className="sh-feature-side">
-          <TeamLogo src={game.awayLogo} code={game.awayCode} size="xl" />
-          <div className="sh-feature-team">{game.away}</div>
-          <div className="sh-feature-score">{game.awayScore ?? "—"}</div>
-        </div>
-      </div>
-
-      <div className="sh-feature-foot">
-        <span className="sh-feature-chip">
-          <i className="sh-tv-dot" />
-          {game.broadcast || "Broadcast TBD"}
-        </span>
-        <span className="sh-feature-chip sh-feature-chip-muted">
-          <IconClock size={13} />
-          {isLive ? `${clock} · in progress` : game.status === "FINAL" ? "Full time" : clock}
-        </span>
-        {game.watchUrl ? (
-          <a
-            className="sh-watch-btn sh-watch-btn-lg"
-            href={game.watchUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={`Watch ${game.home} v ${game.away} on ESPN`}
-            title={game.streamNetwork ? `Watch on ${game.streamNetwork}` : "Watch on ESPN"}
+      {total > 1 ? (
+        <div className="sh-ticker-bar" role="group" aria-label="Featured match navigation">
+          <button
+            type="button"
+            className="sh-ticker-btn"
+            aria-label="Previous match"
+            onClick={() => go(-1)}
           >
-            <IconPlay size={14} />
-            <span>Watch</span>
-          </a>
-        ) : null}
-      </div>
+            <IconChevronDown size={15} className="sh-ticker-chev-prev" />
+          </button>
+          <span className="sh-ticker-count">
+            {index + 1} / {total}
+          </span>
+          <div className="sh-ticker-dots">
+            {games.map((game, position) => (
+              <button
+                key={game.id ?? position}
+                type="button"
+                aria-label={`Match ${position + 1} of ${total}${game.home ? `: ${game.home} v ${game.away}` : ""}`}
+                aria-current={position === index}
+                className={`sh-ticker-dot ${position === index ? "is-active" : ""}`}
+                onClick={() => setIndex(position)}
+              />
+            ))}
+          </div>
+          <button
+            type="button"
+            className="sh-ticker-btn"
+            aria-label="Next match"
+            onClick={() => go(1)}
+          >
+            <IconChevronDown size={15} className="sh-ticker-chev-next" />
+          </button>
+        </div>
+      ) : null}
     </section>
   );
 }

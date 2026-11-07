@@ -2,6 +2,9 @@ node_modules
 dist
 .vite
 
+# Local environment overrides (API keys, preview hosts) — never commit these.
+.env*.local
+
 # Base44 sandbox / preview-only setup (not part of the app)
 docker-compose.base44.yml
 .base44/

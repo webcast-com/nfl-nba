@@ -3,12 +3,12 @@ import { slugify } from "../utils/entities";
 import { IconTrophy } from "./Icons";
 import { MaybeLink, Panel, PanelHead, TeamLogo } from "./ui";
 
-export function StandingsPanel({ groups = [], nfl = false, note = "Sample table", teamBasePath }) {
+export function StandingsPanel({ groups = [], nfl = false, soccer = false, note = "Sample table", teamBasePath }) {
   return (
     <Panel className="sh-standings-panel">
       <PanelHead
         icon={<IconTrophy size={15} />}
-        title={nfl ? "Conference & division standings" : "League standings"}
+        title={nfl ? "Conference & division standings" : soccer ? "League table" : "League standings"}
         note={note}
       />
 
@@ -21,12 +21,19 @@ export function StandingsPanel({ groups = [], nfl = false, note = "Sample table"
                 <thead>
                   <tr>
                     <th>Team</th>
-                    <th>GP</th>
+                    <th>P</th>
                     <th>W</th>
+                    {soccer ? <th>D</th> : null}
+                    {!soccer && nfl ? <th>T</th> : null}
                     <th>L</th>
-                    {nfl ? <th>T</th> : null}
                     <th>PCT</th>
-                    {nfl ? (
+                    {soccer ? (
+                      <>
+                        <th>GF</th>
+                        <th>GA</th>
+                        <th>PTS</th>
+                      </>
+                    ) : nfl ? (
                       <>
                         <th>PF</th>
                         <th>PA</th>
@@ -61,10 +68,17 @@ export function StandingsPanel({ groups = [], nfl = false, note = "Sample table"
                       </td>
                       <td>{row.p}</td>
                       <td className="sh-positive">{row.w}</td>
+                      {soccer ? <td>{row.t}</td> : null}
+                      {!soccer && nfl ? <td>{row.t}</td> : null}
                       <td>{row.l}</td>
-                      {nfl ? <td>{row.t}</td> : null}
                       <td>{row.pct}</td>
-                      {nfl ? (
+                      {soccer ? (
+                        <>
+                          <td>{row.pf}</td>
+                          <td>{row.pa}</td>
+                          <td className="sh-positive">{row.pts}</td>
+                        </>
+                      ) : nfl ? (
                         <>
                           <td>{row.pf}</td>
                           <td>{row.pa}</td>

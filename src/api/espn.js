@@ -138,6 +138,22 @@ export const LEAGUE_BY_COMPETITION = {
   cfb: "college-football",
 };
 
+/**
+ * League registry extensions. Other sport modules (e.g. src/api/soccer.js)
+ * call registerLeagues() with their ESPN league definitions so the shared URL
+ * builders, loaders and watch links can resolve their keys too — basketball and
+ * football leagues stay declared in ESPN_LEAGUES above.
+ */
+const EXTERNAL_LEAGUES = {};
+
+export function registerLeagues(leagues = {}) {
+  Object.assign(EXTERNAL_LEAGUES, leagues);
+}
+
+function resolveLeague(leagueKey) {
+  return ESPN_LEAGUES[leagueKey] ?? EXTERNAL_LEAGUES[leagueKey];
+}
+
 /** Which ESPN leagues feed a sport, optionally narrowed to one competition. */
 export function liveLeaguesFor(sport, competition) {
   const base = sport === "football" ? FOOTBALL_LIVE_LEAGUES : BASKETBALL_LIVE_LEAGUES;
@@ -176,6 +192,10 @@ const NFL_CONFERENCES = {
 const asArray = (value) => (Array.isArray(value) ? value : []);
 const isPlainObject = (value) =>
   Boolean(value) && typeof value === "object" && !Array.isArray(value);
+
+/** ESPN CDN folder holding player headshots per sport slug. */
+const headshotPath = (sport) =>
+  sport === "soccer" ? "soccer" : sport === "football" ? "nfl" : "nba";
 
 const toNumber = (value, fallback = null) => {
   if (value === null || value === undefined || value === "") return fallback;
@@ -299,7 +319,7 @@ export function clearEspnCache() {
 // ---------------------------------------------------------------------------
 
 function requireLeague(leagueKey) {
-  const league = ESPN_LEAGUES[leagueKey];
+  const league = resolveLeague(leagueKey);
   if (!league) throw new EspnRequestError(`Unknown ESPN league: ${leagueKey}`);
   return league;
 }
@@ -370,7 +390,7 @@ export function normalizeTeamInfo(payload) {
 
 export function normalizeRoster(payload, { sport = "basketball" } = {}) {
   const entries = asArray(payload?.athletes ?? payload?.team?.athletes);
-  const sportPath = sport === "football" ? "nfl" : "nba";
+  const sportPath = headshotPath(sport);
 
   return entries
     .map((athlete) => {
@@ -397,7 +417,7 @@ export function normalizeRoster(payload, { sport = "basketball" } = {}) {
 export function normalizeAthlete(payload, { sport = "basketball" } = {}) {
   const athlete = payload?.athlete ?? payload;
   if (!athlete || typeof athlete !== "object") return null;
-  const sportPath = sport === "football" ? "nfl" : "nba";
+  const sportPath = headshotPath(sport);
   const id = athlete.id ?? null;
 
   const categories = asArray(
@@ -484,6 +504,11 @@ const ordinal = (value) => {
 
 function periodLabel(sport, period) {
   if (!Number.isFinite(period) || period <= 0) return "";
+  if (sport === "soccer") {
+    // Two halves, then extra time: period 3/4 mark the knockout extra period.
+    if (period > 4) return "ET";
+    return ["1st Half", "2nd Half"][period - 1] ?? "";
+  }
   if (sport === "football") return period > 4 ? "OT" : ordinal(period);
   return period > 4 ? "OT" : `Q${period}`;
 }
@@ -496,6 +521,9 @@ const COUNTRY_LABELS = {
   "United States": "United States",
   GBR: "United Kingdom",
   ENG: "United Kingdom",
+  England: "United Kingdom",
+  Scotland: "United Kingdom",
+  Wales: "United Kingdom",
   "United Kingdom": "United Kingdom",
 };
 
@@ -542,7 +570,7 @@ function streamingBroadcasts(competition) {
 
 // The ESPN per-game watch page: https://www.espn.com/watch/{sport}/{league}/game/_/gameId/{id}
 export function espnWatchUrl(leagueKey, gameId) {
-  const path = ESPN_LEAGUES[leagueKey]?.path;
+  const path = resolveLeague(leagueKey)?.path;
   if (!path || !gameId) return null;
   return `https://www.espn.com/watch/${path}/game/_/gameId/${gameId}`;
 }
@@ -657,6 +685,13 @@ function formatGamesBehind(value) {
   return raw;
 }
 
+/** Points per game for football (soccer) tables (max 3.00). */
+function formatSoccerPct(value) {
+  const numeric = typeof value === "string" ? Number(value) : value;
+  if (!Number.isFinite(numeric)) return "—";
+  return numeric.toFixed(2);
+}
+
 const STAT_ALIASES = {
   p: ["gamesPlayed"],
   w: ["wins"],
@@ -693,7 +728,7 @@ function statDisplay(stats, names) {
   return null;
 }
 
-function normalizeStandingRow(entry) {
+function normalizeStandingRow(entry, { sport } = {}) {
   const team = entry?.team ?? entry;
   const stats = new Map(
     asArray(entry?.stats).map((stat) => [stat.name ?? stat.abbreviation, stat])
@@ -706,9 +741,16 @@ function normalizeStandingRow(entry) {
     statValue(stats, STAT_ALIASES.p) ??
     (wins !== null && losses !== null ? wins + losses + (ties ?? 0) : null);
 
-  const pctValue =
-    toNumber(statValue(stats, STAT_ALIASES.pct), null) ??
-    (wins !== null && gamesPlayed ? wins / gamesPlayed : null);
+  // Football (soccer) tables rank by points: PCT is points per game and PTS
+  // is the win/draw/loss total the league sorts on.
+  const points = statValue(stats, ["points"]);
+  const isSoccer = sport === "soccer";
+  const pctValue = isSoccer
+    ? points !== null && gamesPlayed
+      ? points / gamesPlayed
+      : null
+    : (toNumber(statValue(stats, STAT_ALIASES.pct), null) ??
+      (wins !== null && gamesPlayed ? wins / gamesPlayed : null));
 
   return {
     team: team.displayName ?? team.name ?? "TBD",
@@ -719,20 +761,25 @@ function normalizeStandingRow(entry) {
     w: wins ?? "—",
     l: losses ?? "—",
     t: ties ?? 0,
-    pct: formatPct(pctValue ?? statDisplay(stats, STAT_ALIASES.pct)),
+    pts: points ?? "—",
+    pct: isSoccer
+      ? formatSoccerPct(pctValue ?? statDisplay(stats, STAT_ALIASES.pct))
+      : formatPct(pctValue ?? statDisplay(stats, STAT_ALIASES.pct)),
     gb: formatGamesBehind(statDisplay(stats, STAT_ALIASES.gb)),
     streak: statDisplay(stats, STAT_ALIASES.streak) ?? "—",
     pf: statValue(stats, STAT_ALIASES.pf) ?? "—",
     pa: statValue(stats, STAT_ALIASES.pa) ?? "—",
-    _pct: pctValue ?? -1,
+    // Soccer sorts on points first, PPG only breaks equal-points cases.
+    _pct: isSoccer && points !== null ? points : pctValue ?? -1,
   };
 }
 
 /**
  * ESPN standings payload → the `{ group, rows }` groups the table renders.
- * Handles both flat roots and conference → division nesting.
+ * Handles both flat roots and conference → division nesting. `sport` switches
+ * football (soccer) tables to points-per-game ranking.
  */
-export function normalizeStandings(payload, { prefix = "" } = {}) {
+export function normalizeStandings(payload, { sport, prefix = "" } = {}) {
   const groups = [];
 
   const visit = (node) => {
@@ -745,7 +792,7 @@ export function normalizeStandings(payload, { prefix = "" } = {}) {
       groups.push({
         group: label || node.abbreviation || "Standings",
         rows: entries
-          .map(normalizeStandingRow)
+          .map((entry) => normalizeStandingRow(entry, { sport }))
           .filter((row) => row.team !== "TBD")
           .sort((a, b) => b._pct - a._pct)
           .map((row) => {
@@ -799,7 +846,7 @@ function findLeaderLists(node, out = [], depth = 0) {
 
 export function normalizeLeaders(payload, { sport = "basketball" } = {}) {
   const lists = findLeaderLists(payload);
-  const sportPath = sport === "football" ? "nfl" : "nba";
+  const sportPath = headshotPath(sport);
   const leaders = [];
   const seenMetrics = new Set();
 
@@ -1228,7 +1275,7 @@ export async function loadMatchSummary(leagueKey, eventId, { force = false } = {
   return normalizeSummary(data);
 }
 
-async function mergeScoreboards(leagueKeys, options) {
+export async function mergeScoreboards(leagueKeys, options) {
   const results = await Promise.allSettled(
     leagueKeys.map((key) => loadScoreboard(key, options))
   );
@@ -1266,7 +1313,7 @@ async function mergeScoreboards(leagueKeys, options) {
  * exactly the games in progress, so the today view also asks for yesterday and
  * keeps the ones that never finished.
  */
-async function liveCarryOver(leagues, { date, force, seen = new Set() } = {}) {
+export async function liveCarryOver(leagues, { date, force, seen = new Set() } = {}) {
   if (!date || date !== toDateKey()) return [];
   try {
     const previous = await mergeScoreboards(leagues, {

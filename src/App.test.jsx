@@ -16,10 +16,19 @@ describe("App shell", () => {
       </MemoryRouter>
     );
 
-    ["Basketball", "Football", "Cricket", "Badminton", "Hockey"].forEach((label) => {
+    ["Basketball", "Football", "Soccer", "StreamLive", "Badminton", "Hockey"].forEach((label) => {
       expect(getByRole("link", { name: label })).toBeTruthy();
     });
     expect(getByText("Basketball Center")).toBeTruthy();
+  });
+
+  it("serves the StreamLive page on /streamlive", () => {
+    const { getByRole } = render(
+      <MemoryRouter initialEntries={["/streamlive"]}>
+        <App />
+      </MemoryRouter>
+    );
+    expect(getByRole("heading", { name: "StreamLive" })).toBeTruthy();
   });
 
   it("switches the color theme", () => {
@@ -34,10 +43,20 @@ describe("App shell", () => {
 
   it("renders a placeholder for sports without a feed yet", () => {
     const { getByText } = render(
+      <MemoryRouter initialEntries={["/badminton"]}>
+        <App />
+      </MemoryRouter>
+    );
+    expect(getByText("Badminton coverage is coming soon")).toBeTruthy();
+  });
+
+  it("serves the football (soccer) hub on the old cricket path too", () => {
+    const { getByText, getByRole } = render(
       <MemoryRouter initialEntries={["/cricket"]}>
         <App />
       </MemoryRouter>
     );
-    expect(getByText("Cricket coverage is coming soon")).toBeTruthy();
+    expect(getByText("Football (Soccer) Center")).toBeTruthy();
+    expect(getByRole("link", { name: "Soccer" })).toBeTruthy();
   });
 });

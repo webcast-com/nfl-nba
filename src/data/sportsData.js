@@ -264,6 +264,165 @@ export const nflStats = [
   { label: "Playoff places", value: "14", foot: "Seven per conference" },
 ];
 
+// ---------------------------------------------------------------------------
+// Football (soccer) — ESPN leagues: eng.1 (Premier League), esp.1 (La Liga),
+// ita.1 (Serie A), ger.1 (Bundesliga), uefa.champions (Champions League).
+// ---------------------------------------------------------------------------
+
+const soccerCompetitionsSample = [
+  { id: "eng.1", name: "Premier League", country: "United Kingdom", continent: "Europe", gender: "Men", espn: "eng.1" },
+  { id: "esp.1", name: "La Liga", country: "Spain", continent: "Europe", gender: "Men", espn: "esp.1" },
+  { id: "ita.1", name: "Serie A", country: "Italy", continent: "Europe", gender: "Men", espn: "ita.1" },
+  { id: "ger.1", name: "Bundesliga", country: "Germany", continent: "Europe", gender: "Men", espn: "ger.1" },
+  { id: "uefa.champions", name: "Champions League", country: null, continent: "Europe", gender: "Men", espn: "uefa.champions" },
+];
+
+export const soccerCountries = [
+  "All countries",
+  "United Kingdom",
+  "Spain",
+  "Italy",
+  "Germany",
+  "International games",
+];
+
+const soccerGamesSample = [
+  {
+    id: 401878758,
+    competitionId: "eng.1",
+    competition: "Premier League",
+    country: "United Kingdom",
+    status: "FINAL",
+    clock: "Final",
+    home: "Leeds United",
+    away: "Tottenham Hotspur",
+    homeCode: "LEE",
+    awayCode: "TOT",
+    homeScore: 1,
+    awayScore: 0,
+    venue: "Elland Road",
+    startTime: "2026-11-07T12:30Z",
+  },
+  {
+    id: 401882812,
+    competitionId: "esp.1",
+    competition: "La Liga",
+    country: "Spain",
+    status: "FINAL",
+    clock: "Final",
+    home: "Málaga",
+    away: "Racing Santander",
+    homeCode: "MCF",
+    awayCode: "RAC",
+    homeScore: 1,
+    awayScore: 2,
+    venue: "La Rosaleda",
+    startTime: "2026-11-07T13:00Z",
+  },
+  {
+    id: 901001,
+    competitionId: "eng.1",
+    competition: "Premier League",
+    country: "United Kingdom",
+    status: "LIVE",
+    clock: "2nd Half · 63'",
+    home: "Arsenal",
+    away: "Manchester City",
+    homeCode: "ARS",
+    awayCode: "MNC",
+    homeScore: 1,
+    awayScore: 1,
+    venue: "Emirates Stadium",
+    startTime: "2026-11-07T19:00Z",
+  },
+  {
+    id: 901002,
+    competitionId: "esp.1",
+    competition: "La Liga",
+    country: "Spain",
+    status: "UPCOMING",
+    startTime: nextWeekdayTipoff(6, 20, 0),
+    home: "Real Madrid",
+    away: "Barcelona",
+    homeCode: "RMA",
+    awayCode: "BAR",
+    homeScore: null,
+    awayScore: null,
+    venue: "Santiago Bernabéu",
+  },
+  {
+    id: 401874791,
+    competitionId: "ita.1",
+    competition: "Serie A",
+    country: "Italy",
+    status: "FINAL",
+    clock: "Final",
+    home: "Cagliari",
+    away: "Frosinone",
+    homeCode: "CAG",
+    awayCode: "FRO",
+    homeScore: 1,
+    awayScore: 0,
+    venue: "Unipol Domus",
+    startTime: "2026-11-07T14:00Z",
+  },
+  {
+    id: 901004,
+    competitionId: "ger.1",
+    competition: "Bundesliga",
+    country: "Germany",
+    status: "UPCOMING",
+    startTime: nextWeekdayTipoff(7, 21, 30),
+    home: "Bayern Munich",
+    away: "Dortmund",
+    homeCode: "BAY",
+    awayCode: "DOR",
+    homeScore: null,
+    awayScore: null,
+    venue: "Allianz Arena",
+  },
+];
+
+// Premier League + La Liga sample tables. Points (PTS) rank soccer tables and
+// PCT shows points per game; ESPN standings feeds supply the live versions.
+const soccerStandingsSample = [
+  {
+    group: "Premier League",
+    rows: [
+      { team: "Arsenal", code: "ARS", espnId: "359", p: 10, w: 9, l: 0, t: 1, pct: "2.70", pf: 15, pa: 5, pts: 27 },
+      { team: "Manchester City", code: "MNC", espnId: "382", p: 9, w: 7, l: 1, t: 1, pct: "2.44", pf: 20, pa: 10, pts: 22 },
+      { team: "Brighton & Hove Albion", code: "BHA", espnId: "331", p: 9, w: 6, l: 2, t: 1, pct: "2.00", pf: 17, pa: 10, pts: 20 },
+      { team: "Leeds United", code: "LEE", espnId: "357", p: 10, w: 5, l: 3, t: 2, pct: "1.67", pf: 12, pa: 12, pts: 17 },
+      { team: "Tottenham Hotspur", code: "TOT", espnId: "367", p: 10, w: 4, l: 4, t: 2, pct: "1.40", pf: 11, pa: 14, pts: 14 },
+      { team: "Crystal Palace", code: "CRY", espnId: "384", p: 9, w: 3, l: 4, t: 2, pct: "1.44", pf: 8, pa: 11, pts: 11 },
+    ],
+  },
+  {
+    group: "La Liga",
+    rows: [
+      { team: "Barcelona", code: "BAR", espnId: "83", p: 11, w: 10, l: 0, t: 1, pct: "2.73", pf: 46, pa: 12, pts: 30 },
+      { team: "Atlético Madrid", code: "ATM", espnId: "1068", p: 11, w: 9, l: 1, t: 1, pct: "2.45", pf: 22, pa: 8, pts: 28 },
+      { team: "Real Madrid", code: "RMA", espnId: "86", p: 11, w: 8, l: 2, t: 1, pct: "2.18", pf: 24, pa: 12, pts: 25 },
+      { team: "Racing Santander", code: "RAC", espnId: "87", p: 11, w: 5, l: 3, t: 3, pct: "1.64", pf: 15, pa: 14, pts: 18 },
+      { team: "Málaga", code: "MCF", espnId: "99", p: 11, w: 3, l: 5, t: 3, pct: "1.27", pf: 10, pa: 16, pts: 12 },
+    ],
+  },
+];
+
+const soccerLeadersSample = [
+  { name: "Erling Haaland", team: "Manchester City", metric: "Goals", value: "12", initials: "EH" },
+  { name: "Kylian Mbappé", team: "Real Madrid", metric: "Goals", value: "11", initials: "KM" },
+  { name: "Robert Lewandowski", team: "Barcelona", metric: "Goals", value: "10", initials: "RL" },
+  { name: "Harry Kane", team: "Bayern Munich", metric: "Goals", value: "9", initials: "HK" },
+];
+
+export const soccerStats = [
+  { label: "Top leagues", value: "05", foot: "Europe's big five" },
+  { label: "Matchday", value: "11", foot: "Premier League games played" },
+  { label: "Goals per game", value: "2.8", foot: "Across the hub leagues" },
+  { label: "Teams tracked", value: "92", foot: "Across the five leagues" },
+];
+
 
 // ---------------------------------------------------------------------------
 // Presentation metadata for the demo data (team logos, broadcasters, badges)
@@ -300,6 +459,22 @@ const TEAM_LOGOS = {
   "LA Rams": teamLogo("nfl", "lar"),
   "Seattle Seahawks": teamLogo("nfl", "sea"),
   "Arizona Cardinals": teamLogo("nfl", "ari"),
+  // ESPN soccer logos are keyed by numeric club id.
+  "Leeds United": teamLogo("soccer", 357),
+  "Tottenham Hotspur": teamLogo("soccer", 367),
+  "Arsenal": teamLogo("soccer", 359),
+  "Manchester City": teamLogo("soccer", 382),
+  "Crystal Palace": teamLogo("soccer", 384),
+  "Brighton & Hove Albion": teamLogo("soccer", 331),
+  "Málaga": teamLogo("soccer", 99),
+  "Racing Santander": teamLogo("soccer", 87),
+  "Barcelona": teamLogo("soccer", 83),
+  "Atlético Madrid": teamLogo("soccer", 1068),
+  "Real Madrid": teamLogo("soccer", 86),
+  "Bayern Munich": teamLogo("soccer", 132),
+  "Dortmund": teamLogo("soccer", 124),
+  "Cagliari": teamLogo("soccer", 2925),
+  "Frosinone": teamLogo("soccer", 4057),
 };
 
 const BASKETBALL_BROADCASTS = {
@@ -324,6 +499,14 @@ const NFL_BROADCASTS = {
   cfb: "ABC",
 };
 
+const SOCCER_BROADCASTS = {
+  "eng.1": "USA Network",
+  "esp.1": "ESPN Deportes",
+  "ita.1": "Paramount+",
+  "ger.1": "Fandango",
+  "uefa.champions": "ESPN",
+};
+
 const COMPETITION_META = {
   nba: { short: "NBA", color: "#1d428a" },
   wnba: { short: "WNBA", color: "#e8590c" },
@@ -341,6 +524,11 @@ const COMPETITION_META = {
   nfl: { short: "NFL", color: "#1b3a6b" },
   preseason: { short: "PRE", color: "#3b6ea5" },
   playoffs: { short: "POST", color: "#b8860b" },
+  "eng.1": { short: "EPL", color: "#3d195b" },
+  "esp.1": { short: "LAL", color: "#ee8707" },
+  "ita.1": { short: "SEA", color: "#0a1e50" },
+  "ger.1": { short: "BUN", color: "#d20515" },
+  "uefa.champions": { short: "UCL", color: "#0d1e6e" },
 };
 
 const PLAYER_META = {
@@ -352,6 +540,10 @@ const PLAYER_META = {
   "Christian McCaffrey": { position: "RB", teamAbbr: "SF" },
   "Tyreek Hill": { position: "WR", teamAbbr: "MIA" },
   "Myles Garrett": { position: "DE", teamAbbr: "CLE" },
+  "Erling Haaland": { position: "FW", teamAbbr: "MNC" },
+  "Kylian Mbappé": { position: "FW", teamAbbr: "RMA" },
+  "Robert Lewandowski": { position: "FW", teamAbbr: "BAR" },
+  "Harry Kane": { position: "FW", teamAbbr: "BAY" },
 };
 
 const withLogos = (games, broadcasts) =>
@@ -390,3 +582,8 @@ export const ncaaBasketballStandings = withTeamLogos(ncaaMensStandingsSample);
 export const ncaaWomenStandings = withTeamLogos(ncaaWomenStandingsSample);
 export const collegeFootballStandings = withTeamLogos(collegeFootballStandingsSample);
 export const nflLeaders = withPlayerMeta(nflLeadersSample);
+
+export const soccerCompetitions = withLeagueMeta(soccerCompetitionsSample);
+export const soccerGames = withLogos(soccerGamesSample, SOCCER_BROADCASTS);
+export const soccerStandings = withTeamLogos(soccerStandingsSample);
+export const soccerLeaders = withPlayerMeta(soccerLeadersSample);

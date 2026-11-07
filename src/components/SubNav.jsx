@@ -11,9 +11,19 @@ const SCREENS = [
 /** Sport-aware secondary navigation shared by every screen of a hub. */
 export function SubNav() {
   const { pathname } = useLocation();
-  const sportPath = pathname.startsWith("/nfl") ? "/nfl" : "/basketball";
+  const sportPath = pathname.startsWith("/nfl")
+    ? "/nfl"
+    : pathname.startsWith("/soccer")
+      ? "/soccer"
+      : "/basketball";
 
-  if (!pathname.startsWith("/basketball") && !pathname.startsWith("/nfl")) return null;
+  if (
+    !pathname.startsWith("/basketball") &&
+    !pathname.startsWith("/nfl") &&
+    !pathname.startsWith("/soccer")
+  ) {
+    return null;
+  }
 
   // A match screen belongs to the live-score flow, so keep "Live" lit there too.
   const onMatch = pathname.startsWith(`${sportPath}/match/`);

@@ -692,6 +692,7 @@ describe("NCAA league routing", () => {
       "womens-college-basketball",
     ]);
     expect(liveLeaguesFor("football", "all")).toEqual(["nfl"]);
+    // Soccer boards live in src/api/soccer.js (see soccer.test.js).
   });
 
   it("narrow the board to boards the default view does not already cover", () => {
@@ -721,6 +722,10 @@ describe("NCAA league routing", () => {
     expect(leagueKeyForCompetition("ncaam")).toBe("mens-college-basketball");
     expect(leagueKeyForCompetition("cfb")).toBe("college-football");
     expect(leagueKeyForCompetition("nfl")).toBe("nfl");
+    // Soccer competitions are not mapped here — they live in src/api/soccer.js
+    // and the soccer pages fall back to their own config.leagueKey.
+    expect(leagueKeyForCompetition("eng.1")).toBeNull();
+    expect(leagueKeyForCompetition("uefa.champions")).toBeNull();
     expect(leagueKeyForCompetition(undefined)).toBeNull();
   });
 });
@@ -788,3 +793,4 @@ describe("live games across the local midnight", () => {
     expect(snapshot.games.filter((game) => game.id === "shared")).toHaveLength(1);
   });
 });
+

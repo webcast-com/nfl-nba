@@ -1,7 +1,12 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { usePageMeta } from "../hooks/usePageMeta";
 
 export default function ComingSoonPage({ sport }) {
+  usePageMeta(
+    `${sport} Center`,
+    `${sport} coverage and live scores are coming soon on ScoreHub.`
+  );
   return (
     <main className="sh-coming">
       <h1 className="sh-sr-only">{sport} Center</h1>

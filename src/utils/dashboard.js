@@ -54,12 +54,3 @@ export function matchPath(base, game) {
   const isFlagship = !competitionId || competitionId === BOARD_DEFAULT_COMPETITION[base];
   return `${base}/match/${game.id}${isFlagship ? "" : `?competition=${encodeURIComponent(competitionId)}`}`;
 }
-
-export function featuredGame(games = []) {
-  if (!games.length) return null;
-  return (
-    games.find((game) => game.status === "LIVE") ??
-    games.find((game) => game.status === "UPCOMING") ??
-    games[0]
-  );
-}

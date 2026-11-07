@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { detailSport } from "../data/detailConfig";
-import { basketballScorers, nflScorers, portraitFor } from "../data/scorersData";
+import { basketballScorers, nflScorers, soccerScorers, portraitFor } from "../data/scorersData";
 import { isEspnDisabled, loadLeaderboard } from "../api/espn";
 import { buildPlayerIndex, findPlayer, slugify } from "../utils/entities";
 import { Panel, PanelHead } from "../components/ui";
 import { IconChart } from "../components/Icons";
+import { usePageMeta } from "../hooks/usePageMeta";
 
 /**
  * Portrait ladder: ESPN headshot -> bundled artwork -> initials.
@@ -46,7 +47,11 @@ function ScorerAvatar({ sport, name, photo, initials }) {
 
 export default function TopScorersPage({ sport = "basketball" }) {
   const config = detailSport(sport);
-  const demo = sport === "football" ? nflScorers : basketballScorers;
+  usePageMeta(
+    `Top scorers · ${config.hubLabel}`,
+    `The ${config.label} leaderboards: points, assists, rebounds and more per game.`
+  );
+  const demo = sport === "football" ? nflScorers : sport === "soccer" ? soccerScorers : basketballScorers;
   const [boards, setBoards] = useState(demo);
 
   const players = useMemo(() => buildPlayerIndex(config.players ?? config.leaders), [config]);

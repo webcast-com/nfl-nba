@@ -9,6 +9,9 @@ import {
   nflGames,
   nflLeaders,
   nflStandings,
+  soccerGames,
+  soccerLeaders,
+  soccerStandings,
 } from "./sportsData";
 
 function rosterAndScorers(leaders, boards) {
@@ -48,6 +51,19 @@ export const DETAIL_SPORTS = {
     hubLabel: "Football",
     label: "NFL",
     nfl: true,
+  },
+  soccer: {
+    sport: "soccer",
+    games: soccerGames,
+    standings: soccerStandings,
+    leaders: soccerLeaders,
+    players: soccerLeaders,
+    competitionId: "eng.1",
+    leagueKey: "eng.1",
+    hub: "/soccer",
+    hubLabel: "Soccer",
+    label: "Soccer",
+    nfl: false,
   },
 };
 

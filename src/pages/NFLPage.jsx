@@ -6,15 +6,15 @@ import {
 } from "../data/sportsData";
 import { LeagueSidebar } from "../components/LeagueSidebar";
 import { MobileSectionTabs } from "../components/Shell";
-import { DateRail, FeaturedGame, ScoreboardPanel } from "../components/Scoreboard";
+import { DateRail, HeroTicker, ScoreboardPanel } from "../components/Scoreboard";
 import { PlayerDetails } from "../components/PlayerDetails";
 import { StandingsPanel, StatTiles } from "../components/Standings";
+import { usePageMeta } from "../hooks/usePageMeta";
 import { useEspnFeed } from "../hooks/useEspnFeed";
 import { buildWeekRail } from "../utils/dates";
 import {
   buildTeamLogoMap,
   competitionColors,
-  featuredGame,
   seasonLabelFor,
   sortByStatus,
 } from "../utils/dashboard";
@@ -33,6 +33,7 @@ export default function NFLPage({
   lastUpdated,
   live = true,
 }) {
+  usePageMeta("NFL", "Live NFL scores, fixtures, standings, top scorers and news.");
   const [competition, setCompetition] = useState("all");
   const [country, setCountry] = useState("All countries");
   const [status, setStatus] = useState("ALL");
@@ -64,7 +65,12 @@ export default function NFLPage({
   const maxWeek = college ? MAX_WEEKS_CFB : MAX_WEEKS[seasonType] ?? 18;
   const currentWeek = Math.min(Math.max(week ?? feed.meta?.week ?? 1, 1), maxWeek);
 
-  const filtered = useMemo(
+  const competitionMap = useMemo(
+    () => new Map(competitions.map((entry) => [entry.id, entry])),
+    [competitions]
+  );
+
+  const boardGames = useMemo(
     () =>
       sortByStatus(
         activeGames
@@ -76,17 +82,26 @@ export default function NFLPage({
                   ? game.country !== "United States"
                   : game.country === country)) &&
               (conference === "All conferences" || game.conference === conference) &&
-              (status === "ALL" || game.status === status) &&
               `${game.home} ${game.away} ${game.competition}`
                 .toLowerCase()
                 .includes(search.toLowerCase())
           )
           .map((game) => ({ ...game, leagueColor: leagueColors[game.competitionId] }))
       ),
-    [activeGames, competition, country, conference, status, search, leagueColors]
+    [activeGames, competition, country, conference, search, leagueColors]
   );
 
-  const hero = useMemo(() => featuredGame(filtered), [filtered]);
+  // The hero ticker carries every live and upcoming match on the board —
+  // the status tabs below only filter the list, never the hero.
+  const heroGames = useMemo(
+    () => boardGames.filter((game) => game.status === "LIVE" || game.status === "UPCOMING"),
+    [boardGames]
+  );
+
+  const filtered = useMemo(
+    () => (status === "ALL" ? boardGames : boardGames.filter((game) => game.status === status)),
+    [boardGames, status]
+  );
   const logoMap = useMemo(
     () => buildTeamLogoMap(activeGames, activeStandings),
     [activeGames, activeStandings]
@@ -157,7 +172,15 @@ export default function NFLPage({
 
       <div className="sh-center">
         <div id="section-live">
-          <FeaturedGame game={hero} sport="football" />
+          <HeroTicker
+            games={heroGames}
+            sport="football"
+            showContinents={country === "All countries"}
+            continentOf={(game) => {
+              const meta = competitionMap.get(game.competitionId);
+              return meta?.continent ?? meta?.region ?? null;
+            }}
+          />
         </div>
 
         <ScoreboardPanel
