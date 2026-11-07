@@ -11,6 +11,7 @@ import {
 } from "../api/espn";
 import { gameClockLabel } from "../utils/dates";
 import { slugify } from "../utils/entities";
+import { usePageMeta } from "../hooks/usePageMeta";
 import { EmptyState, Panel, PanelHead, TeamLogo } from "../components/ui";
 import {
   IconBall,
@@ -544,6 +545,19 @@ export default function MatchPage({ sport = "basketball" }) {
   };
 
   const state = demoGame?.status ?? (summary?.state === "in" ? "LIVE" : summary?.state === "post" ? "FINAL" : "UPCOMING");
+
+  // The title names the teams once the summary answers; until then the hub
+  // keeps the page identifiable to crawlers.
+  const matchTitle =
+    teams.home?.name && teams.away?.name
+      ? `${teams.away.name} at ${teams.home.name}`
+      : `${config.hubLabel} match`;
+  usePageMeta(
+    matchTitle,
+    teams.home?.name && teams.away?.name
+      ? `${teams.away.name} at ${teams.home.name}: live score, boxscore, lineups, head-to-head history and play-by-play commentary.`
+      : `Live match score, boxscore, lineups and play-by-play commentary.`
+  );
 
   // Streaming games get a Watch link to ESPN's per-game watch page.
   const watchUrl = summary?.streaming ? espnWatchUrl(leagueKey, matchId) : null;

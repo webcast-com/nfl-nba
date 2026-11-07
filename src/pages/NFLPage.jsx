@@ -9,6 +9,7 @@ import { MobileSectionTabs } from "../components/Shell";
 import { DateRail, FeaturedGame, ScoreboardPanel } from "../components/Scoreboard";
 import { PlayerDetails } from "../components/PlayerDetails";
 import { StandingsPanel, StatTiles } from "../components/Standings";
+import { usePageMeta } from "../hooks/usePageMeta";
 import { useEspnFeed } from "../hooks/useEspnFeed";
 import { buildWeekRail } from "../utils/dates";
 import {
@@ -33,6 +34,7 @@ export default function NFLPage({
   lastUpdated,
   live = true,
 }) {
+  usePageMeta("NFL", "Live NFL scores, fixtures, standings, top scorers and news.");
   const [competition, setCompetition] = useState("all");
   const [country, setCountry] = useState("All countries");
   const [status, setStatus] = useState("ALL");

@@ -4,6 +4,7 @@ import { detailSport } from "../data/detailConfig";
 import { basketballNews, nflNews, demoNewsImages } from "../data/newsData";
 import { isEspnDisabled, loadNews } from "../api/espn";
 import { EmptyState } from "../components/ui";
+import { usePageMeta } from "../hooks/usePageMeta";
 
 function fromEspn(article, fallbackImage) {
   return {
@@ -58,6 +59,10 @@ function NewsCard({ article }) {
 
 export default function NewsPage({ sport = "basketball" }) {
   const config = detailSport(sport);
+  usePageMeta(
+    `News · ${config.hubLabel}`,
+    `${config.label} news: match reports, previews and analysis from across the league.`
+  );
   const demo = sport === "football" ? nflNews : basketballNews;
   const fallbacks = useMemo(() => demoNewsImages[sport] ?? demoNewsImages.basketball, [sport]);
   const [articles, setArticles] = useState(demo);

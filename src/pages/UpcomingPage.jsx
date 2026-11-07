@@ -7,6 +7,7 @@ import { gameClockLabel } from "../utils/dates";
 import { matchPath } from "../utils/dashboard";
 import { EmptyState, Panel, PanelHead, TeamLogo } from "../components/ui";
 import { IconCalendar } from "../components/Icons";
+import { usePageMeta } from "../hooks/usePageMeta";
 
 function dayLabel(game) {
   if (game.status === "LIVE") return "In progress";
@@ -17,6 +18,10 @@ function dayLabel(game) {
 
 export default function UpcomingPage({ sport = "basketball" }) {
   const config = detailSport(sport);
+  usePageMeta(
+    `Upcoming · ${config.hubLabel}`,
+    `The next ${config.label} fixtures: dates, venues and kickoff times.`
+  );
   const feed = useEspnFeed({ sport, enabled: !isEspnDisabled() });
   const pool = feed.games?.length ? feed.games : config.games;
 

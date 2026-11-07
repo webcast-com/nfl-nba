@@ -15,6 +15,7 @@ import { gameClockLabel } from "../utils/dates";
 import { EmptyState, Panel, PanelHead, TeamLogo } from "../components/ui";
 import { StandingsPanel } from "../components/Standings";
 import { IconArrowUpRight, IconCalendar, IconUsers } from "../components/Icons";
+import { usePageMeta } from "../hooks/usePageMeta";
 
 function statusChip(game) {
   if (game.status === "LIVE") return { label: game.clock || "Live", tone: "is-live" };
@@ -59,6 +60,13 @@ export default function TeamPage({ sport = "basketball" }) {
   const index = useMemo(() => buildTeamIndex(config), [config]);
   const team = useMemo(() => findTeam(index, teamKey), [index, teamKey]);
   const leagueKey = team?.league ?? leagueKeyForCompetition(team?.competitionId) ?? config.leagueKey;
+
+  usePageMeta(
+    team ? team.name : `${config.hubLabel} teams`,
+    team
+      ? `${team.name} ${config.hubLabel} schedule, results, roster, stats and head-to-head history on ScoreHub.`
+      : `Browse ${config.label} team pages on ScoreHub.`
+  );
 
   useEffect(() => {
     setDetail(null);

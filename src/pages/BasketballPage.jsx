@@ -10,6 +10,7 @@ import SportsrcPanel from "../components/SportsrcPanel";
 import { DateRail, FeaturedGame, ScoreboardPanel } from "../components/Scoreboard";
 import { PlayerDetails } from "../components/PlayerDetails";
 import { StandingsPanel, StatTiles } from "../components/Standings";
+import { usePageMeta } from "../hooks/usePageMeta";
 import { useEspnFeed } from "../hooks/useEspnFeed";
 import { useSportsrcFeed } from "../hooks/useSportsrcFeed";
 import { hasSportsrcKey, isSportsrcDisabled } from "../api/sportsrc";
@@ -73,6 +74,10 @@ export default function BasketballPage({
   lastUpdated,
   live = true,
 }) {
+  usePageMeta(
+    "Basketball",
+    "Live NBA and basketball scores, fixtures, standings, top scorers and news."
+  );
   const [continent, setContinent] = useState("All continents");
   const [country, setCountry] = useState("All countries");
   const [gender, setGender] = useState("All genders");

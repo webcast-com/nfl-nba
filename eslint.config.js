@@ -7,6 +7,12 @@ export default [
   { ignores: ["dist", "node_modules", ".vite"] },
   js.configs.recommended,
   {
+    files: ["**/*.mjs"],
+    languageOptions: {
+      globals: { ...globals.node },
+    },
+  },
+  {
     files: ["**/*.{js,jsx}"],
     languageOptions: {
       ecmaVersion: 2022,

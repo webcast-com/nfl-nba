@@ -6,6 +6,7 @@ import { isEspnDisabled, loadLeaderboard } from "../api/espn";
 import { buildPlayerIndex, findPlayer, slugify } from "../utils/entities";
 import { Panel, PanelHead } from "../components/ui";
 import { IconChart } from "../components/Icons";
+import { usePageMeta } from "../hooks/usePageMeta";
 
 /**
  * Portrait ladder: ESPN headshot -> bundled artwork -> initials.
@@ -46,6 +47,10 @@ function ScorerAvatar({ sport, name, photo, initials }) {
 
 export default function TopScorersPage({ sport = "basketball" }) {
   const config = detailSport(sport);
+  usePageMeta(
+    `Top scorers · ${config.hubLabel}`,
+    `The ${config.label} leaderboards: points, assists, rebounds and more per game.`
+  );
   const demo = sport === "football" ? nflScorers : basketballScorers;
   const [boards, setBoards] = useState(demo);
 
