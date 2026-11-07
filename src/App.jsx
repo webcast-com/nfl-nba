@@ -13,6 +13,7 @@ import NewsPage from "./pages/NewsPage";
 import TopScorersPage from "./pages/TopScorersPage";
 import UpcomingPage from "./pages/UpcomingPage";
 import MatchPage from "./pages/MatchPage";
+import StreamLivePage from "./pages/StreamLivePage";
 import { IconRail, TopBar } from "./components/Shell";
 import { SubNav } from "./components/SubNav";
 
@@ -72,6 +73,7 @@ export default function App() {
           <Route path="/soccer/news" element={<NewsPage sport="soccer" />} />
           <Route path="/soccer/match/:matchId" element={<MatchPage sport="soccer" />} />
           <Route path="/cricket" element={<SoccerPage />} />
+          <Route path="/streamlive" element={<StreamLivePage />} />
           <Route path="/badminton" element={<ComingSoonPage sport="Badminton" />} />
           <Route path="/hockey" element={<ComingSoonPage sport="Hockey" />} />
           <Route path="*" element={<Navigate to="/basketball" replace />} />

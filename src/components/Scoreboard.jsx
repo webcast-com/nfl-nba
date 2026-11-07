@@ -24,6 +24,7 @@ export function HeroTicker({
   sport = "basketball",
   showContinents = false,
   continentOf = () => null,
+  onWatch = null,
 }) {
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -115,7 +116,18 @@ export function HeroTicker({
             <IconClock size={13} />
             {isLive ? `${clock} · in progress` : current.status === "FINAL" ? "Full time" : clock}
           </span>
-          {current.watchUrl ? (
+          {onWatch ? (
+            <button
+              type="button"
+              className="sh-watch-btn sh-watch-btn-lg"
+              onClick={() => onWatch(current)}
+              aria-label={`Watch ${current.home} v ${current.away} livestream`}
+              title="Watch the livestream"
+            >
+              <IconPlay size={14} />
+              <span>Watch</span>
+            </button>
+          ) : current.watchUrl ? (
             <a
               className="sh-watch-btn sh-watch-btn-lg"
               href={current.watchUrl}

@@ -26,6 +26,7 @@ export const SPORT_TABS = [
   { to: "/basketball", label: "Basketball", icon: IconBall },
   { to: "/nfl", label: "Football", icon: IconFootball },
   { to: "/soccer", label: "Soccer", icon: IconGoal },
+  { to: "/streamlive", label: "StreamLive", icon: IconPlay },
   { to: "/badminton", label: "Badminton", icon: IconShuttle },
   { to: "/hockey", label: "Hockey", icon: IconPuck },
 ];

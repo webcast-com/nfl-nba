@@ -375,6 +375,8 @@ html[data-theme='light'] .sh-topbar { background: rgba(255, 255, 255, 0.85); }
 
 .sh-center { display: grid; gap: 16px; min-width: 0; }
 .sh-right { display: grid; gap: 16px; min-width: 0; align-content: start; }
+/* StreamLive has no sidebar or right rail — the hero and panel span the page. */
+.sh-dash.is-streamlive { grid-template-columns: minmax(0, 1fr); }
 
 /* ------------------------------------------------------------------ panels */
 
@@ -457,6 +459,16 @@ html[data-theme='light'] .sh-topbar { background: rgba(255, 255, 255, 0.85); }
 }
 
 .sh-stream-titles h3 em { color: var(--muted-2); font-style: normal; padding: 0 4px; }
+
+.sh-stream-venue {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
 
 .sh-stream-close {
   flex: none;

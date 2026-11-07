@@ -23,6 +23,7 @@ const STATIC_PAGES = [
   { path: "/soccer/top-scorers", priority: "0.9", changefreq: "weekly" },
   { path: "/soccer/news", priority: "0.9", changefreq: "daily" },
   { path: "/cricket", priority: "0.6", changefreq: "monthly" },
+  { path: "/streamlive", priority: "0.9", changefreq: "daily" },
   { path: "/badminton", priority: "0.6", changefreq: "monthly" },
   { path: "/hockey", priority: "0.6", changefreq: "monthly" },
 ];

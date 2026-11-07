@@ -4,6 +4,7 @@ import { MemoryRouter } from "react-router-dom";
 import BasketballPage from "./BasketballPage";
 import NFLPage from "./NFLPage";
 import SoccerPage from "./SoccerPage";
+import StreamLivePage from "./StreamLivePage";
 import { HERO_TICKER_MS } from "../components/Scoreboard";
 import { seasonStartForDate, toDateKey } from "../utils/dates";
 
@@ -313,5 +314,21 @@ describe("SoccerPage", () => {
     expect(gameCards(container)).toHaveLength(1); // Cagliari v Frosinone
     fireEvent.click(getByRole("tab", { name: "FINAL" }));
     expect(gameCards(container)).toHaveLength(1);
+  });
+});
+
+describe("StreamLivePage", () => {
+  it("renders the ticker and the Sportsrc panel (disabled in tests)", () => {
+    const { container } = render(<StreamLivePage />);
+
+    expect(document.title).toContain("StreamLive");
+    // Sportsrc is disabled in the test environment, so both the hero and the
+    // panel fall back to their empty states.
+    const hero = container.querySelector(".sh-feature");
+    expect(hero.className).toContain("sh-feature-empty");
+    expect(hero.textContent).toContain("Nothing on the court right now");
+    expect(container.querySelector("#section-sportsrc")).toBeTruthy();
+    expect(container.textContent).toContain("No fixtures from Sportsrc");
+    expect(container.textContent).toContain("Sportsrc disabled");
   });
 });

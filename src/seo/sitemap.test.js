@@ -43,6 +43,7 @@ describe("sitemap generation", () => {
       "/soccer/top-scorers",
       "/soccer/news",
       "/cricket",
+      "/streamlive",
       "/badminton",
       "/hockey",
     ]) {
@@ -69,7 +70,7 @@ describe("sitemap generation", () => {
       origin: ORIGIN,
       data: [{ sport: "basketball", games: [{ id: null }], standings: [], leaders: [{}] }],
     });
-    expect(sparse).toHaveLength(15); // just the static pages
+    expect(sparse).toHaveLength(16); // just the static pages
   });
 
   it("sets lastmod, changefreq and priority on every entry", () => {

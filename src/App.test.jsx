@@ -16,10 +16,19 @@ describe("App shell", () => {
       </MemoryRouter>
     );
 
-    ["Basketball", "Football", "Soccer", "Badminton", "Hockey"].forEach((label) => {
+    ["Basketball", "Football", "Soccer", "StreamLive", "Badminton", "Hockey"].forEach((label) => {
       expect(getByRole("link", { name: label })).toBeTruthy();
     });
     expect(getByText("Basketball Center")).toBeTruthy();
+  });
+
+  it("serves the StreamLive page on /streamlive", () => {
+    const { getByRole } = render(
+      <MemoryRouter initialEntries={["/streamlive"]}>
+        <App />
+      </MemoryRouter>
+    );
+    expect(getByRole("heading", { name: "StreamLive" })).toBeTruthy();
   });
 
   it("switches the color theme", () => {

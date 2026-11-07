@@ -170,4 +170,13 @@ describe("HeroTicker", () => {
     expect(hero.querySelector(".sh-feature-comp").textContent).toBe("NBA");
     expect(hero.querySelector(".sh-ticker-bar")).toBeNull();
   });
+
+  it("opens the livestream from the Watch button when onWatch is provided", () => {
+    const onWatch = vi.fn();
+    const { getByRole } = render(<HeroTicker games={[games[0]]} onWatch={onWatch} />);
+
+    fireEvent.click(getByRole("button", { name: "Watch Boston Celtics v New York Knicks livestream" }));
+    expect(onWatch).toHaveBeenCalledTimes(1);
+    expect(onWatch).toHaveBeenCalledWith(games[0]);
+  });
 });
