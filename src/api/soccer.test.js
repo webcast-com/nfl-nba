@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   normalizeScoreboard,
   normalizeStandings,
-  espnWatchUrl,
 } from "./espn";
 import {
   SOCCER_LEAGUES,
@@ -24,16 +23,6 @@ describe("soccer league registry", () => {
       expect(league.path).toBe(`soccer/${key}`);
       expect(league.competitionId).toBe(key);
     }
-  });
-
-  it("resolves the tracked competitions through the espn.js URL builder", () => {
-    // The registry powers the shared espn.js loaders and watch links.
-    expect(espnWatchUrl("eng.1", "401878758")).toBe(
-      "https://www.espn.com/watch/soccer/eng.1/game/_/gameId/401878758"
-    );
-    expect(espnWatchUrl("uefa.champions", "401878758")).toBe(
-      "https://www.espn.com/watch/soccer/uefa.champions/game/_/gameId/401878758"
-    );
   });
 
   it("narrows the board to a single competition", () => {
@@ -130,14 +119,12 @@ describe("football (soccer) feeds", () => {
     expect(live.clock).toBe("2nd Half · 63'");
   });
 
-  it("marks streaming broadcasts and links to the ESPN watch page", () => {
+  it("marks streaming broadcasts as match metadata", () => {
     const games = normalizeScoreboard(soccerScoreboard, { league: "eng.1" });
     expect(games[0].streaming).toBe(true);
     expect(games[0].streamNetwork).toBe("USA Network");
-    expect(games[0].watchUrl).toBe(
-      "https://www.espn.com/watch/soccer/eng.1/game/_/gameId/401878758"
-    );
-    expect(games[1].watchUrl).toBeNull();
+    expect(games[0].watchUrl).toBeUndefined();
+    expect(games[1].streaming).toBe(false);
   });
 
   it("ranks soccer standings by points with a PPG percentage", () => {

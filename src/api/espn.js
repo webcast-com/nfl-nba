@@ -557,8 +557,8 @@ function broadcastName(competition) {
 }
 
 // ESPN marks streaming broadcasts with type id "4" / shortName "Streaming"
-// (linear TV broadcasts use id "1" / "TV"). A game with a streaming broadcast
-// can be watched through ESPN's own game watch experience.
+// (linear TV broadcasts use id "1" / "TV"). The flag is kept as match metadata;
+// no watch link is built — ESPN's per-game livestream is not exposed here.
 function isStreamingBroadcast(geoBroadcast) {
   const type = geoBroadcast?.type ?? {};
   return type.id === "4" || String(type.shortName ?? "").toLowerCase() === "streaming";
@@ -566,18 +566,6 @@ function isStreamingBroadcast(geoBroadcast) {
 
 function streamingBroadcasts(competition) {
   return asArray(competition?.geoBroadcasts).filter(isStreamingBroadcast);
-}
-
-// The ESPN per-game watch page: https://www.espn.com/watch/{sport}/{league}/game/_/gameId/{id}
-export function espnWatchUrl(leagueKey, gameId) {
-  const path = resolveLeague(leagueKey)?.path;
-  if (!path || !gameId) return null;
-  return `https://www.espn.com/watch/${path}/game/_/gameId/${gameId}`;
-}
-
-function watchUrl(event, league, streams) {
-  if (!streams.length) return null;
-  return espnWatchUrl(league.key, event.id);
 }
 
 function normalizeEvent(event, league, sport, index) {
@@ -649,7 +637,6 @@ function normalizeEvent(event, league, sport, index) {
     broadcast: broadcastName(competition),
     streaming,
     streamNetwork,
-    watchUrl: watchUrl(event, league, streams),
     venue: venue.fullName ?? "Venue TBD",
     startTime: event.date ?? null,
     league: league.key,

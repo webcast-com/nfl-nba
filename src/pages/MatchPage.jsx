@@ -7,7 +7,6 @@ import {
   isEspnDisabled,
   leagueKeyForCompetition,
   loadMatchSummary,
-  espnWatchUrl,
 } from "../api/espn";
 import { gameClockLabel } from "../utils/dates";
 import { slugify } from "../utils/entities";
@@ -559,9 +558,6 @@ export default function MatchPage({ sport = "basketball" }) {
       : `Live match score, boxscore, lineups and play-by-play commentary.`
   );
 
-  // Streaming games get a Watch link to ESPN's per-game watch page.
-  const watchUrl = summary?.streaming ? espnWatchUrl(leagueKey, matchId) : null;
-
   const statusText = demoGame
     ? demoGame.status === "FINAL"
       ? "Final"
@@ -590,19 +586,6 @@ export default function MatchPage({ sport = "basketball" }) {
         <span className={`sh-detail-chip ${STATUS_KIND[state] ?? "is-soon"}`}>
           {statusText ?? "Scheduled"}
         </span>
-        {watchUrl ? (
-          <a
-            className="sh-watch-btn sh-watch-btn-lg"
-            href={watchUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Watch this game on ESPN"
-            title={summary?.streamNetwork ? `Watch on ${summary.streamNetwork}` : "Watch on ESPN"}
-          >
-            <IconPlay size={14} />
-            <span>Watch</span>
-          </a>
-        ) : null}
         <span className="sh-match-venue">{demoGame?.venue ?? summary?.venue ?? ""}</span>
       </div>
 

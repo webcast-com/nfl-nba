@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   clearEspnCache,
-  espnWatchUrl,
   formatKickoff,
   fetchBasketballSnapshot,
   isEspnDisabled,
@@ -328,16 +327,6 @@ describe("ESPN streaming broadcasts", () => {
     });
     expect(summary.streaming).toBe(false);
     expect(summary.streamNetwork).toBeNull();
-  });
-
-  it("builds the per-game watch URL for a league and game id", () => {
-    expect(espnWatchUrl("nba", "401909922")).toBe(
-      "https://www.espn.com/watch/basketball/nba/game/_/gameId/401909922"
-    );
-    expect(espnWatchUrl("nfl", "401873037")).toBe(
-      "https://www.espn.com/watch/football/nfl/game/_/gameId/401873037"
-    );
-    expect(espnWatchUrl("nonsense", "1")).toBeNull();
   });
 });
 

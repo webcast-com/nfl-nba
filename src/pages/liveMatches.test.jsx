@@ -190,44 +190,19 @@ describe("live matches rendered from the ESPN shape", () => {
     ],
   };
 
-  it("marks streaming broadcasts and builds the ESPN watch URL", () => {
+  it("marks streaming broadcasts as match metadata", () => {
     const games = normalizeScoreboard(streamingPayload, { league: "nba" });
     expect(games[0]).toMatchObject({
       streaming: true,
       streamNetwork: "ESPN+",
-      watchUrl: "https://www.espn.com/watch/basketball/nba/game/_/gameId/405",
     });
+    expect(games[0].watchUrl).toBeUndefined();
   });
 
-  it("leaves TV-only games without a watch link", () => {
+  it("leaves TV-only games without a streaming flag", () => {
     const games = normalizeScoreboard(tvOnlyPayload, { league: "nba" });
     expect(games[0].streaming).toBe(false);
-    expect(games[0].watchUrl).toBeNull();
-  });
-
-  it("renders a Watch link on cards with a streaming broadcast", () => {
-    const games = normalizeScoreboard(streamingPayload, { league: "nba" });
-    const { container } = render(<BasketballPage games={games} />);
-
-    const watch = container.querySelector(".sh-watch-btn");
-    expect(watch).not.toBeNull();
-    expect(watch.getAttribute("href")).toBe(
-      "https://www.espn.com/watch/basketball/nba/game/_/gameId/405"
-    );
-    expect(watch.target).toBe("_blank");
-    expect(watch.textContent).toContain("Watch");
-  });
-
-  it("renders a Watch link on the featured hero when the game streams", () => {
-    const games = normalizeScoreboard(streamingPayload, { league: "nba" });
-    const { container } = render(<BasketballPage games={games} />);
-
-    const hero = container.querySelector(".sh-feature");
-    const watch = hero.querySelector(".sh-watch-btn");
-    expect(watch).not.toBeNull();
-    expect(watch.getAttribute("href")).toBe(
-      "https://www.espn.com/watch/basketball/nba/game/_/gameId/405"
-    );
+    expect(games[0].watchUrl).toBeUndefined();
   });
 
   it("renders a live NFL game with the football clock", () => {
