@@ -89,7 +89,7 @@ describe("SportsrcPanel", () => {
   it("renders the fixtures and the source chip", () => {
     const { getByText, queryByText } = render(<SportsrcPanel feed={feed} />);
 
-    expect(getByText("Global football · Sportsrc")).toBeTruthy();
+    expect(getByText("Football · Sportsrc")).toBeTruthy();
     expect(getByText("2 fixtures")).toBeTruthy();
     expect(getByText("LIVE · SPORTSRC")).toBeTruthy();
     expect(getByText("Real Madrid")).toBeTruthy();

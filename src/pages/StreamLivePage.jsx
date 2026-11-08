@@ -8,16 +8,15 @@ import { useSportsrcFeed } from "../hooks/useSportsrcFeed";
 import { sortByStatus } from "../utils/dashboard";
 
 /**
- * StreamLive — every fixture the Sportsrc global feed carries (football on
- * the free plan), fronted by a ticker of the live and upcoming games. Each
- * fixture has a stream: the hero's Watch button and the cards' Watch
- * buttons open the same shared `StreamOverlay` (see
- * src/components/StreamOverlay.jsx).
+ * StreamLive — every fixture the Sportsrc feed carries (football on the free
+ * plan), fronted by a ticker of the live and upcoming games. Each fixture has
+ * a stream: the hero's Watch button and the cards' Watch buttons open the
+ * same shared `StreamOverlay` (see src/components/StreamOverlay.jsx).
  */
 export default function StreamLivePage() {
   usePageMeta(
     "StreamLive",
-    "Watch live football games from around the world — every fixture the Sportsrc global feed carries, with its livestream."
+    "Watch live football games from around the world — every fixture the Sportsrc feed carries, with its livestream."
   );
   // Sportsrc's free plan covers football; basketball is premium.
   const feed = useSportsrcFeed({ sport: "football" });
@@ -43,7 +42,7 @@ export default function StreamLivePage() {
           <HeroTicker games={heroGames} sport="basketball" onWatch={setWatching} />
         </div>
 
-        <SportsrcPanel feed={feed} title="Global football" />
+        <SportsrcPanel feed={feed} title="Football" />
       </div>
 
       <MobileSectionTabs />

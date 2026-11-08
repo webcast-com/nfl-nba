@@ -19,7 +19,7 @@ const SHOW_LIMIT = 24;
  * (see src/components/StreamOverlay.jsx) which fetches the match detail and
  * renders the `sources[].embedUrl` in an iframe.
  */
-export default function SportsrcPanel({ feed, title = "Global football" }) {
+export default function SportsrcPanel({ feed, title = "Football" }) {
   const [tab, setTab] = useState("ALL");
   const [watching, setWatching] = useState(null); // match being streamed
 

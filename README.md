@@ -1,6 +1,6 @@
 # ScoreHub · Basketball + NFL live dashboard
 
-Dark, broadcast-style sports dashboard built with React + Vite. Scores, standings and player leaders come from ESPN's public (keyless) endpoints, global football fixtures and livestreams from the keyed Sportsrc API (opt-in), with bundled demo data as an automatic offline fallback.
+Dark, broadcast-style sports dashboard built with React + Vite. Scores, standings and player leaders come from ESPN's public (keyless) endpoints, football fixtures and livestreams from the keyed Sportsrc API (opt-in), with bundled demo data as an automatic offline fallback.
 
 ## Interface
 
