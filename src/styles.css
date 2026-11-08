@@ -2277,6 +2277,30 @@ html { scroll-behavior: smooth; }
 
 .sh-match-mid { display: grid; justify-items: center; gap: 6px; }
 .sh-match-venue { color: var(--muted-2); font-size: 10.5px; text-align: center; }
+.sh-match-attendance { color: var(--muted-2); font-size: 10.5px; text-align: center; }
+
+/* Match hero: league crest strip and the teams' season records */
+.sh-match-league {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  grid-column: 1 / -1;
+  color: var(--muted);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+.sh-match-league-logo {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.sh-match-record { color: var(--muted-2); font-size: 10.5px; }
 
 /* Match page: section chips + the detail / stats / lineups / H2H / table panels */
 

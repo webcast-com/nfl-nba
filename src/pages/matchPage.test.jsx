@@ -3,6 +3,9 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import MatchPage from "./MatchPage";
 import { loadMatchSummary } from "../api/espn";
+// Importing the soccer module registers its leagues with the shared ESPN
+// registry, so the match hero can resolve the competition crest.
+import "../api/soccer";
 
 vi.mock("../api/espn", async (importOriginal) => {
   const actual = await importOriginal();
@@ -494,5 +497,27 @@ describe("match section chips", () => {
     expect(table.textContent).toContain("2.70"); // Arsenal: 27 / 10
     expect(table.textContent).toContain("27");
     expect(table.textContent).toContain("2.10"); // Man City: 21 / 10
+  });
+
+  it("shows the league crest, team records and attendance in the hero", async () => {
+    loadMatchSummary.mockResolvedValue({
+      plays: [],
+      state: "post",
+      statusText: "Final",
+      venue: "Elland Road",
+      gameInfo: { venue: "Elland Road", city: "Leeds", attendance: 36924, officials: [] },
+      records: { home: "3-5-2", away: "3-3-4" },
+      teams: [
+        { name: "Leeds United", abbreviation: "LEE", homeAway: "home", score: "1", logo: null },
+        { name: "Tottenham Hotspur", abbreviation: "TOT", homeAway: "away", score: "0", logo: null },
+      ],
+    });
+    const { container } = renderAt("/soccer/match/401878758", "soccer");
+    await waitFor(() => expect(heroText(container)).toContain("3-5-2"));
+    expect(heroText(container)).toContain("Premier League");
+    expect(heroText(container)).toContain("3-3-4");
+    expect(heroText(container)).toContain("Attendance 36,924");
+    const crest = container.querySelector(".sh-match-league-logo");
+    expect(crest?.getAttribute("src")).toContain("leaguelogos/soccer/500/23.png");
   });
 });

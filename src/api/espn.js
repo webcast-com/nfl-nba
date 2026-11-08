@@ -175,6 +175,11 @@ export function leagueNameFor(leagueKey) {
   return resolveLeague(leagueKey)?.competition ?? null;
 }
 
+/** Crest of a registered league, or null when unknown. */
+export function leagueLogoFor(leagueKey) {
+  return resolveLeague(leagueKey)?.logo ?? null;
+}
+
 const NFL_COMPETITION_NAMES = {
   nfl: "NFL",
   preseason: "NFL Preseason",

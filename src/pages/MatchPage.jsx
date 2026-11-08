@@ -5,6 +5,7 @@ import { demoCommentary } from "../data/commentaryData";
 import {
   isEspnDisabled,
   leagueKeyForCompetition,
+  leagueLogoFor,
   leagueNameFor,
   loadMatchSummary,
 } from "../api/espn";
@@ -524,10 +525,15 @@ export default function MatchPage({ sport = "basketball" }) {
   const leagueKey = leagueKeyForCompetition(competitionId) ?? config.leagueKey;
   const competitionName =
     demoGame?.competition ?? leagueNameFor(leagueKey) ?? config.label;
+  const leagueLogo = leagueLogoFor(leagueKey);
 
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(!isEspnDisabled());
   const [chip, setChip] = useState("commentary");
+
+  // Attendance rides on the game info; ESPN shows it under the venue.
+  const attendance = summary?.gameInfo?.attendance ?? null;
+  const attendanceText = attendance ? Number(attendance).toLocaleString("en-US") : null;
 
   useEffect(() => {
     setSummary(null);
@@ -605,11 +611,21 @@ export default function MatchPage({ sport = "basketball" }) {
 
   const hero = (
     <header className="sh-detail-hero sh-match-hero">
+      {leagueLogo ? (
+        <div className="sh-match-league">
+          <img className="sh-match-league-logo" src={leagueLogo} alt="" loading="lazy" />
+          <span>{competitionName}</span>
+        </div>
+      ) : null}
+
       <div className="sh-match-team">
         <TeamLogo src={teams.home?.logo} code={teams.home?.code} size="xl" />
         <div>
           <b>{teams.home?.name ?? "TBD"}</b>
           <i>Home</i>
+          {summary?.records?.home ? (
+            <span className="sh-match-record"> · {summary.records.home}</span>
+          ) : null}
         </div>
         <span className="sh-match-score">{teams.home?.score ?? "—"}</span>
       </div>
@@ -619,6 +635,7 @@ export default function MatchPage({ sport = "basketball" }) {
           {statusText ?? "Scheduled"}
         </span>
         <span className="sh-match-venue">{demoGame?.venue ?? summary?.venue ?? ""}</span>
+        {attendanceText ? <span className="sh-match-attendance">Attendance {attendanceText}</span> : null}
       </div>
 
       <div className="sh-match-team is-away">
@@ -626,6 +643,9 @@ export default function MatchPage({ sport = "basketball" }) {
         <div>
           <b>{teams.away?.name ?? "TBD"}</b>
           <i>Away</i>
+          {summary?.records?.away ? (
+            <span className="sh-match-record"> · {summary.records.away}</span>
+          ) : null}
         </div>
         <TeamLogo src={teams.away?.logo} code={teams.away?.code} size="xl" />
       </div>
