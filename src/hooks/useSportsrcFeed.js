@@ -45,9 +45,11 @@ function statusLabel(status, updatedAt) {
 }
 
 /**
- * Polls the Sportsrc global-basketball fixtures feed and keeps the bundled
- * ESPN view untouched when Sportsrc is missing, disabled or unreachable —
- * the dashboard simply hides its Sportsrc panel instead of breaking.
+ * Polls the Sportsrc football fixtures feed and keeps the bundled ESPN view
+ * untouched when Sportsrc is missing, disabled or unreachable — the panel
+ * simply hides instead of breaking.
+ *
+ * The default sport is football — the only sport the free plan serves.
  *
  * By default the feed is fetched with the server's default window (everything
  * upcoming + live + recently finished); the panel filters client-side. Pass
@@ -55,14 +57,14 @@ function statusLabel(status, updatedAt) {
  * inprogress | upcoming | finished, `date` = YYYY-MM-DD.
  *
  * @param {object} options
- * @param {"basketball"} [options.sport] sport to fetch (only basketball is wired)
+ * @param {"football"} [options.sport] sport to fetch (football is the free plan)
  * @param {boolean} [options.enabled] false → never hit the network
  * @param {string} [options.filterStatus] "inprogress" | "upcoming" | "finished"
  * @param {string} [options.date] YYYY-MM-DD (only the server default window otherwise)
  * @param {number} [options.refreshMs] polling interval, 0 disables polling
  */
 export function useSportsrcFeed({
-  sport = "basketball",
+  sport = "football",
   enabled = true,
   filterStatus = null,
   date = null,

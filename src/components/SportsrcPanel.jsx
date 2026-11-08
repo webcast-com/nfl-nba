@@ -9,17 +9,17 @@ import { sortByStatus } from "../utils/dashboard";
 const SHOW_LIMIT = 24;
 
 /**
- * Global-basketball fixtures panel fed by the Sportsrc `?type=matches`
- * endpoint. The cards reuse the existing `MatchCard`, but the games are
- * rendered without a link: Sportsrc ids have no ESPN commentary behind them,
- * so the detail screen would come up empty.
+ * Football fixtures panel fed by the Sportsrc `?type=matches` endpoint.
+ * The cards reuse the existing `MatchCard`, but the games are rendered
+ * without a link: Sportsrc ids have no ESPN commentary behind them, so the
+ * detail screen would come up empty.
  *
  * Every fixture carries a Watch button: the matches feed only returns games
  * that have a stream, and opening one mounts the shared `StreamOverlay`
  * (see src/components/StreamOverlay.jsx) which fetches the match detail and
  * renders the `sources[].embedUrl` in an iframe.
  */
-export default function SportsrcPanel({ feed, title = "Global basketball" }) {
+export default function SportsrcPanel({ feed, title = "Global football" }) {
   const [tab, setTab] = useState("ALL");
   const [watching, setWatching] = useState(null); // match being streamed
 

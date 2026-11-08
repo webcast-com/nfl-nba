@@ -57,7 +57,16 @@ export default function StreamOverlay({ match, onClose }) {
         <header className="sh-stream-head">
           <div className="sh-stream-titles">
             <span className="sh-comp-chip">
-              <i style={{ background: match.leagueColor || "var(--accent)" }} />
+              {stream?.leagueLogo ?? match.leagueLogo ? (
+                <img
+                  className="sh-comp-logo"
+                  src={stream?.leagueLogo ?? match.leagueLogo}
+                  alt=""
+                  loading="lazy"
+                />
+              ) : (
+                <i style={{ background: match.leagueColor || "var(--accent)" }} />
+              )}
               {match.competition}
             </span>
             <h3>

@@ -98,6 +98,11 @@ describe("Sportsrc matches normalisation", () => {
       source: "sportsrc",
     });
     expect(finished.homeLogo).toBe("https://img.sportsrc.org/rma.png");
+    // League crests and flags ride on the feed payload.
+    expect(finished.leagueLogo).toBe("https://img.sportsrc.org/league.png");
+    expect(finished.leagueFlag).toBeNull();
+    // The feed only lists fixtures with a stream, so every card advertises it.
+    expect(finished.broadcast).toBe("Live stream");
 
     const live = games.find((game) => game.id === "brose-bay-Zjox2");
     expect(live).toMatchObject({ status: "LIVE", clock: "2nd half", homeScore: 48, awayScore: 44 });
@@ -137,7 +142,7 @@ describe("Sportsrc request layer", () => {
   it("builds direct + proxy candidate URLs and attaches the key", () => {
     const withKey = matchesUrls({ apiKey: "SECRET" });
     expect(withKey[0]).toContain("https://api.sportsrc.org/v3?type=matches");
-    expect(withKey[0]).toContain("sport=basketball");
+    expect(withKey[0]).toContain("sport=football"); // free plan serves football only
     // The default window omits status/date — the server answers with its
     // upcoming + live + recently-finished fixture window.
     expect(withKey[0]).not.toContain("status=");
@@ -238,7 +243,12 @@ describe("Sportsrc match detail (streaming)", () => {
           away: { name: "Atletico-MG", code: "ATL" },
         },
         score: { current: { home: 0, away: 0 } },
-        league: { name: "Serie A", country: "Brazil" },
+        league: {
+          name: "Serie A",
+          country: "Brazil",
+          logo: "https://img.sportsrc.org/serie-a.png",
+          flag: "https://img.sportsrc.org/brazil.svg",
+        },
       },
       sources: [
         {
@@ -302,6 +312,8 @@ describe("Sportsrc match detail (streaming)", () => {
       venue: "Estadio Olimpico Nilton Santos",
       referee: "Lucas Casagrande",
       startTime: new Date(1793838600000).toISOString(),
+      leagueLogo: "https://img.sportsrc.org/serie-a.png",
+      leagueFlag: "https://img.sportsrc.org/brazil.svg",
     });
     expect(detail.sources).toHaveLength(2);
     expect(detail.sources[0]).toMatchObject({
