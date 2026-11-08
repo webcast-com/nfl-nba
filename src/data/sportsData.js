@@ -266,7 +266,10 @@ export const nflStats = [
 
 // ---------------------------------------------------------------------------
 // Football (soccer) — ESPN leagues: eng.1 (Premier League), esp.1 (La Liga),
-// ita.1 (Serie A), ger.1 (Bundesliga), uefa.champions (Champions League).
+// ita.1 (Serie A), ger.1 (Bundesliga), fra.1 (Ligue 1), ned.1 (Eredivisie),
+// por.1 (Primeira Liga), sco.1 (Scottish Premiership), uefa.champions (UCL),
+// uefa.europa (UEL), uefa.europa.conf (UECL), uefa.nations (UNL), eng.fa
+// (FA Cup), mex.1 (Liga MX), bra.1 (Brasileirão).
 // ---------------------------------------------------------------------------
 
 const soccerCompetitionsSample = [
@@ -274,7 +277,17 @@ const soccerCompetitionsSample = [
   { id: "esp.1", name: "La Liga", country: "Spain", continent: "Europe", gender: "Men", espn: "esp.1" },
   { id: "ita.1", name: "Serie A", country: "Italy", continent: "Europe", gender: "Men", espn: "ita.1" },
   { id: "ger.1", name: "Bundesliga", country: "Germany", continent: "Europe", gender: "Men", espn: "ger.1" },
+  { id: "fra.1", name: "Ligue 1", country: "France", continent: "Europe", gender: "Men", espn: "fra.1" },
+  { id: "ned.1", name: "Eredivisie", country: "Netherlands", continent: "Europe", gender: "Men", espn: "ned.1" },
+  { id: "por.1", name: "Primeira Liga", country: "Portugal", continent: "Europe", gender: "Men", espn: "por.1" },
+  { id: "sco.1", name: "Scottish Premiership", country: "Scotland", continent: "Europe", gender: "Men", espn: "sco.1" },
   { id: "uefa.champions", name: "Champions League", country: null, continent: "Europe", gender: "Men", espn: "uefa.champions" },
+  { id: "uefa.europa", name: "Europa League", country: null, continent: "Europe", gender: "Men", espn: "uefa.europa" },
+  { id: "uefa.europa.conf", name: "Conference League", country: null, continent: "Europe", gender: "Men", espn: "uefa.europa.conf" },
+  { id: "uefa.nations", name: "Nations League", country: null, continent: "Europe", gender: "Men", espn: "uefa.nations" },
+  { id: "eng.fa", name: "FA Cup", country: "United Kingdom", continent: "Europe", gender: "Men", espn: "eng.fa" },
+  { id: "mex.1", name: "Liga MX", country: "Mexico", continent: "North America", gender: "Men", espn: "mex.1" },
+  { id: "bra.1", name: "Brasileirão", country: "Brazil", continent: "South America", gender: "Men", espn: "bra.1" },
 ];
 
 export const soccerCountries = [
@@ -283,6 +296,12 @@ export const soccerCountries = [
   "Spain",
   "Italy",
   "Germany",
+  "France",
+  "Netherlands",
+  "Portugal",
+  "Scotland",
+  "Mexico",
+  "Brazil",
   "International games",
 ];
 
@@ -524,11 +543,21 @@ const COMPETITION_META = {
   nfl: { short: "NFL", color: "#1b3a6b" },
   preseason: { short: "PRE", color: "#3b6ea5" },
   playoffs: { short: "POST", color: "#b8860b" },
-  "eng.1": { short: "EPL", color: "#3d195b" },
-  "esp.1": { short: "LAL", color: "#ee8707" },
-  "ita.1": { short: "SEA", color: "#0a1e50" },
-  "ger.1": { short: "BUN", color: "#d20515" },
-  "uefa.champions": { short: "UCL", color: "#0d1e6e" },
+  "eng.1": { short: "EPL", color: "#3d195b", logo: "https://a.espncdn.com/i/leaguelogos/soccer/500/23.png" },
+  "esp.1": { short: "LAL", color: "#ee8707", logo: "https://a.espncdn.com/i/leaguelogos/soccer/500/15.png" },
+  "ita.1": { short: "SEA", color: "#0a1e50", logo: "https://a.espncdn.com/i/leaguelogos/soccer/500/12.png" },
+  "ger.1": { short: "BUN", color: "#d20515", logo: "https://a.espncdn.com/i/leaguelogos/soccer/500/10.png" },
+  "fra.1": { short: "L1", color: "#0a1f44", logo: "https://a.espncdn.com/i/leaguelogos/soccer/500/9.png" },
+  "ned.1": { short: "ERE", color: "#ff6200", logo: "https://a.espncdn.com/i/leaguelogos/soccer/500/11.png" },
+  "por.1": { short: "POR", color: "#0a5c9c", logo: "https://a.espncdn.com/i/leaguelogos/soccer/500/14.png" },
+  "sco.1": { short: "SCO", color: "#1b4fa0", logo: "https://a.espncdn.com/i/leaguelogos/soccer/500/45.png" },
+  "uefa.champions": { short: "UCL", color: "#0d1e6e", logo: "https://a.espncdn.com/i/leaguelogos/soccer/500/2.png" },
+  "uefa.europa": { short: "UEL", color: "#f36c21", logo: "https://a.espncdn.com/i/leaguelogos/soccer/500/2310.png" },
+  "uefa.europa.conf": { short: "UECL", color: "#5c2d91", logo: "https://a.espncdn.com/i/leaguelogos/soccer/500/20296.png" },
+  "uefa.nations": { short: "UNL", color: "#0e2a5c", logo: "https://a.espncdn.com/i/leaguelogos/soccer/500/2395.png" },
+  "eng.fa": { short: "FAC", color: "#1c1c1c", logo: "https://a.espncdn.com/i/leaguelogos/soccer/500/40.png" },
+  "mex.1": { short: "LMX", color: "#009adf", logo: "https://a.espncdn.com/i/leaguelogos/soccer/500/22.png" },
+  "bra.1": { short: "BRA", color: "#f7d000", logo: "https://a.espncdn.com/i/leaguelogos/soccer/500/85.png" },
 };
 
 const PLAYER_META = {

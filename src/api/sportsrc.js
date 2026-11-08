@@ -1,12 +1,16 @@
 /**
  * Sportsrc data client.
  *
- * Sportsrc is a keyed JSON API (https://api.sportsrc.org/v3/) for global
- * basketball fixtures — the "matches" feed returns league-grouped games with
- * live/upcoming/finished scores and team badges. This client normalises that
- * payload into the exact shapes the ScoreHub pages already render
- * (`src/data/sportsData.js`), so cards, status chips and the live rail keep
- * working unchanged.
+ * Sportsrc is a keyed JSON API (https://api.sportsrc.org/v3/) for football
+ * fixtures — the "matches" feed returns league-grouped games with
+ * live/upcoming/finished scores, league crests/flags and team badges, and
+ * every listed fixture carries its streaming sources (the API only lists
+ * matches with a stream). This client normalises that payload into the exact
+ * shapes the ScoreHub pages already render (`src/data/sportsData.js`), so
+ * cards, status chips and the live rail keep working unchanged.
+ *
+ * The free plan covers football only — the default sport below is football,
+ * and other sports answer "Access Denied" without a premium key.
  *
  * The key is read from `VITE_SPORTSRC_API_KEY` and sent as the `X-API-KEY`
  * header (recommended by the API docs). A query-parameter fallback
@@ -16,7 +20,7 @@
  * same pattern `src/api/espn.js` uses for ESPN.
  *
  * Endpoints used:
- *   - matches:  /v3/?type=matches&sport={sport}&status={status}&date={date}
+ *   - matches:  /v3/?type=matches&sport=football&status={status}&date={date}
  *   - detail:   /v3/?type=detail&id={match_id} (venue, referee, streaming
  *               sources — the `sources[].embedUrl` is rendered in an iframe)
  */
@@ -176,13 +180,14 @@ export function clearSportsrcCache() {
  *  3. direct, key as `api_key` query parameter (header-stripping fallback)
  *  4. proxy, key as `api_key` query parameter
  *
+ * The default sport is football — the only sport the free plan serves.
  * `status`/`date` are optional: omitting them keeps the server's default
  * window (everything upcoming + live + recently finished around now), which is
  * what the panel renders. Explicit values must follow the API contract —
  * `status` ∈ inprogress | upcoming | finished, `date` = YYYY-MM-DD.
  */
 export function matchesUrls({
-  sport = "basketball",
+  sport = "football",
   status = null,
   date = null,
   apiKey = getSportsrcKey(),
@@ -291,10 +296,14 @@ function normalizeMatch(match, league, index) {
     // Scores are only present once the game has tipped off.
     homeScore: status === "UPCOMING" ? null : toNumber(current.home, null),
     awayScore: status === "UPCOMING" ? null : toNumber(current.away, null),
-    broadcast: null,
+    // The feed only lists fixtures that have a stream, so every card can
+    // advertise its livestream.
+    broadcast: "Live stream",
     venue: "Venue TBD",
     startTime,
     league: league.key,
+    leagueLogo: league.logo ?? null,
+    leagueFlag: league.flag ?? null,
     source: "sportsrc",
   };
 }
@@ -374,6 +383,8 @@ export function normalizeDetail(payload) {
     venue: venue.stadium ?? null,
     referee: referee.name ?? null,
     startTime,
+    leagueLogo: league.logo ?? null,
+    leagueFlag: league.flag ?? null,
     sources,
   };
 }

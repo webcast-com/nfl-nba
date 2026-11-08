@@ -3,11 +3,11 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import { detailSport } from "../data/detailConfig";
 import { demoCommentary } from "../data/commentaryData";
 import {
-  ESPN_LEAGUES,
   isEspnDisabled,
   leagueKeyForCompetition,
+  leagueLogoFor,
+  leagueNameFor,
   loadMatchSummary,
-  espnWatchUrl,
 } from "../api/espn";
 import { gameClockLabel } from "../utils/dates";
 import { slugify } from "../utils/entities";
@@ -389,7 +389,31 @@ function leagueColumns(entries) {
   return columns;
 }
 
-function MatchLeagueTable({ summary, basePath }) {
+/** Soccer tables rank on points — same columns as the soccer hub's league
+ *  table: played, wins, draws, losses, points per game, goals and points. */
+function soccerLeagueColumns(entries) {
+  const has = (key) => entries.some((entry) => entry.stats[key] != null);
+  const columns = [];
+  if (has("gamesPlayed")) columns.push({ key: "gamesPlayed", label: "P" });
+  if (has("wins")) columns.push({ key: "wins", label: "W" });
+  if (has("ties")) columns.push({ key: "ties", label: "D" });
+  if (has("losses")) columns.push({ key: "losses", label: "L" });
+  columns.push({ key: "pct", label: "PCT", computed: true });
+  if (has("pointsFor")) columns.push({ key: "pointsFor", label: "GF" });
+  if (has("pointsAgainst")) columns.push({ key: "pointsAgainst", label: "GA" });
+  if (has("points")) columns.push({ key: "points", label: "PTS" });
+  return columns;
+}
+
+/** Points per game — the PCT the soccer hub's league table shows. */
+function soccerRowPct(stats) {
+  const points = Number(stats.points);
+  const played = Number(stats.gamesPlayed);
+  if (!Number.isFinite(points) || !Number.isFinite(played) || !played) return "—";
+  return (points / played).toFixed(2);
+}
+
+function MatchLeagueTable({ summary, basePath, soccer = false }) {
   const standings = summary?.standings;
   if (!standings?.groups?.length) {
     return (
@@ -405,7 +429,7 @@ function MatchLeagueTable({ summary, basePath }) {
   return (
     <div className="sh-league-grid">
       {standings.groups.map((group, i) => {
-        const columns = leagueColumns(group.entries);
+        const columns = soccer ? soccerLeagueColumns(group.entries) : leagueColumns(group.entries);
         return (
           <Panel key={group.header ?? group.href ?? `standings-${i}`}>
             <PanelHead
@@ -417,8 +441,12 @@ function MatchLeagueTable({ summary, basePath }) {
               <thead>
                 <tr>
                   <th scope="col">Team</th>
-                  <th scope="col">W-L</th>
-                  <th scope="col">PCT</th>
+                  {soccer ? null : (
+                    <>
+                      <th scope="col">W-L</th>
+                      <th scope="col">PCT</th>
+                    </>
+                  )}
                   {columns.map((column) => (
                     <th key={column.key} scope="col">
                       {column.label}
@@ -437,13 +465,17 @@ function MatchLeagueTable({ summary, basePath }) {
                         </Link>
                       </span>
                     </td>
-                    <td className="sh-num">
-                      {entry.stats.overall ?? `${entry.stats.wins ?? "—"}-${entry.stats.losses ?? "—"}`}
-                    </td>
-                    <td className="sh-num">{entry.stats.winPercent ?? "—"}</td>
+                    {soccer ? null : (
+                      <>
+                        <td className="sh-num">
+                          {entry.stats.overall ?? `${entry.stats.wins ?? "—"}-${entry.stats.losses ?? "—"}`}
+                        </td>
+                        <td className="sh-num">{entry.stats.winPercent ?? "—"}</td>
+                      </>
+                    )}
                     {columns.map((column) => (
                       <td key={column.key} className="sh-num">
-                        {entry.stats[column.key] ?? "—"}
+                        {column.computed ? soccerRowPct(entry.stats) : entry.stats[column.key] ?? "—"}
                       </td>
                     ))}
                   </tr>
@@ -492,11 +524,16 @@ export default function MatchPage({ sport = "basketball" }) {
   const competitionId = demoGame?.competitionId ?? params.get("competition");
   const leagueKey = leagueKeyForCompetition(competitionId) ?? config.leagueKey;
   const competitionName =
-    demoGame?.competition ?? ESPN_LEAGUES[leagueKey]?.competition ?? config.label;
+    demoGame?.competition ?? leagueNameFor(leagueKey) ?? config.label;
+  const leagueLogo = leagueLogoFor(leagueKey);
 
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(!isEspnDisabled());
   const [chip, setChip] = useState("commentary");
+
+  // Attendance rides on the game info; ESPN shows it under the venue.
+  const attendance = summary?.gameInfo?.attendance ?? null;
+  const attendanceText = attendance ? Number(attendance).toLocaleString("en-US") : null;
 
   useEffect(() => {
     setSummary(null);
@@ -559,9 +596,6 @@ export default function MatchPage({ sport = "basketball" }) {
       : `Live match score, boxscore, lineups and play-by-play commentary.`
   );
 
-  // Streaming games get a Watch link to ESPN's per-game watch page.
-  const watchUrl = summary?.streaming ? espnWatchUrl(leagueKey, matchId) : null;
-
   const statusText = demoGame
     ? demoGame.status === "FINAL"
       ? "Final"
@@ -577,11 +611,21 @@ export default function MatchPage({ sport = "basketball" }) {
 
   const hero = (
     <header className="sh-detail-hero sh-match-hero">
+      {leagueLogo ? (
+        <div className="sh-match-league">
+          <img className="sh-match-league-logo" src={leagueLogo} alt="" loading="lazy" />
+          <span>{competitionName}</span>
+        </div>
+      ) : null}
+
       <div className="sh-match-team">
         <TeamLogo src={teams.home?.logo} code={teams.home?.code} size="xl" />
         <div>
           <b>{teams.home?.name ?? "TBD"}</b>
           <i>Home</i>
+          {summary?.records?.home ? (
+            <span className="sh-match-record"> · {summary.records.home}</span>
+          ) : null}
         </div>
         <span className="sh-match-score">{teams.home?.score ?? "—"}</span>
       </div>
@@ -590,20 +634,8 @@ export default function MatchPage({ sport = "basketball" }) {
         <span className={`sh-detail-chip ${STATUS_KIND[state] ?? "is-soon"}`}>
           {statusText ?? "Scheduled"}
         </span>
-        {watchUrl ? (
-          <a
-            className="sh-watch-btn sh-watch-btn-lg"
-            href={watchUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Watch this game on ESPN"
-            title={summary?.streamNetwork ? `Watch on ${summary.streamNetwork}` : "Watch on ESPN"}
-          >
-            <IconPlay size={14} />
-            <span>Watch</span>
-          </a>
-        ) : null}
         <span className="sh-match-venue">{demoGame?.venue ?? summary?.venue ?? ""}</span>
+        {attendanceText ? <span className="sh-match-attendance">Attendance {attendanceText}</span> : null}
       </div>
 
       <div className="sh-match-team is-away">
@@ -611,6 +643,9 @@ export default function MatchPage({ sport = "basketball" }) {
         <div>
           <b>{teams.away?.name ?? "TBD"}</b>
           <i>Away</i>
+          {summary?.records?.away ? (
+            <span className="sh-match-record"> · {summary.records.away}</span>
+          ) : null}
         </div>
         <TeamLogo src={teams.away?.logo} code={teams.away?.code} size="xl" />
       </div>
@@ -724,7 +759,7 @@ export default function MatchPage({ sport = "basketball" }) {
       {chip === "lineups" ? <MatchLineups summary={summary} /> : null}
       {chip === "head-to-head" ? <MatchHeadToHead summary={summary} matchId={matchId} /> : null}
       {chip === "league-table" ? (
-        <MatchLeagueTable summary={summary} basePath={basePath} />
+        <MatchLeagueTable summary={summary} basePath={basePath} soccer={sport === "soccer"} />
       ) : null}
 
       {backLink}

@@ -42,7 +42,7 @@ export function sortByStatus(games = []) {
   );
 }
 
-const BOARD_DEFAULT_COMPETITION = { "/basketball": "nba", "/nfl": "nfl" };
+const BOARD_DEFAULT_COMPETITION = { "/basketball": "nba", "/nfl": "nfl", "/soccer": "eng.1" };
 
 /**
  * Match screen URL. Games outside the board's flagship league (college, EuroLeague…)

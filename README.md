@@ -1,6 +1,6 @@
 # ScoreHub · Basketball + NFL live dashboard
 
-Dark, broadcast-style sports dashboard built with React + Vite. Scores, standings and player leaders come from ESPN's public (keyless) endpoints, global basketball fixtures from the keyed Sportsrc API (opt-in), with bundled demo data as an automatic offline fallback.
+Dark, broadcast-style sports dashboard built with React + Vite. Scores, standings and player leaders come from ESPN's public (keyless) endpoints, football fixtures and livestreams from the keyed Sportsrc API (opt-in), with bundled demo data as an automatic offline fallback.
 
 ## Interface
 
@@ -20,14 +20,14 @@ Sports without a feed yet (Cricket, Badminton, Hockey) render a placeholder page
 
 ## Included
 
-- `src/pages/BasketballPage.jsx` — global basketball dashboard: continent / competition / gender / country / season filters, date rail, status tabs and search.
+- `src/pages/BasketballPage.jsx` — basketball dashboard: continent / competition / gender / country / season filters, date rail, status tabs and search.
 - `src/pages/NFLPage.jsx` — NFL dashboard, season stage + week rail + conference filters.
 - `src/pages/TeamPage.jsx` / `src/pages/PlayerPage.jsx` — team and player detail pages reached from the standings table, the player rail and the squad list.
 - `src/pages/NewsPage.jsx` / `TopScorersPage.jsx` / `UpcomingPage.jsx` / `MatchPage.jsx` — the news, leaderboard, schedule and match-commentary screens, plus `src/components/SubNav.jsx`, the pill bar that switches between them.
 - `src/pages/ComingSoonPage.jsx` — placeholder for sports that don't have a feed yet.
-- `src/components/` — shell (rail/top bar), league sidebar, hero, score panel, match cards, player cards, standings, UI primitives, icon set, plus the `SportsrcPanel` global-fixtures panel.
+- `src/components/` — shell (rail/top bar), league sidebar, hero, score panel, match cards, player cards, standings, UI primitives, icon set, plus the `SportsrcPanel` football-fixtures panel.
 - `src/api/espn.js` — ESPN client and normalisers.
-- `src/api/sportsrc.js` — Sportsrc client (keyed global basketball fixtures) and normalisers.
+- `src/api/sportsrc.js` — Sportsrc client (keyed football fixtures + livestream sources) and normalisers.
 - `src/hooks/useEspnFeed.js` — polling hook that swaps demo data for live data.
 - `src/hooks/useSportsrcFeed.js` — polling hook for the Sportsrc fixtures panel.
 - `src/data/sportsData.js` — demo data (scores, standings, leaders, team logos, broadcasters) used for the first paint and offline mode.
@@ -189,11 +189,11 @@ When deploying the static build without a proxy, keep the default ESPN origins (
 
 ## Sportsrc integration
 
-The basketball hub carries a supplementary **Global basketball · Sportsrc** panel below the ESPN scoreboard, feeding global basketball fixtures from the keyed Sportsrc JSON API (dozens of leagues, live/upcoming/finished scores with team badges). It is opt-in: without `VITE_SPORTSRC_API_KEY` the panel hides and the app is exactly the ESPN-only experience.
+Sportsrc is a keyed JSON API (https://api.sportsrc.org/v3/) whose free plan covers **football only** — its `matches` feed lists every football fixture that has a stream, grouped by league, with league crests/flags and team badges. The app surfaces it on the **StreamLive** page (`/streamlive`): a ticker of live/upcoming games plus the fixtures panel, where every card carries a Watch button. It is opt-in: without `VITE_SPORTSRC_API_KEY` the page falls back to its empty states and the rest of the app is exactly the ESPN-only experience.
 
 | What | Endpoint |
 | --- | --- |
-| Global basketball fixtures (league-grouped) | `api.sportsrc.org/v3/?type=matches&sport=basketball` |
+| Football fixtures (league-grouped, streams only) | `api.sportsrc.org/v3/?type=matches&sport=football` |
 | Match detail with streaming sources | `api.sportsrc.org/v3/?type=detail&id={match_id}` |
 
 How it behaves:
@@ -201,9 +201,9 @@ How it behaves:
 - **Keyed requests.** The license key (`VITE_SPORTSRC_API_KEY`) is sent as the `X-API-KEY` header; each request tries the direct origin first, then the same-origin `/sportsrc` proxy (`vite.config.js`). Query-parameter (`api_key=…`) variants are added as extra candidates so the feed still works when a proxy strips custom headers.
 - **Statuses map onto the existing tabs.** Sportsrc's `inprogress`/`live` → `LIVE`, `finished`/`post` → `FINAL`, `upcoming`/`scheduled` → `UPCOMING`. Upcoming games render kick-offs in the viewer's time zone from their `timestamp`, exactly like the ESPN feed.
 - **Unlinked cards.** Sportsrc match ids have no ESPN commentary behind them, so the fixtures render as plain cards instead of opening a match page.
-- **Livestreams.** Every fixture card carries a Watch button — the matches feed only returns games that have a stream. Opening one fetches `?type=detail&id=…` and renders the returned `sources[].embedUrl` in an iframe modal (multiple sources become switchable tabs). Per the Sportsrc docs the player needs standard permissions and must not be sandboxed; streams include ads from the third-party provider.
+- **Livestreams.** Every fixture card carries a Watch button — the matches feed only returns games that have a stream, so every fixture always has a livestream. Opening one fetches `?type=detail&id=…` and renders the returned `sources[].embedUrl` in an iframe modal (multiple sources become switchable tabs). Per the Sportsrc docs the player needs standard permissions and must not be sandboxed; streams include ads from the third-party provider.
 - **Independent of ESPN.** The panel polls every 60s, caches responses for 60s and shares nothing with the ESPN feed — ESPN stays the source of standings, leaders and match pages.
-- **Graceful degradation.** No key or `VITE_SPORTSRC_DISABLE=1` hides the panel; a failed request shows an offline note instead of breaking the hub.
+- **Graceful degradation.** No key or `VITE_SPORTSRC_DISABLE=1` hides the panel; a failed request shows an offline note instead of breaking the page.
 
 ### Configuration
 

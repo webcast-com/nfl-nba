@@ -165,7 +165,19 @@ export function liveLeaguesFor(sport, competition) {
 /** Competition id → ESPN league key (used by the team pages). */
 export function leagueKeyForCompetition(competitionId) {
   if (!competitionId) return null;
-  return LEAGUE_BY_COMPETITION[competitionId] ?? null;
+  // Registered external leagues (e.g. the soccer registry) resolve too, so a
+  // match link from any competition lands on the right ESPN board.
+  return LEAGUE_BY_COMPETITION[competitionId] ?? resolveLeague(competitionId)?.key ?? null;
+}
+
+/** Display name of a registered league, or null when unknown. */
+export function leagueNameFor(leagueKey) {
+  return resolveLeague(leagueKey)?.competition ?? null;
+}
+
+/** Crest of a registered league, or null when unknown. */
+export function leagueLogoFor(leagueKey) {
+  return resolveLeague(leagueKey)?.logo ?? null;
 }
 
 const NFL_COMPETITION_NAMES = {
@@ -557,8 +569,8 @@ function broadcastName(competition) {
 }
 
 // ESPN marks streaming broadcasts with type id "4" / shortName "Streaming"
-// (linear TV broadcasts use id "1" / "TV"). A game with a streaming broadcast
-// can be watched through ESPN's own game watch experience.
+// (linear TV broadcasts use id "1" / "TV"). The flag is kept as match metadata;
+// no watch link is built — ESPN's per-game livestream is not exposed here.
 function isStreamingBroadcast(geoBroadcast) {
   const type = geoBroadcast?.type ?? {};
   return type.id === "4" || String(type.shortName ?? "").toLowerCase() === "streaming";
@@ -566,18 +578,6 @@ function isStreamingBroadcast(geoBroadcast) {
 
 function streamingBroadcasts(competition) {
   return asArray(competition?.geoBroadcasts).filter(isStreamingBroadcast);
-}
-
-// The ESPN per-game watch page: https://www.espn.com/watch/{sport}/{league}/game/_/gameId/{id}
-export function espnWatchUrl(leagueKey, gameId) {
-  const path = resolveLeague(leagueKey)?.path;
-  if (!path || !gameId) return null;
-  return `https://www.espn.com/watch/${path}/game/_/gameId/${gameId}`;
-}
-
-function watchUrl(event, league, streams) {
-  if (!streams.length) return null;
-  return espnWatchUrl(league.key, event.id);
 }
 
 function normalizeEvent(event, league, sport, index) {
@@ -649,10 +649,10 @@ function normalizeEvent(event, league, sport, index) {
     broadcast: broadcastName(competition),
     streaming,
     streamNetwork,
-    watchUrl: watchUrl(event, league, streams),
     venue: venue.fullName ?? "Venue TBD",
     startTime: event.date ?? null,
     league: league.key,
+    leagueLogo: league.logo ?? null,
   };
 }
 
@@ -779,7 +779,10 @@ function normalizeStandingRow(entry, { sport } = {}) {
  * Handles both flat roots and conference → division nesting. `sport` switches
  * football (soccer) tables to points-per-game ranking.
  */
-export function normalizeStandings(payload, { sport, prefix = "" } = {}) {
+export function normalizeStandings(
+  payload,
+  { sport, prefix = "", league = null, logo = null } = {}
+) {
   const groups = [];
 
   const visit = (node) => {
@@ -791,6 +794,8 @@ export function normalizeStandings(payload, { sport, prefix = "" } = {}) {
       const label = [prefix, node.name].filter(Boolean).join(" · ");
       groups.push({
         group: label || node.abbreviation || "Standings",
+        league,
+        leagueLogo: logo,
         rows: entries
           .map((entry) => normalizeStandingRow(entry, { sport }))
           .filter((row) => row.team !== "TBD")
@@ -1237,6 +1242,8 @@ export async function loadStandings(leagueKey, { season, force = false } = {}) {
   return normalizeStandings(data, {
     sport: league.sport,
     prefix: league.sport === "basketball" ? league.competition : "",
+    league: league.key,
+    logo: league.logo ?? null,
   });
 }
 

@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   clearEspnCache,
-  espnWatchUrl,
   formatKickoff,
   fetchBasketballSnapshot,
   isEspnDisabled,
@@ -328,16 +327,6 @@ describe("ESPN streaming broadcasts", () => {
     });
     expect(summary.streaming).toBe(false);
     expect(summary.streamNetwork).toBeNull();
-  });
-
-  it("builds the per-game watch URL for a league and game id", () => {
-    expect(espnWatchUrl("nba", "401909922")).toBe(
-      "https://www.espn.com/watch/basketball/nba/game/_/gameId/401909922"
-    );
-    expect(espnWatchUrl("nfl", "401873037")).toBe(
-      "https://www.espn.com/watch/football/nfl/game/_/gameId/401873037"
-    );
-    expect(espnWatchUrl("nonsense", "1")).toBeNull();
   });
 });
 
@@ -722,11 +711,12 @@ describe("NCAA league routing", () => {
     expect(leagueKeyForCompetition("ncaam")).toBe("mens-college-basketball");
     expect(leagueKeyForCompetition("cfb")).toBe("college-football");
     expect(leagueKeyForCompetition("nfl")).toBe("nfl");
-    // Soccer competitions are not mapped here — they live in src/api/soccer.js
-    // and the soccer pages fall back to their own config.leagueKey.
+    // Without the soccer registry loaded (this file never imports it) soccer
+    // competitions stay unmapped — src/api/soccer.js registers them at startup.
     expect(leagueKeyForCompetition("eng.1")).toBeNull();
     expect(leagueKeyForCompetition("uefa.champions")).toBeNull();
     expect(leagueKeyForCompetition(undefined)).toBeNull();
+    expect(leagueKeyForCompetition("nonsense")).toBeNull();
   });
 });
 

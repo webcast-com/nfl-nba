@@ -44,7 +44,6 @@ const RAIL_ITEMS = [
 
 export const SECTION_TABS = [
   { id: "section-live", label: "Live", icon: IconPlay },
-  { id: "section-sportsrc", label: "Global games", icon: IconBall },
   { id: "section-standings", label: "Standings", icon: IconChart },
   { id: "section-filters", label: "Filters", icon: IconGrid },
   { id: "section-players", label: "Players", icon: IconUsers },
@@ -62,8 +61,7 @@ export function MobileSectionTabs() {
 
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
-    // Only offer tabs whose section is on this page — the Sportsrc panel is
-    // opt-in, so its tab hides when the integration is not configured.
+    // Only offer tabs whose section is on this page.
     const available = SECTION_TABS.filter((tab) => document.getElementById(tab.id));
     setTabs(available);
     if (!available.length) return undefined;

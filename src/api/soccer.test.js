@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  leagueKeyForCompetition,
+  leagueNameFor,
   normalizeScoreboard,
   normalizeStandings,
-  espnWatchUrl,
 } from "./espn";
 import {
   SOCCER_LEAGUES,
@@ -17,23 +18,25 @@ describe("soccer league registry", () => {
       "esp.1",
       "ita.1",
       "ger.1",
+      "fra.1",
+      "ned.1",
+      "por.1",
+      "sco.1",
       "uefa.champions",
+      "uefa.europa",
+      "uefa.europa.conf",
+      "uefa.nations",
+      "eng.fa",
+      "mex.1",
+      "bra.1",
     ]);
     for (const [key, league] of Object.entries(SOCCER_LEAGUES)) {
       expect(league.sport).toBe("soccer");
       expect(league.path).toBe(`soccer/${key}`);
       expect(league.competitionId).toBe(key);
+      // Every competition carries its ESPN crest.
+      expect(league.logo).toMatch(/^https:\/\/a\.espncdn\.com\/i\/leaguelogos\/soccer\/500\/\d+\.png$/);
     }
-  });
-
-  it("resolves the tracked competitions through the espn.js URL builder", () => {
-    // The registry powers the shared espn.js loaders and watch links.
-    expect(espnWatchUrl("eng.1", "401878758")).toBe(
-      "https://www.espn.com/watch/soccer/eng.1/game/_/gameId/401878758"
-    );
-    expect(espnWatchUrl("uefa.champions", "401878758")).toBe(
-      "https://www.espn.com/watch/soccer/uefa.champions/game/_/gameId/401878758"
-    );
   });
 
   it("narrows the board to a single competition", () => {
@@ -41,6 +44,20 @@ describe("soccer league registry", () => {
     expect(liveLeaguesForSoccer("all")).toEqual(SOCCER_LIVE_LEAGUES);
     expect(liveLeaguesForSoccer("eng.1")).toEqual(["eng.1"]);
     expect(liveLeaguesForSoccer("esp.1")).toEqual(["esp.1"]);
+    // Every registered league can narrow the board, including the new ones.
+    for (const key of ["fra.1", "ned.1", "por.1", "sco.1", "uefa.europa", "uefa.europa.conf", "uefa.nations", "eng.fa", "mex.1", "bra.1"]) {
+      expect(liveLeaguesForSoccer(key)).toEqual([key]);
+    }
+  });
+
+  it("registers every competition with the shared league registry", () => {
+    // importing ./soccer calls registerLeagues, so the shared URL builders and
+    // match links resolve all soccer keys — not just the flagship one.
+    for (const [key, league] of Object.entries(SOCCER_LEAGUES)) {
+      expect(leagueKeyForCompetition(key)).toBe(key);
+      expect(leagueNameFor(key)).toBe(league.competition);
+    }
+    expect(leagueKeyForCompetition("nonsense")).toBeNull();
   });
 });
 
@@ -130,14 +147,12 @@ describe("football (soccer) feeds", () => {
     expect(live.clock).toBe("2nd Half · 63'");
   });
 
-  it("marks streaming broadcasts and links to the ESPN watch page", () => {
+  it("marks streaming broadcasts as match metadata", () => {
     const games = normalizeScoreboard(soccerScoreboard, { league: "eng.1" });
     expect(games[0].streaming).toBe(true);
     expect(games[0].streamNetwork).toBe("USA Network");
-    expect(games[0].watchUrl).toBe(
-      "https://www.espn.com/watch/soccer/eng.1/game/_/gameId/401878758"
-    );
-    expect(games[1].watchUrl).toBeNull();
+    expect(games[0].watchUrl).toBeUndefined();
+    expect(games[1].streaming).toBe(false);
   });
 
   it("ranks soccer standings by points with a PPG percentage", () => {
@@ -177,9 +192,16 @@ describe("football (soccer) feeds", () => {
       ],
     };
 
-    const groups = normalizeStandings(payload, { sport: "soccer" });
+    const groups = normalizeStandings(payload, {
+      sport: "soccer",
+      league: "eng.1",
+      logo: SOCCER_LEAGUES["eng.1"].logo,
+    });
     expect(groups).toHaveLength(1);
     expect(groups[0].group).toBe("2026-27 English Premier League");
+    // The table carries its competition so the card can show the crest.
+    expect(groups[0].league).toBe("eng.1");
+    expect(groups[0].leagueLogo).toBe(SOCCER_LEAGUES["eng.1"].logo);
     expect(groups[0].rows[0].team).toBe("Arsenal"); // sorted by points, not wins%
     expect(groups[0].rows[0].pts).toBe(27);
     expect(groups[0].rows[0].pct).toBe("2.70"); // points per game
