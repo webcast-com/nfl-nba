@@ -84,7 +84,12 @@ export function HeroTicker({
             <i />
             {STATUS_COPY[current.status] ?? "Upcoming"}
           </span>
-          <span className="sh-feature-comp">{competition}</span>
+          <span className="sh-feature-comp">
+            {current.leagueLogo ? (
+              <img className="sh-comp-logo" src={current.leagueLogo} alt="" loading="lazy" />
+            ) : null}
+            {competition}
+          </span>
         </div>
 
         <div className="sh-feature-match sh-feature-match-anim">
@@ -239,7 +244,11 @@ export function MatchCard({ game, matchBasePath, onWatch }) {
 
       <div className="sh-match-meta">
         <span className="sh-comp-chip">
-          <i style={{ background: game.leagueColor || "var(--accent)" }} />
+          {game.leagueLogo ? (
+            <img className="sh-comp-logo" src={game.leagueLogo} alt="" loading="lazy" />
+          ) : (
+            <i style={{ background: game.leagueColor || "var(--accent)" }} />
+          )}
           {game.competition}
         </span>
         <span className={`sh-clock ${clockClass}`}>{game.status === "FINAL" ? "Final" : clock}</span>

@@ -15,7 +15,12 @@ export function StandingsPanel({ groups = [], nfl = false, soccer = false, note 
       <div className="sh-standings-grid">
         {groups.map((group) => (
           <div className="sh-standings-card" key={group.group}>
-            <div className="sh-standings-title">{group.group}</div>
+            <div className="sh-standings-title">
+              {group.leagueLogo ? (
+                <img className="sh-standings-logo" src={group.leagueLogo} alt="" loading="lazy" />
+              ) : null}
+              {group.group}
+            </div>
             <div className="sh-table-wrap">
               <table className="sh-table">
                 <thead>

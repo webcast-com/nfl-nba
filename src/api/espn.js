@@ -647,6 +647,7 @@ function normalizeEvent(event, league, sport, index) {
     venue: venue.fullName ?? "Venue TBD",
     startTime: event.date ?? null,
     league: league.key,
+    leagueLogo: league.logo ?? null,
   };
 }
 
@@ -773,7 +774,10 @@ function normalizeStandingRow(entry, { sport } = {}) {
  * Handles both flat roots and conference → division nesting. `sport` switches
  * football (soccer) tables to points-per-game ranking.
  */
-export function normalizeStandings(payload, { sport, prefix = "" } = {}) {
+export function normalizeStandings(
+  payload,
+  { sport, prefix = "", league = null, logo = null } = {}
+) {
   const groups = [];
 
   const visit = (node) => {
@@ -785,6 +789,8 @@ export function normalizeStandings(payload, { sport, prefix = "" } = {}) {
       const label = [prefix, node.name].filter(Boolean).join(" · ");
       groups.push({
         group: label || node.abbreviation || "Standings",
+        league,
+        leagueLogo: logo,
         rows: entries
           .map((entry) => normalizeStandingRow(entry, { sport }))
           .filter((row) => row.team !== "TBD")
@@ -1231,6 +1237,8 @@ export async function loadStandings(leagueKey, { season, force = false } = {}) {
   return normalizeStandings(data, {
     sport: league.sport,
     prefix: league.sport === "basketball" ? league.competition : "",
+    league: league.key,
+    logo: league.logo ?? null,
   });
 }
 

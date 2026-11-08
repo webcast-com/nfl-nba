@@ -6,6 +6,7 @@ export const FLAG_CODES = {
   "United States": "us",
   Argentina: "ar",
   Australia: "au",
+  Brazil: "br",
   China: "cn",
   Egypt: "eg",
   France: "fr",
@@ -14,13 +15,17 @@ export const FLAG_CODES = {
   Italy: "it",
   Japan: "jp",
   Kenya: "ke",
+  Mexico: "mx",
+  Netherlands: "nl",
   Nigeria: "ng",
   Philippines: "ph",
+  Portugal: "pt",
   Senegal: "sn",
   Serbia: "rs",
   "South Korea": "kr",
   Spain: "es",
   "United Kingdom": "gb",
+  Scotland: "gb-scot",
   Europe: "eu",
   Africa: null,
 };
@@ -50,7 +55,7 @@ function SideHead({ children, count, collapsible, expanded, onToggle }) {
   );
 }
 
-function SideRow({ badge, badgeColor, label, tag, meta, active, onClick, ariaLabel, title, flagCode }) {
+function SideRow({ badge, badgeColor, label, tag, meta, active, onClick, ariaLabel, title, flagCode, logo }) {
   return (
     <button
       type="button"
@@ -60,7 +65,9 @@ function SideRow({ badge, badgeColor, label, tag, meta, active, onClick, ariaLab
       aria-label={ariaLabel}
       title={title ?? label}
     >
-      {badge ? (
+      {logo ? (
+        <img className="sh-league-logo" src={logo} alt="" loading="lazy" />
+      ) : badge ? (
         <span
           aria-hidden="true"
           className="sh-league-badge sh-league-badge-sm"

@@ -34,6 +34,8 @@ describe("soccer league registry", () => {
       expect(league.sport).toBe("soccer");
       expect(league.path).toBe(`soccer/${key}`);
       expect(league.competitionId).toBe(key);
+      // Every competition carries its ESPN crest.
+      expect(league.logo).toMatch(/^https:\/\/a\.espncdn\.com\/i\/leaguelogos\/soccer\/500\/\d+\.png$/);
     }
   });
 
@@ -190,9 +192,16 @@ describe("football (soccer) feeds", () => {
       ],
     };
 
-    const groups = normalizeStandings(payload, { sport: "soccer" });
+    const groups = normalizeStandings(payload, {
+      sport: "soccer",
+      league: "eng.1",
+      logo: SOCCER_LEAGUES["eng.1"].logo,
+    });
     expect(groups).toHaveLength(1);
     expect(groups[0].group).toBe("2026-27 English Premier League");
+    // The table carries its competition so the card can show the crest.
+    expect(groups[0].league).toBe("eng.1");
+    expect(groups[0].leagueLogo).toBe(SOCCER_LEAGUES["eng.1"].logo);
     expect(groups[0].rows[0].team).toBe("Arsenal"); // sorted by points, not wins%
     expect(groups[0].rows[0].pts).toBe(27);
     expect(groups[0].rows[0].pct).toBe("2.70"); // points per game

@@ -149,6 +149,7 @@ export default function SoccerPage({
           name: entry.name,
           short: entry.short,
           color: entry.color,
+          logo: entry.logo,
         }))}
         activeLeague={competition}
         onLeague={handleLeague}
