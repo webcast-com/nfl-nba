@@ -318,17 +318,15 @@ describe("SoccerPage", () => {
 });
 
 describe("StreamLivePage", () => {
-  it("renders the ticker and the Sportsrc panel (disabled in tests)", () => {
+  it("renders the ticker and hides the Sportsrc panel when disabled", () => {
     const { container } = render(<StreamLivePage />);
 
     expect(document.title).toContain("StreamLive");
-    // Sportsrc is disabled in the test environment, so both the hero and the
-    // panel fall back to their empty states.
+    // Sportsrc is disabled in the test environment, so the hero falls back to
+    // its empty state and the panel hides instead of showing an offline note.
     const hero = container.querySelector(".sh-feature");
     expect(hero.className).toContain("sh-feature-empty");
     expect(hero.textContent).toContain("Nothing on the court right now");
-    expect(container.querySelector("#section-sportsrc")).toBeTruthy();
-    expect(container.textContent).toContain("No fixtures from Sportsrc");
-    expect(container.textContent).toContain("Sportsrc disabled");
+    expect(container.querySelector("#section-sportsrc")).toBeNull();
   });
 });

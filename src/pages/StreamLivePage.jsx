@@ -42,7 +42,7 @@ export default function StreamLivePage() {
           <HeroTicker games={heroGames} sport="basketball" onWatch={setWatching} />
         </div>
 
-        <SportsrcPanel feed={feed} title="Football" />
+        {feed.matches.length ? <SportsrcPanel feed={feed} title="Football" /> : null}
       </div>
 
       <MobileSectionTabs />
