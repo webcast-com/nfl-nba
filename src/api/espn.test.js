@@ -711,11 +711,12 @@ describe("NCAA league routing", () => {
     expect(leagueKeyForCompetition("ncaam")).toBe("mens-college-basketball");
     expect(leagueKeyForCompetition("cfb")).toBe("college-football");
     expect(leagueKeyForCompetition("nfl")).toBe("nfl");
-    // Soccer competitions are not mapped here — they live in src/api/soccer.js
-    // and the soccer pages fall back to their own config.leagueKey.
+    // Without the soccer registry loaded (this file never imports it) soccer
+    // competitions stay unmapped — src/api/soccer.js registers them at startup.
     expect(leagueKeyForCompetition("eng.1")).toBeNull();
     expect(leagueKeyForCompetition("uefa.champions")).toBeNull();
     expect(leagueKeyForCompetition(undefined)).toBeNull();
+    expect(leagueKeyForCompetition("nonsense")).toBeNull();
   });
 });
 

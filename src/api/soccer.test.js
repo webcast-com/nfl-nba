@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  leagueKeyForCompetition,
+  leagueNameFor,
   normalizeScoreboard,
   normalizeStandings,
 } from "./espn";
@@ -16,7 +18,17 @@ describe("soccer league registry", () => {
       "esp.1",
       "ita.1",
       "ger.1",
+      "fra.1",
+      "ned.1",
+      "por.1",
+      "sco.1",
       "uefa.champions",
+      "uefa.europa",
+      "uefa.europa.conf",
+      "uefa.nations",
+      "eng.fa",
+      "mex.1",
+      "bra.1",
     ]);
     for (const [key, league] of Object.entries(SOCCER_LEAGUES)) {
       expect(league.sport).toBe("soccer");
@@ -30,6 +42,20 @@ describe("soccer league registry", () => {
     expect(liveLeaguesForSoccer("all")).toEqual(SOCCER_LIVE_LEAGUES);
     expect(liveLeaguesForSoccer("eng.1")).toEqual(["eng.1"]);
     expect(liveLeaguesForSoccer("esp.1")).toEqual(["esp.1"]);
+    // Every registered league can narrow the board, including the new ones.
+    for (const key of ["fra.1", "ned.1", "por.1", "sco.1", "uefa.europa", "uefa.europa.conf", "uefa.nations", "eng.fa", "mex.1", "bra.1"]) {
+      expect(liveLeaguesForSoccer(key)).toEqual([key]);
+    }
+  });
+
+  it("registers every competition with the shared league registry", () => {
+    // importing ./soccer calls registerLeagues, so the shared URL builders and
+    // match links resolve all soccer keys — not just the flagship one.
+    for (const [key, league] of Object.entries(SOCCER_LEAGUES)) {
+      expect(leagueKeyForCompetition(key)).toBe(key);
+      expect(leagueNameFor(key)).toBe(league.competition);
+    }
+    expect(leagueKeyForCompetition("nonsense")).toBeNull();
   });
 });
 

@@ -49,6 +49,38 @@ export const SOCCER_LEAGUES = {
     competition: "Bundesliga",
     country: "Germany",
   },
+  "fra.1": {
+    key: "fra.1",
+    sport: "soccer",
+    path: "soccer/fra.1",
+    competitionId: "fra.1",
+    competition: "Ligue 1",
+    country: "France",
+  },
+  "ned.1": {
+    key: "ned.1",
+    sport: "soccer",
+    path: "soccer/ned.1",
+    competitionId: "ned.1",
+    competition: "Eredivisie",
+    country: "Netherlands",
+  },
+  "por.1": {
+    key: "por.1",
+    sport: "soccer",
+    path: "soccer/por.1",
+    competitionId: "por.1",
+    competition: "Primeira Liga",
+    country: "Portugal",
+  },
+  "sco.1": {
+    key: "sco.1",
+    sport: "soccer",
+    path: "soccer/sco.1",
+    competitionId: "sco.1",
+    competition: "Scottish Premiership",
+    country: "Scotland",
+  },
   "uefa.champions": {
     key: "uefa.champions",
     sport: "soccer",
@@ -57,10 +89,74 @@ export const SOCCER_LEAGUES = {
     competition: "Champions League",
     country: "Europe",
   },
+  "uefa.europa": {
+    key: "uefa.europa",
+    sport: "soccer",
+    path: "soccer/uefa.europa",
+    competitionId: "uefa.europa",
+    competition: "Europa League",
+    country: "Europe",
+  },
+  "uefa.europa.conf": {
+    key: "uefa.europa.conf",
+    sport: "soccer",
+    path: "soccer/uefa.europa.conf",
+    competitionId: "uefa.europa.conf",
+    competition: "Conference League",
+    country: "Europe",
+  },
+  "uefa.nations": {
+    key: "uefa.nations",
+    sport: "soccer",
+    path: "soccer/uefa.nations",
+    competitionId: "uefa.nations",
+    competition: "Nations League",
+    country: "Europe",
+  },
+  "eng.fa": {
+    key: "eng.fa",
+    sport: "soccer",
+    path: "soccer/eng.fa",
+    competitionId: "eng.fa",
+    competition: "FA Cup",
+    country: "United Kingdom",
+  },
+  "mex.1": {
+    key: "mex.1",
+    sport: "soccer",
+    path: "soccer/mex.1",
+    competitionId: "mex.1",
+    competition: "Liga MX",
+    country: "Mexico",
+  },
+  "bra.1": {
+    key: "bra.1",
+    sport: "soccer",
+    path: "soccer/bra.1",
+    competitionId: "bra.1",
+    competition: "Brasileirão",
+    country: "Brazil",
+  },
 };
 
-/** Leagues merged into the football (soccer) board. */
-export const SOCCER_LIVE_LEAGUES = ["eng.1", "esp.1", "ita.1", "ger.1", "uefa.champions"];
+/** Leagues merged into the football (soccer) board, in display order. */
+export const SOCCER_LIVE_LEAGUES = [
+  "eng.1",
+  "esp.1",
+  "ita.1",
+  "ger.1",
+  "fra.1",
+  "ned.1",
+  "por.1",
+  "sco.1",
+  "uefa.champions",
+  "uefa.europa",
+  "uefa.europa.conf",
+  "uefa.nations",
+  "eng.fa",
+  "mex.1",
+  "bra.1",
+];
 
 /** Which ESPN leagues feed the soccer board, narrowed to one competition. */
 export function liveLeaguesForSoccer(competition) {

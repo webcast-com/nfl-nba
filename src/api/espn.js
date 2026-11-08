@@ -165,7 +165,14 @@ export function liveLeaguesFor(sport, competition) {
 /** Competition id → ESPN league key (used by the team pages). */
 export function leagueKeyForCompetition(competitionId) {
   if (!competitionId) return null;
-  return LEAGUE_BY_COMPETITION[competitionId] ?? null;
+  // Registered external leagues (e.g. the soccer registry) resolve too, so a
+  // match link from any competition lands on the right ESPN board.
+  return LEAGUE_BY_COMPETITION[competitionId] ?? resolveLeague(competitionId)?.key ?? null;
+}
+
+/** Display name of a registered league, or null when unknown. */
+export function leagueNameFor(leagueKey) {
+  return resolveLeague(leagueKey)?.competition ?? null;
 }
 
 const NFL_COMPETITION_NAMES = {

@@ -3,9 +3,9 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import { detailSport } from "../data/detailConfig";
 import { demoCommentary } from "../data/commentaryData";
 import {
-  ESPN_LEAGUES,
   isEspnDisabled,
   leagueKeyForCompetition,
+  leagueNameFor,
   loadMatchSummary,
 } from "../api/espn";
 import { gameClockLabel } from "../utils/dates";
@@ -491,7 +491,7 @@ export default function MatchPage({ sport = "basketball" }) {
   const competitionId = demoGame?.competitionId ?? params.get("competition");
   const leagueKey = leagueKeyForCompetition(competitionId) ?? config.leagueKey;
   const competitionName =
-    demoGame?.competition ?? ESPN_LEAGUES[leagueKey]?.competition ?? config.label;
+    demoGame?.competition ?? leagueNameFor(leagueKey) ?? config.label;
 
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(!isEspnDisabled());

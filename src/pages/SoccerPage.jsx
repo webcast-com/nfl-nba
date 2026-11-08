@@ -19,7 +19,18 @@ import {
 } from "../utils/dashboard";
 
 /** Countries whose leagues the hub tracks; everything else counts as "International". */
-const HUB_COUNTRIES = ["United Kingdom", "Spain", "Italy", "Germany"];
+const HUB_COUNTRIES = [
+  "United Kingdom",
+  "Spain",
+  "Italy",
+  "Germany",
+  "France",
+  "Netherlands",
+  "Portugal",
+  "Scotland",
+  "Mexico",
+  "Brazil",
+];
 
 export default function SoccerPage({
   games,
@@ -33,7 +44,7 @@ export default function SoccerPage({
 }) {
   usePageMeta(
     "Football (soccer)",
-    "Live football (soccer) scores, fixtures and standings from the Premier League, La Liga, Serie A, the Bundesliga and the Champions League."
+    "Live football (soccer) scores, fixtures and standings from the Premier League, La Liga, Serie A, the Bundesliga, Ligue 1, the Champions League, Europa League and Liga MX."
   );
   const [competition, setCompetition] = useState("all");
   const [country, setCountry] = useState("All countries");
