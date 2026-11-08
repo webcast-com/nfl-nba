@@ -26,6 +26,7 @@ const renderAt = (path, sport = "basketball") =>
       <Routes>
         <Route path="/basketball/match/:matchId" element={<MatchPage sport={sport} />} />
         <Route path="/nfl/match/:matchId" element={<MatchPage sport={sport} />} />
+        <Route path="/soccer/match/:matchId" element={<MatchPage sport={sport} />} />
       </Routes>
     </MemoryRouter>
   );
@@ -421,5 +422,77 @@ describe("match section chips", () => {
     ]);
     expect(table.textContent).toContain("5-2");
     expect(table.textContent).toContain("196");
+  });
+
+  it("renders the soccer league table with the hub's points and goals columns", async () => {
+    loadMatchSummary.mockResolvedValue({
+      plays: [],
+      state: "post",
+      statusText: "Final",
+      venue: "Elland Road",
+      teams: [
+        { name: "Leeds United", abbreviation: "LEE", homeAway: "home", score: "1", logo: null },
+        { name: "Tottenham Hotspur", abbreviation: "TOT", homeAway: "away", score: "0", logo: null },
+      ],
+      standings: {
+        header: "2026-27 English Premier League",
+        groups: [
+          {
+            header: "2026-27 English Premier League",
+            entries: [
+              {
+                name: "Arsenal",
+                slug: "arsenal",
+                code: "ARS",
+                logo: null,
+                stats: {
+                  gamesPlayed: "10",
+                  wins: "9",
+                  ties: "0",
+                  losses: "1",
+                  points: "27",
+                  pointsFor: "15",
+                  pointsAgainst: "5",
+                },
+              },
+              {
+                name: "Manchester City",
+                slug: "manchester-city",
+                code: "MNC",
+                logo: null,
+                stats: {
+                  gamesPlayed: "10",
+                  wins: "7",
+                  ties: "0",
+                  losses: "3",
+                  points: "21",
+                  pointsFor: "21",
+                  pointsAgainst: "13",
+                },
+              },
+            ],
+          },
+        ],
+      },
+    });
+    const { container } = renderAt("/soccer/match/401878758", "soccer");
+    await waitFor(() => expect(heroText(container)).toContain("Elland Road"));
+    fireEvent.click(screen.getByRole("tab", { name: /League Table/ }));
+    const table = await screen.findByText("Arsenal").then(() => container.querySelector(".sh-league-table"));
+    expect([...table.querySelectorAll("thead th")].map((th) => th.textContent)).toEqual([
+      "Team",
+      "P",
+      "W",
+      "D",
+      "L",
+      "PCT",
+      "GF",
+      "GA",
+      "PTS",
+    ]);
+    // Points per game and the points column match the hub's league table.
+    expect(table.textContent).toContain("2.70"); // Arsenal: 27 / 10
+    expect(table.textContent).toContain("27");
+    expect(table.textContent).toContain("2.10"); // Man City: 21 / 10
   });
 });
